@@ -14,7 +14,7 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
         {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
       </button>
       <div className="flex items-center gap-4">
-        <span className="text-gray-600">Welcome Admint</span>
+        <span className="text-gray-600">Welcome Admin</span>
         <Avatar 
           icon={<UserOutlined />} 
           className="bg-blue-500"
