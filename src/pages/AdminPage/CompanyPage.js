@@ -50,35 +50,53 @@ const CompanyPage = () => {
       key: "stt",
       width: 70,
       className: "text-center",
+      onHeaderCell: () => ({
+        style: { textAlign: 'center' }
+      })
     },
     {
       title: "Id",
       dataIndex: "id",
       key: "id",
       className: "text-center",
+      onHeaderCell: () => ({
+        style: { textAlign: 'center' }
+      })
     },
     {
       title: "Name",
       dataIndex: "name",
       key: "name",
       sorter: (a, b) => a.name.localeCompare(b.name),
+      onHeaderCell: () => ({
+        style: { textAlign: 'center' }
+      })
     },
     {
       title: "Address",
       dataIndex: "address",
       key: "address",
+      onHeaderCell: () => ({
+        style: { textAlign: 'center' }
+      })
     },
     {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
       sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      onHeaderCell: () => ({
+        style: { textAlign: 'center' }
+      })
     },
     {
       title: "Updated At",
       dataIndex: "updatedAt",
       key: "updatedAt",
       sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
+      onHeaderCell: () => ({
+        style: { textAlign: 'center' }
+      })
     },
     {
       title: "Actions",
@@ -102,6 +120,9 @@ const CompanyPage = () => {
           </Tooltip>
         </Space>
       ),
+      onHeaderCell: () => ({
+        style: { textAlign: 'center' }
+      })
     },
   ];
 
@@ -139,7 +160,7 @@ const CompanyPage = () => {
                 </Form.Item>
 
                 {/* Chuyển nút vào trong Form.Item */}
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '30px' }}>
+                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
                   <div className="flex space-x-2">
                     <Button type="primary" htmlType="submit">
                       Search
