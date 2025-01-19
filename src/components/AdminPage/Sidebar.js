@@ -8,6 +8,7 @@ import {
   FileOutlined,
   LockOutlined,
   SafetyCertificateOutlined,
+  ShoppingOutlined,
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -34,7 +35,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     },
     {
       key: '/job',
-      icon: <FileOutlined className="text-gray-600" />,
+      icon: <ShoppingOutlined className="text-gray-600" />,
       label: <span className="text-gray-700">Job</span>,
     },
     {
