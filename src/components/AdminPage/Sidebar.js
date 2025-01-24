@@ -18,37 +18,37 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
 
   const menuItems = [
     {
-      key: '/',
+      key: '/admin',
       icon: <DashboardOutlined className="text-gray-600" />,
       label: <span className="text-gray-700">Dashboard</span>,
     },
     {
-      key: '/company',
+      key: '/admin/company',
       icon: <TeamOutlined className="text-gray-600" />,
       label: <span className="text-gray-700">Company</span>,
     },
     {
-      key: '/user',
+      key: '/admin/user',
       icon: <UserOutlined className="text-gray-600" />,
       label: <span className="text-gray-700">User</span>,
     },
     {
-      key: '/job',
+      key: '/admin/job',
       icon: <FileOutlined className="text-gray-600" />,
       label: <span className="text-gray-700">Job</span>,
     },
     {
-      key: '/resume',
+      key: '/admin/resume',
       icon: <FileOutlined className="text-gray-600" />,
       label: <span className="text-gray-700">Resume</span>,
     },
     {
-      key: '/permission',
+      key: '/admin/permission',
       icon: <LockOutlined className="text-gray-600" />,
       label: <span className="text-gray-700">Permission</span>,
     },
     {
-      key: '/role',
+      key: '/admin/role',
       icon: <SafetyCertificateOutlined className="text-gray-600" />,
       label: <span className="text-gray-700">Role</span>,
     },

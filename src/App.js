@@ -1,17 +1,18 @@
-import React from "react";
-import ROUTER from "./router";
-import { useRoutes } from "react-router";
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import ROUTES from './router';
 
-function App() {
-  const routing = useRoutes(ROUTER);
-
+const App = () => {
   return (
-    <div className="layout-center">
-      <div className="layout-max-width">
-        {routing}
-      </div>
-    </div>
+    <Routes>
+      {ROUTES.user.map((route, index) => (
+        <Route key={index} path={route.path} element={route.element} />
+      ))}
+      {ROUTES.admin.map((route, index) => (
+        <Route key={index} path={route.path} element={route.element} />
+      ))}
+    </Routes>
   );
-}
+};
 
 export default App;
