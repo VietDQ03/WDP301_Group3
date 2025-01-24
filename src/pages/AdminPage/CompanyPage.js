@@ -48,81 +48,62 @@ const CompanyPage = () => {
       title: "STT",
       dataIndex: "key",
       key: "stt",
+      align: "center",
       width: 70,
-      className: "text-center",
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
-    },
-    {
-      title: "Id",
-      dataIndex: "id",
-      key: "id",
-      className: "text-center",
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
     },
     {
       title: "Name",
       dataIndex: "name",
       key: "name",
       sorter: (a, b) => a.name.localeCompare(b.name),
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
     },
     {
-      title: "Address",
-      dataIndex: "address",
-      key: "address",
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
+      align: "center",
     },
     {
-      title: "Created At",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
-    },
-    {
-      title: "Updated At",
-      dataIndex: "updatedAt",
-      key: "updatedAt",
-      sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      align: "center",
+      render: (status) => (
+        <span
+          style={{
+            color: status === "Active" ? "green" : "red",
+            fontWeight: 600,
+          }}
+        >
+          {status}
+        </span>
+      ),
     },
     {
       title: "Actions",
       key: "actions",
-      width: 120,
+      align: "center",
       render: (_, record) => (
-        <Space>
+        <Space size="middle">
           <Tooltip title="Edit">
             <Button
-              type="text"
+              type="primary"
               icon={<EditOutlined />}
-              className="text-blue-500 hover:text-blue-700"
+              shape="round"
+              size="small"
             />
           </Tooltip>
           <Tooltip title="Delete">
             <Button
-              type="text"
+              type="primary"
+              danger
               icon={<DeleteOutlined />}
-              className="text-red-500 hover:text-red-700"
+              shape="round"
+              size="small"
             />
           </Tooltip>
         </Space>
       ),
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
     },
   ];
 
@@ -141,27 +122,29 @@ const CompanyPage = () => {
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
 
-        <Content className="m-6">
-          <div className="bg-white p-6 shadow rounded-lg">
+        <Content className="p-6">
+          <div className="bg-white p-8 shadow rounded-lg">
             {/* Search Form */}
             <Form
               form={form}
               onFinish={onFinish}
               layout="vertical"
-              className="mb-6"
+              className="mb-6 space-y-4"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Form.Item name="name" label="Name" className="col-span-1">
-                  <Input placeholder="Enter name" style={{height: '40px'}} />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="name" label="Name">
+                  <Input placeholder="Enter name" style={{ height: "40px" }} />
                 </Form.Item>
 
-                <Form.Item name="address" label="Address" className="col-span-1">
-                  <Input placeholder="Enter address" style={{height: '40px'}}/>
+                <Form.Item name="address" label="Address">
+                  <Input
+                    placeholder="Enter address"
+                    style={{ height: "40px" }}
+                  />
                 </Form.Item>
 
-                {/* Chuyển nút vào trong Form.Item */}
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
-                  <div className="flex space-x-2">
+                <Form.Item>
+                  <div className="flex space-x-2 mt-7" style={{ marginTop: "35px" }}>
                     <Button type="primary" htmlType="submit">
                       Search
                     </Button>
@@ -173,18 +156,31 @@ const CompanyPage = () => {
 
             {/* Table Header */}
             <div className="flex justify-between items-center mb-4">
-              <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
+              <Title level={4} style={{ margin: 0 }}>
                 Company List
               </Title>
               <Space>
-                <Button type="primary" icon={<PlusOutlined />}>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  shape="round"
+                  size="middle"
+                >
                   Add New
                 </Button>
                 <Tooltip title="Refresh">
-                  <Button icon={<ReloadOutlined />} />
+                  <Button
+                    icon={<ReloadOutlined />}
+                    shape="round"
+                    size="middle"
+                  />
                 </Tooltip>
                 <Tooltip title="Settings">
-                  <Button icon={<SettingOutlined />} />
+                  <Button
+                    icon={<SettingOutlined />}
+                    shape="round"
+                    size="middle"
+                  />
                 </Tooltip>
               </Space>
             </div>
@@ -200,8 +196,8 @@ const CompanyPage = () => {
                 showTotal: (total) => `1-10 of ${total} rows`,
               }}
               bordered
+              rowClassName="hover:bg-gray-50"
               size="middle"
-              className="overflow-x-auto"
             />
           </div>
         </Content>
