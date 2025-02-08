@@ -1,86 +1,98 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
-import {
-  Table,
-  Input,
-  Button,
-  Space,
-  Form,
-  Typography,
-  Tooltip,
-  Layout,
-  Select,
-  Tag,
-} from "antd";
-import {
-  PlusOutlined,
-  ReloadOutlined,
-  SettingOutlined,
-  EditOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
+import { jobApi } from "../../api/AdminPageAPI/jobAPI";
+import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message, } from "antd";
+import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, } from "@ant-design/icons";
 
 const { Content } = Layout;
 const { Title } = Typography;
 const { Option } = Select;
+const { confirm } = Modal;
 
 const JobPage = () => {
   const [collapsed, setCollapsed] = React.useState(false);
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [jobs, setJobs] = useState([]);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0
+  });
 
-  const dataSource = [
-    {
-      key: "1",
-      stt: 1,
-      title: "Junior",
-      salary: "20,000,000 đ",
-      level: "JUNIOR",
-      status: "ACTIVE",
-      createdAt: "25-06-2024 15:58:12",
-      updatedAt: "05-12-2024 09:06:40"
-    },
-    {
-      key: "2",
-      stt: 2,
-      title: "Junior Frontend ReactJS Dev (JavaScript, HTML, CSS)",
-      salary: "17,000,000 đ",
-      level: "JUNIOR",
-      status: "ACTIVE",
-      createdAt: "13-06-2023 10:54:27",
-      updatedAt: "13-06-2023 10:54:27"
-    },
-    {
-      key: "3",
-      stt: 3,
-      title: "Front-end coder",
-      salary: "15,000,000 đ",
-      level: "FRESHER",
-      status: "ACTIVE",
-      createdAt: "13-06-2023 10:53:18",
-      updatedAt: "13-06-2023 10:53:18"
-    },
-    {
-      key: "4",
-      stt: 4,
-      title: "Mid/Sr Frontend Developer (ReactJS, TypeScript)",
-      salary: "25,000,000 đ",
-      level: "MIDDLE",
-      status: "ACTIVE",
-      createdAt: "13-06-2023 10:52:17",
-      updatedAt: "13-06-2023 10:52:17"
-    },
-    {
-      key: "5",
-      stt: 5,
-      title: "Remote Sr Front-End Dev (TypeScript, ReactJS, English)",
-      salary: "30,000,009 đ",
-      level: "MIDDLE",
-      status: "ACTIVE",
-      createdAt: "13-06-2023 10:51:06",
-      updatedAt: "13-06-2023 10:51:06"
+  const fetchJobs = async (params = {}) => {
+    try {
+      setLoading(true);
+      const response = await jobApi.getAll({
+        page: params.current || 1,
+        pageSize: params.pageSize || 10,
+        ...params
+      });
+
+      const { result, meta } = response.data.data;
+
+      const formattedJobs = result.map((job, index) => ({
+        key: job._id,
+        stt: index + 1 + ((meta.current - 1) * meta.pageSize),
+        name: job.name,
+        company: job.company.name,
+        location: job.location,
+        salary: new Intl.NumberFormat('vi-VN').format(job.salary) + ' đ',
+        level: job.level,
+        quantity: job.quantity,
+        status: job.isActive ? "ACTIVE" : "INACTIVE",
+        createdAt: new Date(job.createdAt).toLocaleString(),
+        updatedAt: new Date(job.updatedAt).toLocaleString(),
+      }));
+
+      setJobs(formattedJobs);
+      setPagination({
+        ...pagination,
+        total: meta.total,
+        current: meta.current || 1,
+        pageSize: meta.pageSize || 10,
+      });
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      message.error("Có lỗi xảy ra khi tải danh sách công việc!");
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const handleDelete = (id) => {
+    confirm({
+      title: 'Bạn có chắc chắn muốn xóa công việc này?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Hành động này không thể hoàn tác',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await jobApi.delete(id);
+          message.success('Xóa công việc thành công!');
+          fetchJobs({
+            current: pagination.current,
+            pageSize: pagination.pageSize
+          });
+        } catch (error) {
+          console.error("Error deleting job:", error);
+          message.error('Có lỗi xảy ra khi xóa công việc!');
+        }
+      },
+    });
+  };
+
+  const statusMap = {
+    "ACTIVE": "Hoạt động",
+    "INACTIVE": "Không hoạt động"
+  };
 
   const columns = [
     {
@@ -89,74 +101,62 @@ const JobPage = () => {
       key: "stt",
       width: 70,
       className: "text-center",
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
+      align: "center",
     },
     {
       title: "Tên Job",
-      dataIndex: "title",
-      key: "title",
-      sorter: (a, b) => a.title.localeCompare(b.title),
+      dataIndex: "name",
+      key: "name",
       onHeaderCell: () => ({
         style: { textAlign: 'center' }
       })
     },
     {
-      title: "Mức lương",
+      title: "Công Ty",
+      dataIndex: "company",
+      key: "company",
+      onHeaderCell: () => ({
+        style: { textAlign: 'center' }
+      })
+    },
+    {
+      title: "Địa Điểm",
+      dataIndex: "location",
+      key: "location",
+      align: "center",
+    },
+    {
+      title: "Mức Lương",
       dataIndex: "salary",
       key: "salary",
-      sorter: (a, b) => {
-        const aValue = parseInt(a.salary.replace(/[^\d]/g, ''));
-        const bValue = parseInt(b.salary.replace(/[^\d]/g, ''));
-        return aValue - bValue;
-      },
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
+      align: "center",
     },
     {
-      title: "Level",
+      title: "Mức Độ",
+      align: "center",
       dataIndex: "level",
       key: "level",
-      sorter: (a, b) => a.level.localeCompare(b.level),
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
     },
     {
-      title: "Trạng thái",
+      title: "Số Lượng",
+      dataIndex: "quantity",
+      align: "center",
+      key: "quantity",
+    },
+    {
+      title: "Trạng Thái",
+      align: "center",
       dataIndex: "status",
       key: "status",
       render: (status) => (
         <Tag color={status === "ACTIVE" ? "green" : "red"}>
-          {status}
+          {statusMap[status]}
         </Tag>
       ),
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
     },
     {
-      title: "CreatedAt",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
-    },
-    {
-      title: "UpdatedAt",
-      dataIndex: "updatedAt",
-      key: "updatedAt",
-      sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
-    },
-    {
-      title: "Actions",
+      title: "Hành Động",
+      align: "center",
       key: "actions",
       width: 120,
       render: (_, record) => (
@@ -166,6 +166,7 @@ const JobPage = () => {
               type="text"
               icon={<EditOutlined />}
               className="text-blue-500 hover:text-blue-700"
+              onClick={() => handleEdit(record.key)}
             />
           </Tooltip>
           <Tooltip title="Delete">
@@ -173,6 +174,7 @@ const JobPage = () => {
               type="text"
               icon={<DeleteOutlined />}
               className="text-red-500 hover:text-red-700"
+              onClick={() => handleDelete(record.key)}
             />
           </Tooltip>
         </Space>
@@ -180,23 +182,48 @@ const JobPage = () => {
     },
   ];
 
+  const handleTableChange = (newPagination, filters, sorter) => {
+    fetchJobs({
+      ...newPagination,
+      sortField: sorter.field,
+      sortOrder: sorter.order,
+      ...filters,
+    });
+  };
+
   const onFinish = (values) => {
-    console.log("Search values:", values);
+    fetchJobs({
+      ...values,
+      current: 1
+    });
   };
 
   const onReset = () => {
     form.resetFields();
+    fetchJobs();
+  };
+
+  const handleRefresh = () => {
+    fetchJobs({
+      current: pagination.current,
+      pageSize: pagination.pageSize
+    });
+  };
+
+  const handleEdit = (id) => {
+    // Implement edit functionality
+    console.log("Edit job with id:", id);
   };
 
   return (
-    <Layout className="min-h-screen">
+    <Layout className="min-h-screen ">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
-      <Layout>
+      <Layout >
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
 
         <Content className="m-6">
-          <div className="bg-white p-6 shadow rounded-lg">
+          <div className="bg-white p-6 shadow rounded-lg min-h-[850px]">
             {/* Search Form */}
             <Form
               form={form}
@@ -205,12 +232,12 @@ const JobPage = () => {
               className="mb-6"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <Form.Item name="title" label="Tên Job" className="col-span-1">
-                  <Input placeholder="Nhập tên job" style={{height: '40px'}} />
+                <Form.Item name="name" label="Tên Job" className="col-span-1">
+                  <Input placeholder="Nhập tên job" style={{ height: '40px' }} />
                 </Form.Item>
 
                 <Form.Item name="level" label="Level" className="col-span-1">
-                  <Select placeholder="Chọn level" style={{height: '40px'}}>
+                  <Select placeholder="Chọn level" style={{ height: '40px' }}>
                     <Option value="FRESHER">FRESHER</Option>
                     <Option value="JUNIOR">JUNIOR</Option>
                     <Option value="MIDDLE">MIDDLE</Option>
@@ -219,7 +246,7 @@ const JobPage = () => {
                 </Form.Item>
 
                 <Form.Item name="status" label="Trạng thái" className="col-span-1">
-                  <Select placeholder="Chọn trạng thái" style={{height: '40px'}}>
+                  <Select placeholder="Chọn trạng thái" style={{ height: '40px' }}>
                     <Option value="ACTIVE">ACTIVE</Option>
                     <Option value="INACTIVE">INACTIVE</Option>
                   </Select>
@@ -239,14 +266,14 @@ const JobPage = () => {
             {/* Table Header */}
             <div className="flex justify-between items-center mb-4">
               <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
-                Danh sách Jobs
+                Danh sách Việc Làm
               </Title>
               <Space>
                 <Button type="primary" icon={<PlusOutlined />}>
                   Thêm mới
                 </Button>
                 <Tooltip title="Refresh">
-                  <Button icon={<ReloadOutlined />} />
+                  <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
                 </Tooltip>
                 <Tooltip title="Settings">
                   <Button icon={<SettingOutlined />} />
@@ -256,14 +283,14 @@ const JobPage = () => {
 
             {/* Table */}
             <Table
-              dataSource={dataSource}
+              loading={loading}
+              dataSource={jobs}
               columns={columns}
               pagination={{
-                total: dataSource.length,
-                pageSize: 10,
+                ...pagination,
                 showSizeChanger: true,
-                showTotal: (total) => `1-${Math.min(10, total)} of ${total} rows`,
               }}
+              onChange={handleTableChange}
               bordered
               size="middle"
               className="overflow-x-auto"
