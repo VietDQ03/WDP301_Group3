@@ -2,27 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
 import { companyApi } from "../../api/AdminPageAPI/companyApi";
-import {
-  Table,
-  Input,
-  Button,
-  Space,
-  Form,
-  Typography,
-  Tooltip,
-  Layout,
-  message,
-} from "antd";
-import {
-  PlusOutlined,
-  ReloadOutlined,
-  SettingOutlined,
-  EditOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
+import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Modal, } from "antd";
+import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, } from "@ant-design/icons";
 
 const { Content } = Layout;
 const { Title } = Typography;
+const { confirm } = Modal;
 
 const CompanyPage = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -40,97 +25,84 @@ const CompanyPage = () => {
     total: 0,
   });
 
+  const fetchCompanies = async (params = {}) => {
+    setLoading(true);
+    try {
+      const response = await companyApi.getAll({
+        page: params.current || pagination.current,
+        pageSize: params.pageSize || pagination.pageSize,
+        ...params
+      });
+
+      if (response?.data?.data) {
+        const { result, meta } = response.data.data;
+
+        const dataWithKeys = result.map((item, index) => ({
+          ...item,
+          key: item._id,
+          stt: index + 1 + ((meta.current - 1) * meta.pageSize)
+        }));
+
+        setData(dataWithKeys);
+        setPagination({
+          current: meta.current || params.current || pagination.current,
+          pageSize: meta.pageSize || params.pageSize || pagination.pageSize,
+          total: meta.total || 0,
+        });
+      }
+    } catch (error) {
+      message.error('Không thể tải danh sách công ty');
+      console.error('Error:', error);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
     fetchCompanies();
   }, []);
 
-  const fetchCompanies = async (page = pagination.current) => {
-    setLoading(true);
-    try {
-      const response = await companyApi.getAll({
-        page: page,
-        pageSize: 10
-      });
-      
-      console.log("Raw response:", response);
-      console.log("Data structure:", response?.data?.data);
-      
-      if (response?.data?.data) {
-        const { result, meta } = response.data.data;
-        console.log("Extracted result:", result);
-        console.log("Extracted meta:", meta);
-        
-        const dataWithKeys = result.map((item) => ({
-          ...item,
-          key: item._id,
-        }));
-        console.log("Processed data:", dataWithKeys);
-        
-        setData(dataWithKeys);
-        setPagination({
-          current: page,
-          pageSize: 10,
-          total: meta.total || 0,
-        });
-      }
-    } catch (error) {
-      message.error('Failed to fetch companies');
-      console.error('Error:', error);
-    }
-    setLoading(false);
-  };
-
   const handleSearch = async (values) => {
-    setLoading(true);
-    try {
-      const response = await companyApi.search({
-        page: 1,
-        pageSize: 10,
-        ...values
-      });
-      
-      if (response?.data?.data) {
-        const { result, meta } = response.data.data;
-        const dataWithKeys = result.map((item) => ({
-          ...item,
-          key: item._id,
-        }));
-        setData(dataWithKeys);
-        setPagination({
-          current: 1,
-          pageSize: 10,
-          total: meta.total || 0,
-        });
-      }
-    } catch (error) {
-      message.error('Failed to search companies');
-      console.error('Error:', error);
-    }
-    setLoading(false);
+    setSearchValues(values);
+    fetchCompanies({
+      ...values,
+      current: 1,
+      pageSize: pagination.pageSize
+    });
   };
 
-  const handleInputChange = (field, value) => {
-    setSearchValues(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    form.setFieldsValue({ [field]: value });
+  const handleDelete = (id) => {
+    confirm({
+      title: 'Bạn có chắc chắn muốn xóa công ty này?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Hành động này không thể hoàn tác',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await companyApi.delete(id);
+          message.success('Xóa công ty thành công');
+          fetchCompanies({
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            ...searchValues
+          });
+        } catch (error) {
+          message.error('Không thể xóa công ty');
+          console.error('Error:', error);
+        }
+      },
+    });
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await companyApi.delete(id);
-      message.success('Company deleted successfully');
-      fetchCompanies();
-    } catch (error) {
-      message.error('Failed to delete company');
-      console.error('Error:', error);
-    }
-  };
-
-  const handleTableChange = (newPagination) => {
-    console.log("Table pagination change:", newPagination); // Debug log
-    fetchCompanies(newPagination.current);
+  const handleTableChange = (newPagination, filters, sorter) => {
+    fetchCompanies({
+      ...newPagination,
+      sortField: sorter.field,
+      sortOrder: sorter.order,
+      ...filters,
+      ...searchValues
+    });
   };
 
   const onFinish = (values) => {
@@ -144,40 +116,58 @@ const CompanyPage = () => {
       address: '',
       email: ''
     });
-    fetchCompanies(1);
+    fetchCompanies({
+      current: 1,
+      pageSize: pagination.pageSize
+    });
+  };
+
+  const handleRefresh = () => {
+    fetchCompanies({
+      current: pagination.current,
+      pageSize: pagination.pageSize,
+      ...searchValues
+    });
   };
 
   const columns = [
     {
       title: "STT",
-      key: "index",
-      align: "center",
+      key: "stt",
       width: 70,
-      render: (_, __, index) => index + 1 + (pagination.current - 1) * pagination.pageSize,
+      align: "center",
+      render: (_, record) => record.stt
     },
     {
       title: "Tên Công Ty",
       dataIndex: "name",
       key: "name",
-      sorter: (a, b) => (a.name || '').localeCompare(b.name || ''),
+      onHeaderCell: () => ({
+        style: { textAlign: 'center' }
+      })
     },
     {
       title: "Địa Chỉ",
       dataIndex: "address",
       key: "address",
+      onHeaderCell: () => ({
+        style: { textAlign: 'center' }
+      })
     },
     {
       title: "Email",
       dataIndex: ["createdBy", "email"],
       key: "email",
+      align: "center",
     },
     {
       title: "Hành Động",
       key: "actions",
       align: "center",
+      width: 120,
       render: (_, record) => (
-        <Space size="middle">
-          <Tooltip title="Edit">
+        <Space>
+          <Tooltip title="Chỉnh sửa">
             <Button
               type="primary"
               icon={<EditOutlined />}
@@ -188,7 +178,7 @@ const CompanyPage = () => {
               }}
             />
           </Tooltip>
-          <Tooltip title="Delete">
+          <Tooltip title="Xóa">
             <Button
               type="primary"
               danger
@@ -211,7 +201,7 @@ const CompanyPage = () => {
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
 
         <Content className="p-6">
-          <div className="bg-white p-8 shadow rounded-lg">
+          <div className="bg-white p-8 shadow rounded-lg min-h-[800px]">
             {/* Search Form */}
             <Form
               form={form}
@@ -224,8 +214,6 @@ const CompanyPage = () => {
                   <Input
                     placeholder="Nhập tên công ty"
                     style={{ height: "40px" }}
-                    value={searchValues.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
                   />
                 </Form.Item>
 
@@ -233,8 +221,6 @@ const CompanyPage = () => {
                   <Input
                     placeholder="Nhập địa chỉ"
                     style={{ height: "40px" }}
-                    value={searchValues.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
                   />
                 </Form.Item>
 
@@ -242,14 +228,12 @@ const CompanyPage = () => {
                   <Input
                     placeholder="Nhập email"
                     style={{ height: "40px" }}
-                    value={searchValues.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
                   />
                 </Form.Item>
 
                 <Form.Item>
                   <div className="flex space-x-2" style={{ marginTop: "35px" }}>
-                    <Button type="primary" htmlType="submit" loading={loading}>
+                    <Button type="primary" htmlType="submit">
                       Tìm kiếm
                     </Button>
                     <Button onClick={onReset}>Làm mới</Button>
@@ -275,16 +259,16 @@ const CompanyPage = () => {
                 >
                   Thêm Mới
                 </Button>
-                <Tooltip title="Refresh">
+                <Tooltip title="Làm mới">
                   <Button
                     icon={<ReloadOutlined />}
                     shape="round"
                     size="middle"
-                    onClick={() => fetchCompanies(1)}
+                    onClick={handleRefresh}
                     loading={loading}
                   />
                 </Tooltip>
-                <Tooltip title="Settings">
+                <Tooltip title="Cài đặt">
                   <Button
                     icon={<SettingOutlined />}
                     shape="round"
@@ -300,8 +284,7 @@ const CompanyPage = () => {
               columns={columns}
               pagination={{
                 ...pagination,
-                showSizeChanger: false,
-                showTotal: (total) => `Tổng số ${total} công ty`,
+                showSizeChanger: true,
               }}
               onChange={handleTableChange}
               bordered

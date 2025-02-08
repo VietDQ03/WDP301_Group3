@@ -9,7 +9,7 @@ export const companyApi = {
   getAll: (params) => {
     return axiosInstance.get('/companies', { 
       params: {
-        current: params.page,    // Đổi thành current vì BE đang expect current
+        current: params.page,   
         pageSize: params.pageSize
       }
     });

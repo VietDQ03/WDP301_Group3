@@ -1,13 +1,46 @@
-import React from 'react';
-import { Layout, Card, Row, Col, Statistic } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Card, Row, Col, Statistic, message } from 'antd';
 import { UserOutlined, ShoppingOutlined, FileOutlined, TeamOutlined } from '@ant-design/icons';
 import Sidebar from '../../components/AdminPage/Sidebar';
 import Header from '../../components/AdminPage/Header';
+import { companyApi } from "../../api/AdminPageAPI/companyApi";
+import { jobApi } from "../../api/AdminPageAPI/jobAPI";
+import CountUp from 'react-countup';
+
 
 const { Content } = Layout;
 
 const DashboardPage = () => {
   const [collapsed, setCollapsed] = React.useState(false);
+  const [dataCompanies, setDataCompanies] = useState([]);
+  const [dataJobs, setDataJobs] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchData = async (params = {}) => {
+    setLoading(true);
+    try {
+      const [companiesResponse, jobsResponse] = await Promise.all([
+        companyApi.getAll({ ...params }),
+        jobApi.getAll({ ...params })
+      ]);
+  
+      if (companiesResponse?.data?.data) {
+        setDataCompanies(companiesResponse.data.data);
+      }
+  
+      if (jobsResponse?.data?.data) {
+        setDataJobs(jobsResponse.data.data);
+      }
+    } catch (error) {
+      message.error('Không thể tải dữ liệu');
+      console.error('Error:', error);
+    }
+    setLoading(false);
+  };
+  
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const statisticsData = [
     {
@@ -17,22 +50,10 @@ const DashboardPage = () => {
       color: 'bg-blue-50',
     },
     {
-      title: 'Total Jobs',
-      value: 5684,
-      icon: <ShoppingOutlined className="text-green-500 text-2xl" />,
-      color: 'bg-green-50',
-    },
-    {
       title: 'Resumes',
       value: 12456,
       icon: <FileOutlined className="text-purple-500 text-2xl" />,
       color: 'bg-purple-50',
-    },
-    {
-      title: 'Companies',
-      value: 2345,
-      icon: <TeamOutlined className="text-orange-500 text-2xl" />,
-      color: 'bg-orange-50',
     },
   ];
 
@@ -57,19 +78,19 @@ const DashboardPage = () => {
   return (
     <Layout className="min-h-screen">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      
+
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-        
+
         <Content className="m-6">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Dashboard Overview</h1>
-            
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Trang Tổng Quan</h1>
+
             {/* Statistics Cards */}
             <Row gutter={[16, 16]}>
               {statisticsData.map((stat, index) => (
                 <Col xs={24} sm={12} lg={6} key={index}>
-                  <Card 
+                  <Card
                     className={`${stat.color} hover:shadow-md transition-shadow`}
                     bordered={false}
                   >
@@ -86,6 +107,58 @@ const DashboardPage = () => {
                   </Card>
                 </Col>
               ))}
+
+              {/* Jobs Card */}
+              <Col xs={24} sm={12} lg={6}>
+                <Card
+                  className="bg-green-50 hover:shadow-md transition-shadow"
+                  bordered={false}
+                >
+                  <div className="flex justify-between items-start">
+                    <Statistic
+                      title={<span className="text-gray-600">Số Lượng Công Việc</span>}
+                      value={dataJobs?.meta?.total || 0}
+                      formatter={() => (
+                        <CountUp
+                          start={0}
+                          end={dataJobs?.meta?.total || 0}
+                          duration={0.5}
+                          separator=","
+                        />
+                      )}
+                    />
+                    <div className="p-2 rounded-lg bg-white/60">
+                      <ShoppingOutlined className="text-green-500 text-2xl" />
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+
+              {/* Companies Card using dataCompanies */}
+              <Col xs={24} sm={12} lg={6}>
+                <Card
+                  className="bg-orange-50 hover:shadow-md transition-shadow"
+                  bordered={false}
+                >
+                  <div className="flex justify-between items-start">
+                    <Statistic
+                      title={<span className="text-gray-600">Số Lượng Công Ty</span>}
+                      value={dataCompanies?.meta?.total || 0}
+                      formatter={() => (
+                        <CountUp
+                          start={0}
+                          end={dataCompanies?.meta?.total || 0}
+                          duration={0.5}
+                          separator=","
+                        />
+                      )}
+                    />
+                    <div className="p-2 rounded-lg bg-white/60">
+                      <TeamOutlined className="text-orange-500 text-2xl" />
+                    </div>
+                  </div>
+                </Card>
+              </Col>
             </Row>
           </div>
 
@@ -110,8 +183,8 @@ const DashboardPage = () => {
           {/* Additional Content */}
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={16}>
-              <Card 
-                title="Monthly Statistics" 
+              <Card
+                title="Monthly Statistics"
                 className="hover:shadow-md transition-shadow"
               >
                 <div className="h-64 flex items-center justify-center text-gray-500">
@@ -120,8 +193,8 @@ const DashboardPage = () => {
               </Card>
             </Col>
             <Col xs={24} lg={8}>
-              <Card 
-                title="Quick Actions" 
+              <Card
+                title="Quick Actions"
                 className="hover:shadow-md transition-shadow"
               >
                 <ul className="space-y-4">

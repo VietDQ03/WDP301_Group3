@@ -43,17 +43,19 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
         {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
       </button>
       <div className="flex items-center gap-4">
-        <span className="text-gray-600 text-lg">Welcome Admin</span>
         <Dropdown
           menu={dropdownStyle}
           placement="bottomRight"
           arrow
-          trigger={['click']}
+          trigger={['hover']}
         >
-          <Avatar
-            icon={<UserOutlined />}
-            className="bg-blue-500 cursor-pointer"
-          />
+          <div className="flex items-center gap-4 cursor-pointer">
+            <span className="text-gray-600 text-lg">Welcome Admin</span>
+            <Avatar
+              icon={<UserOutlined />}
+              className="bg-blue-500"
+            />
+          </div>
         </Dropdown>
       </div>
     </Header>
