@@ -21,37 +21,37 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     {
       key: '/admin',
       icon: <DashboardOutlined className="text-gray-600" />,
-      label: <span className="text-gray-700">Dashboard</span>,
+      label: <span className="text-white-700">Dashboard</span>,
     },
     {
       key: '/admin/company',
       icon: <TeamOutlined className="text-gray-600" />,
-      label: <span className="text-gray-700">Company</span>,
+      label: <span className="text-white-700">Company</span>,
     },
     {
       key: '/admin/user',
       icon: <UserOutlined className="text-gray-600" />,
-      label: <span className="text-gray-700">User</span>,
+      label: <span className="text-white-700">User</span>,
     },
     {
       key: '/admin/job',
       icon: <ShoppingOutlined className="text-gray-600" />,
-      label: <span className="text-gray-700">Job</span>,
+      label: <span className="text-white-700">Job</span>,
     },
     {
       key: '/admin/resume',
       icon: <FileOutlined className="text-gray-600" />,
-      label: <span className="text-gray-700">Resume</span>,
+      label: <span className="text-white-700">Resume</span>,
     },
     {
       key: '/admin/permission',
       icon: <LockOutlined className="text-gray-600" />,
-      label: <span className="text-gray-700">Permission</span>,
+      label: <span className="text-white-700">Permission</span>,
     },
     {
       key: '/admin/role',
       icon: <SafetyCertificateOutlined className="text-gray-600" />,
-      label: <span className="text-gray-700">Role</span>,
+      label: <span className="text-white-700">Role</span>,
     },
   ];
 
