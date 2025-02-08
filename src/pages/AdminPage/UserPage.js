@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
+import { userApi } from "../../api/AdminPageAPI/userAPI";
 import {
   Table,
   Input,
@@ -10,6 +11,7 @@ import {
   Typography,
   Tooltip,
   Layout,
+  message,
 } from "antd";
 import {
   PlusOutlined,
@@ -23,44 +25,71 @@ const { Content } = Layout;
 const { Title } = Typography;
 
 const UserPage = () => {
-  const [collapsed, setCollapsed] = React.useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
-  // Sample data based on the provided image
-  const dataSource = [
-    {
-      key: "1",
-      id: "667b926e46c705d2954c20b7",
-      name: "Đặng Quốc Việt",
-      email: "quocviet27403@gmail.com",
-      createdAt: "26-06-2024 11:00:46",
-      updatedAt: "18-01-2025 17:15:07"
-    },
-    {
-      key: "2",
-      id: "667b80556769438baa81014d",
-      name: "I'm normal user",
-      email: "user@gmail.com",
-      createdAt: "26-06-2024 09:43:33",
-      updatedAt: "05-12-2024 14:32:08"
-    },
-    {
-      key: "3",
-      id: "6750148b457b09a3006a2bf3",
-      name: "Ninh Thị Xuân Nhi",
-      email: "hanhi2210@gmail.com",
-      createdAt: "04-12-2024 15:36:27",
-      updatedAt: "05-12-2024 10:48:20"
-    },
-    {
-      key: "4",
-      id: "667b80556769438baa81014b",
-      name: "I'm admin",
-      email: "admin@gmail.com",
-      createdAt: "26-06-2024 09:43:33",
-      updatedAt: "27-06-2024 15:58:51"
+  const fetchUsers = async (params = {}) => {
+    try {
+      setLoading(true);
+      const response = await userApi.getAll({
+        page: params.current || 1,
+        pageSize: params.pageSize || 10,
+        name: params.name,
+        email: params.email,
+      });
+
+      setUsers(response.data.results.map((user, index) => ({
+        key: index + 1,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        createdAt: new Date(user.createdAt).toLocaleString(),
+        updatedAt: new Date(user.updatedAt).toLocaleString(),
+      })));
+
+      setPagination({
+        ...params,
+        total: response.data.total,
+      });
+    } catch (error) {
+      message.error('Failed to fetch users');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchUsers({
+      current: 1,
+      pageSize: 10,
+    });
+  }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      await userApi.delete(id);
+      message.success('User deleted successfully');
+      fetchUsers(pagination);
+    } catch (error) {
+      message.error('Failed to delete user');
+    }
+  };
+
+  const handleTableChange = (newPagination, filters, sorter) => {
+    fetchUsers({
+      ...newPagination,
+      ...form.getFieldsValue(),
+      sortField: sorter.field,
+      sortOrder: sorter.order,
+    });
+  };
 
   const columns = [
     {
@@ -86,7 +115,7 @@ const UserPage = () => {
       title: "Name",
       dataIndex: "name",
       key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      sorter: true,
       onHeaderCell: () => ({
         style: { textAlign: 'center' }
       })
@@ -103,7 +132,7 @@ const UserPage = () => {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      sorter: true,
       onHeaderCell: () => ({
         style: { textAlign: 'center' }
       })
@@ -112,7 +141,7 @@ const UserPage = () => {
       title: "Updated At",
       dataIndex: "updatedAt",
       key: "updatedAt",
-      sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
+      sorter: true,
       onHeaderCell: () => ({
         style: { textAlign: 'center' }
       })
@@ -128,6 +157,9 @@ const UserPage = () => {
               type="text"
               icon={<EditOutlined />}
               className="text-blue-500 hover:text-blue-700"
+              onClick={() => {
+                // Handle edit logic here
+              }}
             />
           </Tooltip>
           <Tooltip title="Delete">
@@ -135,6 +167,7 @@ const UserPage = () => {
               type="text"
               icon={<DeleteOutlined />}
               className="text-red-500 hover:text-red-700"
+              onClick={() => handleDelete(record.id)}
             />
           </Tooltip>
         </Space>
@@ -146,11 +179,23 @@ const UserPage = () => {
   ];
 
   const onFinish = (values) => {
-    console.log("Search values:", values);
+    fetchUsers({
+      ...pagination,
+      current: 1,
+      ...values,
+    });
   };
 
   const onReset = () => {
     form.resetFields();
+    fetchUsers({
+      current: 1,
+      pageSize: pagination.pageSize,
+    });
+  };
+
+  const handleRefresh = () => {
+    fetchUsers(pagination);
   };
 
   return (
@@ -162,7 +207,6 @@ const UserPage = () => {
 
         <Content className="m-6">
           <div className="bg-white p-6 shadow rounded-lg">
-            {/* Search Form */}
             <Form
               form={form}
               onFinish={onFinish}
@@ -189,7 +233,6 @@ const UserPage = () => {
               </div>
             </Form>
 
-            {/* Table Header */}
             <div className="flex justify-between items-center mb-4">
               <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
                 User List
@@ -199,7 +242,7 @@ const UserPage = () => {
                   Add New
                 </Button>
                 <Tooltip title="Refresh">
-                  <Button icon={<ReloadOutlined />} />
+                  <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
                 </Tooltip>
                 <Tooltip title="Settings">
                   <Button icon={<SettingOutlined />} />
@@ -207,19 +250,19 @@ const UserPage = () => {
               </Space>
             </div>
 
-            {/* Table */}
             <Table
-              dataSource={dataSource}
+              dataSource={users}
               columns={columns}
               pagination={{
-                total: dataSource.length,
-                pageSize: 10,
+                ...pagination,
                 showSizeChanger: true,
-                showTotal: (total) => `1-${Math.min(10, total)} of ${total} rows`,
+                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} rows`,
               }}
+              onChange={handleTableChange}
               bordered
               size="middle"
               className="overflow-x-auto"
+              loading={loading}
             />
           </div>
         </Content>
