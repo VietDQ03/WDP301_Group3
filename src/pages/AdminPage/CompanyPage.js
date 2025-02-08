@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
 import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
+import { companyApi } from "../../api/AdminPageAPI/companyApi";
 import {
   Table,
   Input,
@@ -10,6 +11,7 @@ import {
   Typography,
   Tooltip,
   Layout,
+  message,
 } from "antd";
 import {
   PlusOutlined,
@@ -23,64 +25,154 @@ const { Content } = Layout;
 const { Title } = Typography;
 
 const CompanyPage = () => {
-  const [collapsed, setCollapsed] = React.useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [form] = Form.useForm();
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchValues, setSearchValues] = useState({
+    name: '',
+    address: '',
+    email: ''
+  });
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
-  const dataSource = [
-    {
-      key: "1",
-      name: "John Doe",
-      email: "john.doe@example.com",
-      role: "Admin",
-      status: "Active",
-    },
-    {
-      key: "2",
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      role: "Manager",
-      status: "Inactive",
-    },
-  ];
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async (page = pagination.current) => {
+    setLoading(true);
+    try {
+      const response = await companyApi.getAll({
+        page: page,
+        pageSize: 10
+      });
+      
+      console.log("Raw response:", response);
+      console.log("Data structure:", response?.data?.data);
+      
+      if (response?.data?.data) {
+        const { result, meta } = response.data.data;
+        console.log("Extracted result:", result);
+        console.log("Extracted meta:", meta);
+        
+        const dataWithKeys = result.map((item) => ({
+          ...item,
+          key: item._id,
+        }));
+        console.log("Processed data:", dataWithKeys);
+        
+        setData(dataWithKeys);
+        setPagination({
+          current: page,
+          pageSize: 10,
+          total: meta.total || 0,
+        });
+      }
+    } catch (error) {
+      message.error('Failed to fetch companies');
+      console.error('Error:', error);
+    }
+    setLoading(false);
+  };
+
+  const handleSearch = async (values) => {
+    setLoading(true);
+    try {
+      const response = await companyApi.search({
+        page: 1,
+        pageSize: 10,
+        ...values
+      });
+      
+      if (response?.data?.data) {
+        const { result, meta } = response.data.data;
+        const dataWithKeys = result.map((item) => ({
+          ...item,
+          key: item._id,
+        }));
+        setData(dataWithKeys);
+        setPagination({
+          current: 1,
+          pageSize: 10,
+          total: meta.total || 0,
+        });
+      }
+    } catch (error) {
+      message.error('Failed to search companies');
+      console.error('Error:', error);
+    }
+    setLoading(false);
+  };
+
+  const handleInputChange = (field, value) => {
+    setSearchValues(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    form.setFieldsValue({ [field]: value });
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await companyApi.delete(id);
+      message.success('Company deleted successfully');
+      fetchCompanies();
+    } catch (error) {
+      message.error('Failed to delete company');
+      console.error('Error:', error);
+    }
+  };
+
+  const handleTableChange = (newPagination) => {
+    console.log("Table pagination change:", newPagination); // Debug log
+    fetchCompanies(newPagination.current);
+  };
+
+  const onFinish = (values) => {
+    handleSearch(values);
+  };
+
+  const onReset = () => {
+    form.resetFields();
+    setSearchValues({
+      name: '',
+      address: '',
+      email: ''
+    });
+    fetchCompanies(1);
+  };
 
   const columns = [
     {
       title: "STT",
-      dataIndex: "key",
-      key: "stt",
+      key: "index",
       align: "center",
       width: 70,
+      render: (_, __, index) => index + 1 + (pagination.current - 1) * pagination.pageSize,
     },
     {
-      title: "Name",
+      title: "Tên Công Ty",
       dataIndex: "name",
       key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      sorter: (a, b) => (a.name || '').localeCompare(b.name || ''),
     },
     {
-      title: "Role",
-      dataIndex: "role",
-      key: "role",
-      align: "center",
+      title: "Địa Chỉ",
+      dataIndex: "address",
+      key: "address",
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      align: "center",
-      render: (status) => (
-        <span
-          style={{
-            color: status === "Active" ? "green" : "red",
-            fontWeight: 600,
-          }}
-        >
-          {status}
-        </span>
-      ),
+      title: "Email",
+      dataIndex: ["createdBy", "email"],
+      key: "email",
     },
     {
-      title: "Actions",
+      title: "Hành Động",
       key: "actions",
       align: "center",
       render: (_, record) => (
@@ -91,6 +183,9 @@ const CompanyPage = () => {
               icon={<EditOutlined />}
               shape="round"
               size="small"
+              onClick={() => {
+                console.log('Edit record:', record);
+              }}
             />
           </Tooltip>
           <Tooltip title="Delete">
@@ -100,20 +195,13 @@ const CompanyPage = () => {
               icon={<DeleteOutlined />}
               shape="round"
               size="small"
+              onClick={() => handleDelete(record._id)}
             />
           </Tooltip>
         </Space>
       ),
     },
   ];
-
-  const onFinish = (values) => {
-    console.log("Search values:", values);
-  };
-
-  const onReset = () => {
-    form.resetFields();
-  };
 
   return (
     <Layout className="min-h-screen">
@@ -129,26 +217,42 @@ const CompanyPage = () => {
               form={form}
               onFinish={onFinish}
               layout="vertical"
-              className="mb-6 space-y-4"
+              className="mb-6"
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Form.Item name="name" label="Name">
-                  <Input placeholder="Enter name" style={{ height: "40px" }} />
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Form.Item name="name" label="Tên Công Ty">
+                  <Input
+                    placeholder="Nhập tên công ty"
+                    style={{ height: "40px" }}
+                    value={searchValues.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                  />
                 </Form.Item>
 
-                <Form.Item name="address" label="Address">
+                <Form.Item name="address" label="Địa chỉ">
                   <Input
-                    placeholder="Enter address"
+                    placeholder="Nhập địa chỉ"
                     style={{ height: "40px" }}
+                    value={searchValues.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                  />
+                </Form.Item>
+
+                <Form.Item name="email" label="Email">
+                  <Input
+                    placeholder="Nhập email"
+                    style={{ height: "40px" }}
+                    value={searchValues.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
                   />
                 </Form.Item>
 
                 <Form.Item>
-                  <div className="flex space-x-2 mt-7" style={{ marginTop: "35px" }}>
-                    <Button type="primary" htmlType="submit">
-                      Search
+                  <div className="flex space-x-2" style={{ marginTop: "35px" }}>
+                    <Button type="primary" htmlType="submit" loading={loading}>
+                      Tìm kiếm
                     </Button>
-                    <Button onClick={onReset}>Reset</Button>
+                    <Button onClick={onReset}>Làm mới</Button>
                   </div>
                 </Form.Item>
               </div>
@@ -157,7 +261,7 @@ const CompanyPage = () => {
             {/* Table Header */}
             <div className="flex justify-between items-center mb-4">
               <Title level={4} style={{ margin: 0 }}>
-                Company List
+                Danh sách Công Ty
               </Title>
               <Space>
                 <Button
@@ -165,14 +269,19 @@ const CompanyPage = () => {
                   icon={<PlusOutlined />}
                   shape="round"
                   size="middle"
+                  onClick={() => {
+                    console.log('Add new company');
+                  }}
                 >
-                  Add New
+                  Thêm Mới
                 </Button>
                 <Tooltip title="Refresh">
                   <Button
                     icon={<ReloadOutlined />}
                     shape="round"
                     size="middle"
+                    onClick={() => fetchCompanies(1)}
+                    loading={loading}
                   />
                 </Tooltip>
                 <Tooltip title="Settings">
@@ -187,17 +296,18 @@ const CompanyPage = () => {
 
             {/* Table */}
             <Table
-              dataSource={dataSource}
+              dataSource={data}
               columns={columns}
               pagination={{
-                total: dataSource.length,
-                pageSize: 10,
-                showSizeChanger: true,
-                showTotal: (total) => `1-10 of ${total} rows`,
+                ...pagination,
+                showSizeChanger: false,
+                showTotal: (total) => `Tổng số ${total} công ty`,
               }}
+              onChange={handleTableChange}
               bordered
               rowClassName="hover:bg-gray-50"
               size="middle"
+              loading={loading}
             />
           </div>
         </Content>
