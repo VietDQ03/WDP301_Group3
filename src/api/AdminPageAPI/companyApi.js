@@ -1,3 +1,4 @@
+// companyApi.js
 import axios from "axios";
 
 const axiosInstance = axios.create({
@@ -5,9 +6,13 @@ const axiosInstance = axios.create({
 });
 
 export const companyApi = {
-  getAll: async () => {
-    const response = await axiosInstance.get("/companies");
-    return response.data;
+  getAll: (params) => {
+    return axiosInstance.get('/companies', { 
+      params: {
+        current: params.page,    // Đổi thành current vì BE đang expect current
+        pageSize: params.pageSize
+      }
+    });
   },
 
   create: async (data) => {
@@ -26,7 +31,12 @@ export const companyApi = {
   },
 
   search: async (params) => {
-    const response = await axiosInstance.get("/companies", { params });
-    return response.data;
+    return axiosInstance.get("/companies", { 
+      params: {
+        current: params.page,    // Đổi thành current
+        pageSize: params.pageSize,
+        ...params
+      }
+    });
   },
 };

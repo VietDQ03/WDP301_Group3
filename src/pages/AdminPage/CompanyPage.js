@@ -28,7 +28,6 @@ const CompanyPage = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [form] = Form.useForm();
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchValues, setSearchValues] = useState({
     name: '',
@@ -45,24 +44,33 @@ const CompanyPage = () => {
     fetchCompanies();
   }, []);
 
-  useEffect(() => {
-    handleSearch(searchValues);
-  }, [searchValues, data]);
-
-  const fetchCompanies = async () => {
+  const fetchCompanies = async (page = pagination.current) => {
     setLoading(true);
     try {
-      const response = await companyApi.getAll();
-      if (response.data && response.data.result) {
-        const dataWithKeys = response.data.result.map((item, index) => ({
+      const response = await companyApi.getAll({
+        page: page,
+        pageSize: 10
+      });
+      
+      console.log("Raw response:", response);
+      console.log("Data structure:", response?.data?.data);
+      
+      if (response?.data?.data) {
+        const { result, meta } = response.data.data;
+        console.log("Extracted result:", result);
+        console.log("Extracted meta:", meta);
+        
+        const dataWithKeys = result.map((item) => ({
           ...item,
-          key: item._id || index.toString(),
+          key: item._id,
         }));
+        console.log("Processed data:", dataWithKeys);
+        
         setData(dataWithKeys);
-        setFilteredData(dataWithKeys);
         setPagination({
-          ...pagination,
-          total: dataWithKeys.length,
+          current: page,
+          pageSize: 10,
+          total: meta.total || 0,
         });
       }
     } catch (error) {
@@ -72,33 +80,33 @@ const CompanyPage = () => {
     setLoading(false);
   };
 
-  const handleSearch = (values) => {
-    let filtered = [...data];
-
-    if (values.name) {
-      filtered = filtered.filter(item => 
-        item.name?.toLowerCase().includes(values.name.toLowerCase())
-      );
+  const handleSearch = async (values) => {
+    setLoading(true);
+    try {
+      const response = await companyApi.search({
+        page: 1,
+        pageSize: 10,
+        ...values
+      });
+      
+      if (response?.data?.data) {
+        const { result, meta } = response.data.data;
+        const dataWithKeys = result.map((item) => ({
+          ...item,
+          key: item._id,
+        }));
+        setData(dataWithKeys);
+        setPagination({
+          current: 1,
+          pageSize: 10,
+          total: meta.total || 0,
+        });
+      }
+    } catch (error) {
+      message.error('Failed to search companies');
+      console.error('Error:', error);
     }
-
-    if (values.address) {
-      filtered = filtered.filter(item => 
-        item.address?.toLowerCase().includes(values.address.toLowerCase())
-      );
-    }
-
-    if (values.email) {
-      filtered = filtered.filter(item => 
-        item.createdBy?.email?.toLowerCase().includes(values.email.toLowerCase())
-      );
-    }
-
-    setFilteredData(filtered);
-    setPagination({
-      ...pagination,
-      current: 1,
-      total: filtered.length,
-    });
+    setLoading(false);
   };
 
   const handleInputChange = (field, value) => {
@@ -120,8 +128,9 @@ const CompanyPage = () => {
     }
   };
 
-  const handleTableChange = (newPagination, filters, sorter) => {
-    setPagination(newPagination);
+  const handleTableChange = (newPagination) => {
+    console.log("Table pagination change:", newPagination); // Debug log
+    fetchCompanies(newPagination.current);
   };
 
   const onFinish = (values) => {
@@ -135,12 +144,7 @@ const CompanyPage = () => {
       address: '',
       email: ''
     });
-    setFilteredData(data);
-    setPagination({
-      ...pagination,
-      current: 1,
-      total: data.length,
-    });
+    fetchCompanies(1);
   };
 
   const columns = [
@@ -276,7 +280,7 @@ const CompanyPage = () => {
                     icon={<ReloadOutlined />}
                     shape="round"
                     size="middle"
-                    onClick={fetchCompanies}
+                    onClick={() => fetchCompanies(1)}
                     loading={loading}
                   />
                 </Tooltip>
@@ -292,12 +296,12 @@ const CompanyPage = () => {
 
             {/* Table */}
             <Table
-              dataSource={filteredData}
+              dataSource={data}
               columns={columns}
               pagination={{
                 ...pagination,
-                showSizeChanger: true,
-                showTotal: (total) => `Tìm thấy ${total} công ty `,
+                showSizeChanger: false,
+                showTotal: (total) => `Tổng số ${total} công ty`,
               }}
               onChange={handleTableChange}
               bordered
