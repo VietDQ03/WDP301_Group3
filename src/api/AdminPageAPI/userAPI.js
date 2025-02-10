@@ -1,13 +1,10 @@
 // userApi.js
-import axios from "axios";
+import axios from "../axiosCustom";
 
-const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000/api/v1",
-});
 
 export const userApi = {
   getAll: (params) => {
-    return axiosInstance.get('/users', { 
+    return axios.get('/users', { 
       params: {
         current: params.page,
         pageSize: params.pageSize
@@ -16,27 +13,27 @@ export const userApi = {
   },
 
   create: async (data) => {
-    const response = await axiosInstance.post("/users", data);
-    return response.data;
+    const response = await axios.post("/users", data);
+    return response;
   },
 
   getOne: async (id) => {
-    const response = await axiosInstance.get(`/users/${id}`);
-    return response.data;
+    const response = await axios.get(`/users/${id}`);
+    return response;
   },
 
   update: async (id, data) => {
-    const response = await axiosInstance.patch(`/users/${id}`, data);
-    return response.data;
+    const response = await axios.patch(`/users/${id}`, data);
+    return response;
   },
 
   delete: async (id) => {
-    const response = await axiosInstance.delete(`/users/${id}`);
-    return response.data;
+    const response = await axios.delete(`/users/${id}`);
+    return response;
   },
 
   search: async (params) => {
-    return axiosInstance.get("/users", { 
+    return axios.get("/users", { 
       params: {
         current: params.page,
         pageSize: params.pageSize,
