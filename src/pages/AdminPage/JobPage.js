@@ -211,33 +211,32 @@ const JobPage = () => {
   };
 
   const handleEdit = (id) => {
-    // Implement edit functionality
     console.log("Edit job with id:", id);
   };
 
   return (
-    <Layout className="min-h-screen ">
+    <Layout className="min-h-screen">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
-      <Layout >
+      <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
 
         <Content className="m-6">
-          <div className="bg-white p-6 shadow rounded-lg min-h-[850px]">
-            {/* Search Form */}
+          {/* Search Section */}
+          <div className="bg-white p-4 shadow rounded-lg mb-6">
             <Form
               form={form}
               onFinish={onFinish}
+              className="ml-4"
               layout="vertical"
-              className="mb-6"
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <Form.Item name="name" label="Tên Job" className="col-span-1">
-                  <Input placeholder="Nhập tên job" style={{ height: '40px' }} />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="name" label="Tên Việc Làm" className="col-span-1">
+                  <Input placeholder="Nhập tên việc làm" style={{ height: '40px' }} />
                 </Form.Item>
 
-                <Form.Item name="level" label="Level" className="col-span-1">
-                  <Select placeholder="Chọn level" style={{ height: '40px' }}>
+                <Form.Item name="level" label="Mức Độ" className="col-span-1">
+                  <Select placeholder="Chọn mức độ" style={{ height: '40px' }}>
                     <Option value="FRESHER">FRESHER</Option>
                     <Option value="JUNIOR">JUNIOR</Option>
                     <Option value="MIDDLE">MIDDLE</Option>
@@ -245,43 +244,37 @@ const JobPage = () => {
                   </Select>
                 </Form.Item>
 
-                <Form.Item name="status" label="Trạng thái" className="col-span-1">
-                  <Select placeholder="Chọn trạng thái" style={{ height: '40px' }}>
-                    <Option value="ACTIVE">ACTIVE</Option>
-                    <Option value="INACTIVE">INACTIVE</Option>
-                  </Select>
-                </Form.Item>
-
                 <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
                   <div className="flex space-x-2">
                     <Button type="primary" htmlType="submit">
-                      Search
+                      Tìm kiếm
                     </Button>
-                    <Button onClick={onReset}>Reset</Button>
+                    <Button onClick={onReset}>Đặt lại</Button>
                   </div>
                 </Form.Item>
               </div>
             </Form>
+          </div>
 
-            {/* Table Header */}
+          {/* List Section */}
+          <div className="bg-white p-6 shadow rounded-lg">
             <div className="flex justify-between items-center mb-4">
               <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
-                Danh sách Việc Làm
+                DANH SÁCH VIỆC LÀM
               </Title>
               <Space>
                 <Button type="primary" icon={<PlusOutlined />}>
                   Thêm mới
                 </Button>
-                <Tooltip title="Refresh">
+                <Tooltip title="Làm mới">
                   <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
                 </Tooltip>
-                <Tooltip title="Settings">
+                <Tooltip title="Cài đặt">
                   <Button icon={<SettingOutlined />} />
                 </Tooltip>
               </Space>
             </div>
 
-            {/* Table */}
             <Table
               loading={loading}
               dataSource={jobs}

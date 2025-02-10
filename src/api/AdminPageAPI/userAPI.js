@@ -1,42 +1,36 @@
-// userApi.js
 import axios from "../axiosCustom";
-
 
 export const userApi = {
   getAll: (params) => {
     return axios.get('/users', { 
       params: {
-        current: params.page,
-        pageSize: params.pageSize
+        current: params.current || 1,  // sửa page thành current cho đúng với BE
+        pageSize: params.pageSize || 10
       }
     });
   },
 
   create: async (data) => {
-    const response = await axios.post("/users", data);
-    return response;
+    return axios.post("/users", data);
   },
 
   getOne: async (id) => {
-    const response = await axios.get(`/users/${id}`);
-    return response;
+    return axios.get(`/users/${id}`);
   },
 
   update: async (id, data) => {
-    const response = await axios.patch(`/users/${id}`, data);
-    return response;
+    return axios.patch(`/users/${id}`, data);
   },
 
   delete: async (id) => {
-    const response = await axios.delete(`/users/${id}`);
-    return response;
+    return axios.delete(`/users/${id}`);
   },
 
   search: async (params) => {
     return axios.get("/users", { 
       params: {
-        current: params.page,
-        pageSize: params.pageSize,
+        current: params.current || 1,
+        pageSize: params.pageSize || 10,
         ...params
       }
     });

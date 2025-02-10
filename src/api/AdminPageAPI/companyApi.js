@@ -1,4 +1,3 @@
-// companyApi.js
 import axios from "axios";
 
 const axiosInstance = axios.create({
@@ -38,5 +37,11 @@ export const companyApi = {
         ...params
       }
     });
+  },
+
+  // Thêm method findOne
+  findOne: async (id) => {
+    const response = await axiosInstance.get(`/companies/${id}`);
+    return response.data;
   },
 };
