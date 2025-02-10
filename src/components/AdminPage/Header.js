@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Layout, Avatar, Dropdown } from 'antd';
 import { UserOutlined, MenuFoldOutlined, MenuUnfoldOutlined, HomeOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const { Header } = Layout;
 
 const AdminHeader = ({ collapsed, setCollapsed }) => {
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
 
   const menuItems = [
     {
@@ -50,7 +52,7 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
           trigger={['hover']}
         >
           <div className="flex items-center gap-4 cursor-pointer">
-            <span className="text-gray-600 text-lg">Welcome Admin</span>
+            <span className="text-gray-600 text-lg">Welcome {user ? user.name : "Admin"}</span>
             <Avatar
               icon={<UserOutlined />}
               className="bg-blue-500"

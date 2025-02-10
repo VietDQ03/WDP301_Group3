@@ -5,8 +5,9 @@ import Sidebar from '../../components/AdminPage/Sidebar';
 import Header from '../../components/AdminPage/Header';
 import { companyApi } from "../../api/AdminPageAPI/companyApi";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
+import { userApi } from "../../api/AdminPageAPI/userAPI";
+import { resumeApi } from "../../api/AdminPageAPI/resumeAPI";
 import CountUp from 'react-countup';
-
 
 const { Content } = Layout;
 
@@ -14,22 +15,34 @@ const DashboardPage = () => {
   const [collapsed, setCollapsed] = React.useState(false);
   const [dataCompanies, setDataCompanies] = useState([]);
   const [dataJobs, setDataJobs] = useState([]);
+  const [dataUsers, setDataUsers] = useState([]);
+  const [dataResumes, setDataResumes] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const fetchData = async (params = {}) => {
     setLoading(true);
     try {
-      const [companiesResponse, jobsResponse] = await Promise.all([
+      const [companiesResponse, jobsResponse, usersResponse, resumeResponse] = await Promise.all([
         companyApi.getAll({ ...params }),
-        jobApi.getAll({ ...params })
+        jobApi.getAll({ ...params }),
+        userApi.getAll({ ...params }),
+        resumeApi.getAll({ ...params })
       ]);
-  
+
       if (companiesResponse?.data?.data) {
         setDataCompanies(companiesResponse.data.data);
       }
-  
+
       if (jobsResponse?.data?.data) {
         setDataJobs(jobsResponse.data.data);
+      }
+
+      if (usersResponse?.data) {
+        setDataUsers(usersResponse.data);
+      }
+
+      if (resumeResponse?.data) {
+        setDataResumes(resumeResponse.data);
       }
     } catch (error) {
       message.error('Không thể tải dữ liệu');
@@ -37,41 +50,26 @@ const DashboardPage = () => {
     }
     setLoading(false);
   };
-  
+
   useEffect(() => {
     fetchData();
   }, []);
 
-  const statisticsData = [
-    {
-      title: 'Active Users',
-      value: 112845,
-      icon: <UserOutlined className="text-blue-500 text-2xl" />,
-      color: 'bg-blue-50',
-    },
-    {
-      title: 'Resumes',
-      value: 12456,
-      icon: <FileOutlined className="text-purple-500 text-2xl" />,
-      color: 'bg-purple-50',
-    },
-  ];
-
   const recentActivity = [
     {
-      title: 'New Applications',
-      value: '45 today',
-      description: '20% increase from yesterday',
+      title: 'Đơn Ứng Tuyển Mới',
+      value: '45 hôm nay',
+      description: 'Tăng 20% so với hôm qua',
     },
     {
-      title: 'Active Interviews',
-      value: '23 scheduled',
-      description: '5 pending confirmation',
+      title: 'Phỏng Vấn Đang Diễn Ra',
+      value: '23 đã lên lịch',
+      description: '5 chờ xác nhận',
     },
     {
-      title: 'Job Posts',
-      value: '12 new',
-      description: '3 urgent positions',
+      title: 'Tin Tuyển Dụng',
+      value: '12 tin mới',
+      description: '3 vị trí cấp bách',
     },
   ];
 
@@ -86,29 +84,57 @@ const DashboardPage = () => {
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">Trang Tổng Quan</h1>
 
-            {/* Statistics Cards */}
             <Row gutter={[16, 16]}>
-              {statisticsData.map((stat, index) => (
-                <Col xs={24} sm={12} lg={6} key={index}>
-                  <Card
-                    className={`${stat.color} hover:shadow-md transition-shadow`}
-                    bordered={false}
-                  >
-                    <div className="flex justify-between items-start">
-                      <Statistic
-                        title={<span className="text-gray-600">{stat.title}</span>}
-                        value={stat.value}
-                        formatter={value => value.toLocaleString()}
-                      />
-                      <div className="p-2 rounded-lg bg-white/60">
-                        {stat.icon}
-                      </div>
+              <Col xs={24} sm={12} lg={6}>
+                <Card
+                  className="bg-blue-50 hover:shadow-md transition-shadow"
+                  bordered={false}
+                >
+                  <div className="flex justify-between items-start">
+                    <Statistic
+                      title={<span className="text-gray-600">Tổng Số Người Dùng</span>}
+                      value={dataUsers?.meta?.total || 0}
+                      formatter={() => (
+                        <CountUp
+                          start={0}
+                          end={dataUsers?.meta?.total || 0}
+                          duration={0.5}
+                          separator=","
+                        />
+                      )}
+                    />
+                    <div className="p-2 rounded-lg bg-white/60">
+                      <UserOutlined className="text-blue-500 text-2xl" />
                     </div>
-                  </Card>
-                </Col>
-              ))}
+                  </div>
+                </Card>
+              </Col>
 
-              {/* Jobs Card */}
+              <Col xs={24} sm={12} lg={6}>
+                <Card
+                  className="bg-purple-50 hover:shadow-md transition-shadow"
+                  bordered={false}
+                >
+                  <div className="flex justify-between items-start">
+                    <Statistic
+                      title={<span className="text-gray-600">Tổng Số Ứng Tuyển</span>}
+                      value={dataResumes?.meta?.total || 0}
+                      formatter={() => (
+                        <CountUp
+                          start={0}
+                          end={dataResumes?.meta?.total || 0}
+                          duration={0.5}
+                          separator=","
+                        />
+                      )}
+                    />
+                    <div className="p-2 rounded-lg bg-white/60">
+                      <FileOutlined className="text-purple-500 text-2xl" />
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+
               <Col xs={24} sm={12} lg={6}>
                 <Card
                   className="bg-green-50 hover:shadow-md transition-shadow"
@@ -116,7 +142,7 @@ const DashboardPage = () => {
                 >
                   <div className="flex justify-between items-start">
                     <Statistic
-                      title={<span className="text-gray-600">Số Lượng Công Việc</span>}
+                      title={<span className="text-gray-600">Tổng số Công Việc</span>}
                       value={dataJobs?.meta?.total || 0}
                       formatter={() => (
                         <CountUp
@@ -134,7 +160,6 @@ const DashboardPage = () => {
                 </Card>
               </Col>
 
-              {/* Companies Card using dataCompanies */}
               <Col xs={24} sm={12} lg={6}>
                 <Card
                   className="bg-orange-50 hover:shadow-md transition-shadow"
@@ -142,7 +167,7 @@ const DashboardPage = () => {
                 >
                   <div className="flex justify-between items-start">
                     <Statistic
-                      title={<span className="text-gray-600">Số Lượng Công Ty</span>}
+                      title={<span className="text-gray-600">Tổng Số Công Ty</span>}
                       value={dataCompanies?.meta?.total || 0}
                       formatter={() => (
                         <CountUp
@@ -164,7 +189,7 @@ const DashboardPage = () => {
 
           {/* Recent Activity */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Hoạt Động Gần Đây</h2>
             <Row gutter={[16, 16]}>
               {recentActivity.map((activity, index) => (
                 <Col xs={24} sm={8} key={index}>
@@ -184,7 +209,7 @@ const DashboardPage = () => {
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={16}>
               <Card
-                title="Monthly Statistics"
+                title="Thống Kê Theo Tháng"
                 className="hover:shadow-md transition-shadow"
               >
                 <div className="h-64 flex items-center justify-center text-gray-500">
@@ -194,18 +219,18 @@ const DashboardPage = () => {
             </Col>
             <Col xs={24} lg={8}>
               <Card
-                title="Quick Actions"
+                title="Thao Tác Nhanh"
                 className="hover:shadow-md transition-shadow"
               >
                 <ul className="space-y-4">
                   <li className="flex items-center text-blue-600 cursor-pointer hover:text-blue-800">
-                    <FileOutlined className="mr-2" /> Post New Job
+                    <FileOutlined className="mr-2" /> Đăng Tin Tuyển Dụng
                   </li>
                   <li className="flex items-center text-blue-600 cursor-pointer hover:text-blue-800">
-                    <UserOutlined className="mr-2" /> Review Applications
+                    <UserOutlined className="mr-2" /> Xem Đơn Ứng Tuyển
                   </li>
                   <li className="flex items-center text-blue-600 cursor-pointer hover:text-blue-800">
-                    <TeamOutlined className="mr-2" /> Schedule Interviews
+                    <TeamOutlined className="mr-2" /> Lên Lịch Phỏng Vấn
                   </li>
                 </ul>
               </Card>

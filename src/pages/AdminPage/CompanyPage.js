@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
 import { companyApi } from "../../api/AdminPageAPI/companyApi";
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Modal, } from "antd";
-import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, } from "@ant-design/icons";
+import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Modal } from "antd";
+import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -36,13 +36,11 @@ const CompanyPage = () => {
 
       if (response?.data?.data) {
         const { result, meta } = response.data.data;
-
         const dataWithKeys = result.map((item, index) => ({
           ...item,
           key: item._id,
           stt: index + 1 + ((meta.current - 1) * meta.pageSize)
         }));
-
         setData(dataWithKeys);
         setPagination({
           current: meta.current || params.current || pagination.current,
@@ -61,15 +59,6 @@ const CompanyPage = () => {
     fetchCompanies();
   }, []);
 
-  const handleSearch = async (values) => {
-    setSearchValues(values);
-    fetchCompanies({
-      ...values,
-      current: 1,
-      pageSize: pagination.pageSize
-    });
-  };
-
   const handleDelete = (id) => {
     confirm({
       title: 'Bạn có chắc chắn muốn xóa công ty này?',
@@ -82,51 +71,12 @@ const CompanyPage = () => {
         try {
           await companyApi.delete(id);
           message.success('Xóa công ty thành công');
-          fetchCompanies({
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            ...searchValues
-          });
+          fetchCompanies(pagination);
         } catch (error) {
           message.error('Không thể xóa công ty');
           console.error('Error:', error);
         }
       },
-    });
-  };
-
-  const handleTableChange = (newPagination, filters, sorter) => {
-    fetchCompanies({
-      ...newPagination,
-      sortField: sorter.field,
-      sortOrder: sorter.order,
-      ...filters,
-      ...searchValues
-    });
-  };
-
-  const onFinish = (values) => {
-    handleSearch(values);
-  };
-
-  const onReset = () => {
-    form.resetFields();
-    setSearchValues({
-      name: '',
-      address: '',
-      email: ''
-    });
-    fetchCompanies({
-      current: 1,
-      pageSize: pagination.pageSize
-    });
-  };
-
-  const handleRefresh = () => {
-    fetchCompanies({
-      current: pagination.current,
-      pageSize: pagination.pageSize,
-      ...searchValues
     });
   };
 
@@ -163,28 +113,23 @@ const CompanyPage = () => {
     {
       title: "Hành Động",
       key: "actions",
-      align: "center",
       width: 120,
+      align: "center",
       render: (_, record) => (
         <Space>
           <Tooltip title="Chỉnh sửa">
             <Button
-              type="primary"
+              type="text"
               icon={<EditOutlined />}
-              shape="round"
-              size="small"
-              onClick={() => {
-                console.log('Edit record:', record);
-              }}
+              className="text-blue-500 hover:text-blue-700"
+              onClick={() => console.log('Edit company:', record)}
             />
           </Tooltip>
           <Tooltip title="Xóa">
             <Button
-              type="primary"
-              danger
+              type="text"
               icon={<DeleteOutlined />}
-              shape="round"
-              size="small"
+              className="text-red-500 hover:text-red-700"
               onClick={() => handleDelete(record._id)}
             />
           </Tooltip>
@@ -193,6 +138,46 @@ const CompanyPage = () => {
     },
   ];
 
+  const handleTableChange = (newPagination, filters, sorter) => {
+    fetchCompanies({
+      ...newPagination,
+      sortField: sorter.field,
+      sortOrder: sorter.order,
+      ...filters,
+      ...searchValues
+    });
+  };
+
+  const onFinish = (values) => {
+    setSearchValues(values);
+    fetchCompanies({
+      ...values,
+      current: 1,
+      pageSize: pagination.pageSize
+    });
+  };
+
+  const onReset = () => {
+    form.resetFields();
+    setSearchValues({
+      name: '',
+      address: '',
+      email: ''
+    });
+    fetchCompanies({
+      current: 1,
+      pageSize: pagination.pageSize
+    });
+  };
+
+  const handleRefresh = () => {
+    fetchCompanies({
+      current: pagination.current,
+      pageSize: pagination.pageSize,
+      ...searchValues
+    });
+  };
+
   return (
     <Layout className="min-h-screen">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
@@ -200,85 +185,58 @@ const CompanyPage = () => {
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
 
-        <Content className="p-6">
-          <div className="bg-white p-8 shadow rounded-lg min-h-[800px]">
-            {/* Search Form */}
+        <Content className="m-6">
+          {/* Search Section */}
+          <div className="bg-white p-4 shadow rounded-lg mb-6">
             <Form
               form={form}
               onFinish={onFinish}
               layout="vertical"
-              className="mb-6"
+              className="ml-4"
             >
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Form.Item name="name" label="Tên Công Ty">
-                  <Input
-                    placeholder="Nhập tên công ty"
-                    style={{ height: "40px" }}
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="name" label="Tên Công Ty" className="col-span-1">
+                  <Input placeholder="Nhập tên công ty" style={{ height: '40px' }} />
                 </Form.Item>
 
-                <Form.Item name="address" label="Địa chỉ">
-                  <Input
-                    placeholder="Nhập địa chỉ"
-                    style={{ height: "40px" }}
-                  />
+                <Form.Item name="address" label="Địa chỉ" className="col-span-1">
+                  <Input placeholder="Nhập địa chỉ" style={{ height: '40px' }} />
                 </Form.Item>
 
-                <Form.Item name="email" label="Email">
-                  <Input
-                    placeholder="Nhập email"
-                    style={{ height: "40px" }}
-                  />
-                </Form.Item>
-
-                <Form.Item>
-                  <div className="flex space-x-2" style={{ marginTop: "35px" }}>
+                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
+                  <div className="flex space-x-2">
                     <Button type="primary" htmlType="submit">
                       Tìm kiếm
                     </Button>
-                    <Button onClick={onReset}>Làm mới</Button>
+                    <Button onClick={onReset}>Đặt lại</Button>
                   </div>
                 </Form.Item>
               </div>
             </Form>
+          </div>
 
-            {/* Table Header */}
+          {/* List Section */}
+          <div className="bg-white p-6 shadow rounded-lg">
             <div className="flex justify-between items-center mb-4">
-              <Title level={4} style={{ margin: 0 }}>
-                Danh sách Công Ty
+              <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
+                DANH SÁCH CÔNG TY
               </Title>
               <Space>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  shape="round"
-                  size="middle"
-                  onClick={() => {
-                    console.log('Add new company');
-                  }}
-                >
-                  Thêm Mới
+                <Button type="primary" icon={<PlusOutlined />}>
+                  Thêm mới
                 </Button>
                 <Tooltip title="Làm mới">
-                  <Button
-                    icon={<ReloadOutlined />}
-                    shape="round"
-                    size="middle"
+                  <Button 
+                    icon={<ReloadOutlined />} 
                     onClick={handleRefresh}
-                    loading={loading}
                   />
                 </Tooltip>
                 <Tooltip title="Cài đặt">
-                  <Button
-                    icon={<SettingOutlined />}
-                    shape="round"
-                    size="middle"
-                  />
+                  <Button icon={<SettingOutlined />} />
                 </Tooltip>
               </Space>
             </div>
 
-            {/* Table */}
             <Table
               dataSource={data}
               columns={columns}
@@ -288,8 +246,8 @@ const CompanyPage = () => {
               }}
               onChange={handleTableChange}
               bordered
-              rowClassName="hover:bg-gray-50"
               size="middle"
+              className="overflow-x-auto"
               loading={loading}
             />
           </div>
