@@ -11,9 +11,11 @@ function LoginPage() {
 
   const { error, isLoading, user } = useSelector((state) => state.auth);
 
-  const handleLogin = () => {
-    dispatch(loginUser({ username, password }));
+  const handleLogin = async () => {
+    const resultAction = await dispatch(loginUser({ username, password }));
+    console.log("Login Response:", resultAction);
   };
+  
 
   useEffect(() => {
     if (user && user.role) {
