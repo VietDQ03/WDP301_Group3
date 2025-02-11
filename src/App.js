@@ -11,6 +11,9 @@ const App = () => {
       {ROUTES.admin.map((route, index) => (
         <Route key={index} path={route.path} element={route.element} />
       ))}
+      {ROUTES.hr.map((route, index) => (
+        <Route key={index} path={route.path} element={route.element} />
+      ))}
     </Routes>
   );
 };
