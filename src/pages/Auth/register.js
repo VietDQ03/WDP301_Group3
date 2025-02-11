@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../redux/slices/auth";
-
+import { callActivateAccount } from "../../api/UserApi/UserApi";
 function RegisterPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -55,21 +55,17 @@ function RegisterPage() {
 
   const handleVerifyOtp = async () => {
     try {
-      const response = await fetch("/api/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail, otp }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
+      const response = await callActivateAccount(userEmail, otp); // Gọi API xác minh OTP
+  
+      if (response.data) { 
         alert("Xác thực thành công!");
-        navigate("/login"); // Chuyển đến trang đăng nhập
+        navigate("/login"); 
       } else {
         alert("Mã OTP không hợp lệ!");
       }
     } catch (error) {
       console.error("Lỗi xác thực OTP:", error);
+      alert("Đã xảy ra lỗi khi xác thực OTP. Vui lòng thử lại.");
     }
   };
 
