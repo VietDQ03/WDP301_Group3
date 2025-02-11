@@ -23,7 +23,7 @@ const RolePage = () => {
     total: 0,
   });
 
-  
+
 
   const fetchPermissionDetails = useCallback(async (id) => {
     if (permissions[id] || loadingPermissions.has(id)) return;
@@ -126,19 +126,19 @@ const RolePage = () => {
     }
   };
 
-  const PermissionTag = useCallback(({ permissionId }) => {
+  const PermissionTag = ({ permissionId }) => {
     useEffect(() => {
       if (!permissions[permissionId] && !loadingPermissions.has(permissionId)) {
         fetchPermissionDetails(permissionId);
       }
-    }, [permissionId]);
+    }, [permissionId, permissions, loadingPermissions, fetchPermissionDetails]);
 
     return (
       <Tag color="blue">
         {permissions[permissionId] || 'Loading...'}
       </Tag>
     );
-  }, [permissions, loadingPermissions, fetchPermissionDetails]);
+  };
 
   const columns = [
     {
@@ -167,13 +167,13 @@ const RolePage = () => {
       dataIndex: "permissions",
       key: "permissions",
       render: (permissionIds) => (
-        <div style={{maxWidth: 1200, maxHeight: 100, overflow: 'auto' }}>
+        <div style={{ maxWidth: 1200, maxHeight: 100, overflow: 'auto' }}>
           {permissionIds?.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {permissionIds.map((permissionId, index) => (
-                <PermissionTag 
-                  key={`${permissionId}-${index}`} 
-                  permissionId={permissionId} 
+                <PermissionTag
+                  key={`${permissionId}-${index}`}
+                  permissionId={permissionId}
                 />
               ))}
             </div>
