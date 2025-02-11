@@ -14,7 +14,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (userData, thunkAPI) => {
@@ -33,6 +32,7 @@ const authSlice = createSlice({
   initialState: {
     user: null,
     role: null,
+    isAuthenticated: false, // 🆕 Thêm isAuthenticated vào state
     isLoading: false,
     error: null,
   },
@@ -40,6 +40,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.role = null;
+      state.isAuthenticated = false; // 🆕 Cập nhật isAuthenticated khi logout
       localStorage.removeItem("access_token");
     },
   },
@@ -54,11 +55,13 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = action.payload.data.user;
         state.role = action.payload.data.user.role;
+        state.isAuthenticated = true; // 🆕 Đánh dấu người dùng đã đăng nhập
         localStorage.setItem("access_token", action.payload.data.access_token);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+        state.isAuthenticated = false; // 🆕 Đảm bảo khi login thất bại, trạng thái là false
       })
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
@@ -67,11 +70,13 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.data.user;
+        state.isAuthenticated = true; // 🆕 Cập nhật trạng thái đăng nhập
         localStorage.setItem("access_token", action.payload.data.access_token);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+        state.isAuthenticated = false; // 🆕 Đảm bảo khi đăng ký thất bại, trạng thái là false
       });
   },
 });
