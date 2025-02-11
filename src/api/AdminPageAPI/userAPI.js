@@ -18,8 +18,11 @@ export const userApi = {
     return axios.get(`/users/${id}`);
   },
 
-  update: async (id, data) => {
-    return axios.patch(`/users/${id}`, data);
+  update: async (_id, updateData, userData) => {
+    return axios.patch(`/users/${_id}`, {
+      updateUserDto: updateData,
+      user: userData
+    });
   },
 
   delete: async (id) => {

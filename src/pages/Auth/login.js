@@ -15,13 +15,15 @@ function LoginPage() {
     const resultAction = await dispatch(loginUser({ username, password }));
     console.log("Login Response:", resultAction);
   };
-  
+
 
   useEffect(() => {
     if (user && user.role) {
       console.log(user.role)
       if (user.role.name === "SUPER_ADMIN") {
         navigate("/admin");
+      } else if (user.role.name === "HR_ROLE") {
+        navigate("/dashboard");
       } else {
         navigate("/");
       }
@@ -33,7 +35,7 @@ function LoginPage() {
       {/* Left Section */}
       <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-green-400 to-blue-500">
         <img
-          src="https://via.placeholder.com/600x600"
+          src="https://placehold.co/600x600"
           alt="Login Illustration"
           className="w-2/3 max-w-md rounded-lg shadow-lg"
         />
