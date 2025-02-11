@@ -18,3 +18,7 @@ export const callUploadSingleFile = (file, folderType) => {
         },
     });
 };
+
+export const callActivateAccount = (email, otp) => {
+    return axios.post('/auth/active', { email, otp });
+};
