@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
 import CustomButton from '../../components/CustomButton';
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message, Pagination } from "antd";
-import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, SearchOutlined, EnvironmentOutlined, DollarOutlined, TeamOutlined, EyeOutlined } from "@ant-design/icons";
+import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, SearchOutlined, EnvironmentOutlined, DollarOutlined, TeamOutlined, EyeOutlined } from "@ant-design/icons";
 import { motion } from 'framer-motion';
+import { debounce } from 'lodash';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -17,28 +18,40 @@ const JobPage = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [jobs, setJobs] = useState([]);
+  const [searchParams, setSearchParams] = useState({});
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0
   });
 
+  const debouncedSearch = useCallback(
+    debounce((params) => {
+      fetchJobs(params);
+    }, 500),
+    []
+  );
+
   const fetchJobs = async (params = {}) => {
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       const response = await jobApi.getAll({
-        page: params.current || 1,
+        current: params.current || 1,
         pageSize: params.pageSize || 10,
-        ...params
+        name: params.name,
+        level: params.level,
+        location: params.location,
+        sort: params.sort, // Thêm tham số sort
       });
 
       const { result, meta } = response.data.data;
 
+      const currentPage = meta.current || params.current || 1;
+      const pageSize = meta.pageSize || params.pageSize || 10;
+
       const formattedJobs = result.map((job, index) => ({
         key: job._id,
-        stt: index + 1 + ((meta.current - 1) * meta.pageSize),
+        stt: ((currentPage - 1) * pageSize) + index + 1,
         name: job.name,
         company: job.company.name,
         location: job.location,
@@ -53,11 +66,12 @@ const JobPage = () => {
       setJobs(formattedJobs);
       setPagination({
         ...pagination,
-        total: meta.total,
-        current: meta.current || 1,
-        pageSize: meta.pageSize || 10,
+        total: meta.total || 0,
+        current: currentPage,
+        pageSize: pageSize,
       });
     } catch (error) {
+      console.error("Error fetching jobs:", error);
       message.error("Có lỗi xảy ra khi tải danh sách công việc!");
     } finally {
       setLoading(false);
@@ -90,6 +104,8 @@ const JobPage = () => {
       },
     });
   };
+
+
 
   const columns = [
     {
@@ -216,12 +232,18 @@ const JobPage = () => {
   ];
 
   const handleTableChange = (newPagination, filters, sorter) => {
-    fetchJobs({
-      ...newPagination,
-      sortField: sorter.field,
-      sortOrder: sorter.order,
-      ...filters,
-    });
+    const params = {
+      ...searchParams,
+      current: newPagination.current,
+      pageSize: newPagination.pageSize,
+    };
+
+    // Xử lý sort
+    if (sorter.field && sorter.order) {
+      params.sort = `${sorter.field}:${sorter.order === 'ascend' ? 'asc' : 'desc'}`;
+    }
+
+    fetchJobs(params);
   };
 
   const onFinish = (values) => {
@@ -233,7 +255,11 @@ const JobPage = () => {
 
   const onReset = () => {
     form.resetFields();
-    fetchJobs();
+    setSearchParams({});
+    fetchJobs({
+      current: 1,
+      pageSize: pagination.pageSize
+    });
   };
 
   const handleRefresh = () => {
@@ -285,11 +311,17 @@ const JobPage = () => {
             >
               <Form
                 form={form}
-                onFinish={onFinish}
                 layout="vertical"
                 className="space-y-4"
+                onValuesChange={(_, allValues) => {
+                  setSearchParams(allValues);
+                  debouncedSearch({
+                    ...allValues,
+                    current: 1
+                  });
+                }}
               >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <Form.Item
                     name="name"
                     label={
@@ -300,6 +332,7 @@ const JobPage = () => {
                       prefix={<SearchOutlined className="text-gray-400" />}
                       placeholder="Nhập tên công việc cần tìm"
                       className="h-11 rounded-lg"
+                      allowClear
                     />
                   </Form.Item>
 
@@ -309,27 +342,51 @@ const JobPage = () => {
                       <span className="text-gray-700 font-medium">Cấp Bậc</span>
                     }
                   >
-                    <Select placeholder="Chọn cấp bậc" className="h-11 rounded-lg">
-                      <Option value="FRESHER">FRESHER</Option>
-                      <Option value="JUNIOR">JUNIOR</Option>
-                      <Option value="MIDDLE">MIDDLE</Option>
-                      <Option value="SENIOR">SENIOR</Option>
+                    <Select
+                      placeholder="Chọn cấp bậc"
+                      className="h-11 rounded-lg"
+                      allowClear
+                    >
+                      <Option value="Fresher">Fresher</Option>
+                      <Option value="Junior">Junior</Option>
+                      <Option value="Middle">Middle</Option>
+                      <Option value="Senior">Senior</Option>
+                      <Option value="Leader">Leader</Option>
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name="location"
+                    label={
+                      <span className="text-gray-700 font-medium">Địa Điểm</span>
+                    }
+                  >
+                    <Select
+                      placeholder="Chọn địa điểm"
+                      className="h-11 rounded-lg"
+                      allowClear
+                    >
+                      <Option value="HANOI">Hà Nội</Option>
+                      <Option value="HOCHIMINH">Hồ Chí Minh</Option>
+                      <Option value="DANANG">Đà Nẵng</Option>
+                      <Option value="OTHER">Khác</Option>
                     </Select>
                   </Form.Item>
 
                   <div className="flex items-center h-full">
                     <Form.Item className="mb-0 w-full">
-                      <Space size="middle" className="flex w-full">
-                        <CustomButton
+                      <Space size="middle" className="flex  w-full">
+                        {/* <CustomButton
                           htmlType="submit"
                           icon={<SearchOutlined />}
                         >
                           Tìm kiếm
-                        </CustomButton>
+                        </CustomButton> */}
                         <Button
                           onClick={onReset}
                           size="large"
-                          className="h-11 px-6 flex items-center"
+                          className="px-6 py-2 mt-1 flex items-center justify-center bg-white hover:bg-gray-50 border border-gray-300"
+                          style={{ height: '45px' }}
                           icon={<ReloadOutlined />}
                         >
                           Đặt lại
