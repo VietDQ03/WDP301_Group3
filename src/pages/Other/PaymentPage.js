@@ -43,10 +43,10 @@ const PaymentPage = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     onClick={() => navigate(-1)}
-                    className="mb-8 flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200 group"
+                    className="mb-8 flex items-center text-white hover:text-gray-200 transition-colors duration-200 group"
                 >
                     <div className="bg-white p-2 rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
-                        <ArrowLeft className="h-5 w-5" />
+                        <ArrowLeft className="h-5 w-5 text-gray-600" />
                     </div>
                     <span className="ml-2 font-medium">Quay lại</span>
                 </motion.button>
@@ -56,7 +56,7 @@ const PaymentPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100"
                 >
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-8 text-white">
+                    <div className="bg-gradient-to-br from-blue-700 to-green-600 p-8 text-white">
                         <h1 className="text-3xl font-bold">Thanh toán</h1>
                         <p className="mt-2 opacity-90">Hoàn tất thanh toán để kích hoạt gói dịch vụ của bạn</p>
                     </div>
@@ -123,10 +123,10 @@ const PaymentPage = () => {
                                                 <span className="font-medium text-gray-900">{value}</span>
                                                 <button
                                                     onClick={() => handleCopy(value)}
-                                                    className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                                                    className="p-1 hover:bg-black-100 rounded-md transition-colors"
                                                     title="Sao chép"
                                                 >
-                                                    <Copy className="h-4 w-4 text-gray-500" />
+                                                    <Copy className="h-4 w-4 text-white-500" />
                                                 </button>
                                             </div>
                                         </div>
@@ -151,7 +151,7 @@ const PaymentPage = () => {
                                         <ul className="space-y-2 text-gray-700">
                                             <li className="flex items-start">
                                                 <span className="h-7 w-7 rounded-full  flex items-center justify-center text-base font-bold text-blue-600 mr-2 mt-0.5">1</span>
-                                                <span>Nếu có vấn đề phát sinh vui lòng liên hệ hotline: <span className="text-red-600 font-semibold ">0123456789</span></span>
+                                                <span>Nếu có vấn đề phát sinh vui lòng liên hệ hotline: <span className="text-red-600 font-semibold ">0865072140</span></span>
                                             </li>
                                             <li className="flex items-start">
                                                 <span className="h-7 w-7 rounded-full  flex items-center justify-center text-base font-bold text-blue-600 mr-2 mt-0.5">2</span>
@@ -172,7 +172,7 @@ const PaymentPage = () => {
                                     disabled={isCompleted}
                                     className={`w-full flex justify-center items-center py-4 px-6 rounded-xl shadow-lg text-sm font-medium text-white transition-all duration-200 ${isCompleted
                                         ? 'bg-green-500 cursor-not-allowed'
-                                        : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+                                        : 'bg-[#2b65a5] hover:bg-[#009345]'
                                         }`}
                                 >
                                     {isCompleted ? (

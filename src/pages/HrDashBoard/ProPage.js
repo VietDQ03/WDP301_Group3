@@ -11,7 +11,6 @@ const ProPage = () => {
   };
 
   const handleSelectPlan = (plan) => {
-    // Chuyển đến trang payment với thông tin gói đã chọn
     navigate('/payment', {
       state: {
         planName: plan.name,
@@ -79,19 +78,19 @@ const ProPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Dashboard Button */}
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          onClick={handleNavigateToDashboard}
-          className="mb-8 flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200 group"
-        >
-          <div className="bg-white p-2 rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
-            <ArrowLeft className="h-5 w-5" />
-          </div>
-          <span className="ml-2 font-medium">Về Dashboard</span>
-        </motion.button>
+    <div className="max-w-7xl mx-auto">
+      {/* Dashboard Button */}
+      <motion.button
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        onClick={handleNavigateToDashboard}
+        className="mb-8 flex items-center text-white hover:text-gray-200 transition-colors duration-200 group"
+      >
+        <div className="bg-white p-2 rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
+          <ArrowLeft className="h-5 w-5 text-gray-600" />
+        </div>
+        <span className="ml-2 font-medium">Quay lại</span>
+      </motion.button>
 
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -109,9 +108,8 @@ const ProPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`relative rounded-2xl bg-white p-8 shadow-lg ${
-                plan.popular ? 'border-2 border-blue-500' : ''
-              }`}
+              className={`relative rounded-2xl bg-white p-8 shadow-lg ${plan.popular ? 'border-2 border-blue-500' : ''
+                }`}
             >
               {plan.popular && (
                 <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
@@ -139,7 +137,7 @@ const ProPage = () => {
                     <span className="ml-3 text-gray-600">{feature}</span>
                   </div>
                 ))}
-                
+
                 {plan.notIncluded?.map((feature) => (
                   <div key={feature} className="flex items-center text-gray-400">
                     <X className="h-5 w-5 flex-shrink-0" />
@@ -149,15 +147,14 @@ const ProPage = () => {
               </div>
 
               <div className="mt-8">
-                <motion.button 
+                <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleSelectPlan(plan)}
-                  className={`w-full rounded-lg px-4 py-2 text-center font-medium ${
-                    plan.popular
+                  className={`w-full rounded-lg px-4 py-2 text-center font-medium ${plan.popular
                       ? 'bg-blue-500 text-white hover:bg-blue-600'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                  } transition-colors duration-200 flex items-center justify-center`}
+                    } transition-colors duration-200 flex items-center justify-center`}
                 >
                   <span>Chọn gói này</span>
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -167,20 +164,17 @@ const ProPage = () => {
           ))}
         </div>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           className="mt-12 text-center"
         >
           <p className="text-gray-600">
-            Cần giải pháp đặc biệt? {' '}
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              className="text-blue-500 font-medium hover:text-blue-600"
-            >
-              Liên hệ với chúng tôi
-            </motion.button>
+            Cần giải pháp đặc biệt? Liên hệ hotline: {' '}
+            <span className="text-red-500 font-medium">
+              0865072140
+            </span>
           </p>
         </motion.div>
       </div>
