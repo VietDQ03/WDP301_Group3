@@ -5,7 +5,6 @@ import {
   Users,
   Briefcase,
   FileText,
-  TrendingUp,
   Calendar,
   ArrowUp,
   ArrowDown
@@ -19,32 +18,24 @@ import { resumeApi } from "../../api/AdminPageAPI/resumeAPI";
 const { Content } = Layout;
 
 const DashboardPage = () => {
-  const [collapsed, setCollapsed] = React.useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [dataCompanies, setDataCompanies] = useState([]);
   const [dataJobs, setDataJobs] = useState([]);
   const [dataResumes, setDataResumes] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchData = async (params = {}) => {
+  const fetchData = async () => {
     setLoading(true);
     try {
       const [companiesResponse, jobsResponse, resumeResponse] = await Promise.all([
-        companyApi.getAll({ ...params }),
-        jobApi.getAll({ ...params }),
-        resumeApi.getAll({ ...params })
+        companyApi.getAll({}),
+        jobApi.getAll({}),
+        resumeApi.getAll({})
       ]);
 
-      if (companiesResponse?.data?.data) {
-        setDataCompanies(companiesResponse.data.data);
-      }
-
-      if (jobsResponse?.data?.data) {
-        setDataJobs(jobsResponse.data.data);
-      }
-
-      if (resumeResponse?.data) {
-        setDataResumes(resumeResponse.data);
-      }
+      setDataCompanies(companiesResponse?.data?.data || []);
+      setDataJobs(jobsResponse?.data?.data || []);
+      setDataResumes(resumeResponse?.data || []);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -54,15 +45,6 @@ const DashboardPage = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const monthlyData = [
-    { month: 'T1', value: 65 },
-    { month: 'T2', value: 85 },
-    { month: 'T3', value: 95 },
-    { month: 'T4', value: 75 },
-    { month: 'T5', value: 100 },
-    { month: 'T6', value: 120 },
-  ];
 
   const recentActivity = [
     {
@@ -91,10 +73,8 @@ const DashboardPage = () => {
       isIncrease: true,
       description: 'vị trí cấp bách',
       color: 'bg-green-500'
-    },
+    }
   ];
-
-  const maxValue = Math.max(...monthlyData.map(item => item.value));
 
   const stats = [
     {
@@ -120,93 +100,68 @@ const DashboardPage = () => {
   return (
     <Layout className="min-h-screen flex flex-row">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-
-        <Content className="m-6">
+        <Content className="p-8">
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             </div>
           ) : (
-            <>
-              {/* Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="max-w-screen-2xl mx-auto space-y-8">
+              <h1 className="text-3xl font-bold text-gray-800 mb-8 mt-4">Dashboard Overview</h1>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {stats.map((stat, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-xl shadow-lg p-12 hover:shadow-xl transition-shadow mt-8"
                   >
                     <div className="flex items-center">
-                      <div className={`${stat.color} p-3 rounded-lg text-white`}>
+                      <div className={`${stat.color} p-4 rounded-xl text-white`}>
                         {stat.icon}
                       </div>
-                      <div className="ml-4">
-                        <p className="text-sm text-gray-500">{stat.title}</p>
-                        <p className="text-2xl font-semibold">{stat.value.toLocaleString()}</p>
+                      <div className="ml-6">
+                        <p className="text-xl font-semibold">{stat.title}</p>
+                        <p className="text-2xl font-bold mt-1">{stat.value.toLocaleString()}</p>
                       </div>
                     </div>
                   </motion.div>
                 ))}
               </div>
-
-              {/* Recent Activity */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {recentActivity.map((activity, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-xl shadow-lg p-8 pl-12 hover:shadow-xl transition-shadow"
                   >
-                    <div className="flex items-center mb-4">
-                      <div className={`${activity.color} p-2 rounded-lg text-white`}>
+                    <div className="flex items-center mb-6">
+                      <div className={`${activity.color} p-4 rounded-xl text-white`}>
                         {activity.icon}
                       </div>
-                      <h3 className="ml-3 font-medium">{activity.title}</h3>
+                      <h3 className="ml-6 text-xl font-semibold">{activity.title}</h3>
                     </div>
-                    <p className="text-2xl font-semibold mb-2">{activity.value}</p>
-                    <div className="flex items-center text-sm">
+                    <p className="text-2xl font-bold mb-4">{activity.value}</p>
+                    <div className="flex items-center text-lg">
                       {activity.isIncrease ? (
-                        <ArrowUp className="w-4 h-4 text-green-500 mr-1" />
+                        <ArrowUp className="w-6 h-6 text-green-500 mr-2" />
                       ) : (
-                        <ArrowDown className="w-4 h-4 text-red-500 mr-1" />
+                        <ArrowDown className="w-6 h-6 text-red-500 mr-2" />
                       )}
-                      <span className={activity.isIncrease ? "text-green-500" : "text-red-500"}>
+                      <span className={activity.isIncrease ? "text-green-500 font-semibold" : "text-red-500 font-semibold"}>
                         {activity.change}
                       </span>
-                      <span className="text-gray-500 ml-1">{activity.description}</span>
+                      <span className="text-gray-500 ml-2">{activity.description}</span>
                     </div>
                   </motion.div>
                 ))}
               </div>
-
-              {/* Charts and Quick Actions */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
-                  <h3 className="text-lg font-semibold mb-6">Thống Kê Theo Tháng</h3>
-                  <div className="h-80 flex items-end space-x-4">
-                    {monthlyData.map((item, index) => (
-                      <div key={index} className="flex-1 flex flex-col items-center">
-                        <div
-                          className="w-full bg-blue-500 rounded-t-lg transition-all duration-300 hover:bg-blue-600"
-                          style={{ height: `${(item.value / maxValue) * 100}%` }}
-                        />
-                        <div className="mt-2 text-sm text-gray-600">{item.month}</div>
-                        <div className="text-xs text-gray-500">{item.value}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                
-              </div>
-            </>
+            </div>
           )}
         </Content>
       </Layout>
