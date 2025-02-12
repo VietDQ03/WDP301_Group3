@@ -45,69 +45,25 @@ const ResumePage = () => {
     total: 0,
   });
 
-  const fetchDetails = async (id, type) => {
-    try {
-      let response;
-      switch (type) {
-        case 'user':
-          response = await userApi.getOne(id);
-          if (response?.data) {
-            setUsers(prev => ({
-              ...prev,
-              [id]: response.data.email || 'N/A'
-            }));
-          }
-          break;
-
-        case 'job':
-          response = await jobApi.getOne(id);
-          if (response?.data) {
-            setJobs(prev => ({
-              ...prev,
-              [id]: response.data.name || 'N/A'
-            }));
-          }
-          break;
-
-        case 'company':
-          response = await companyApi.findOne(id);
-          if (response?.data) {
-            setCompanies(prev => ({
-              ...prev,
-              [id]: response.data.name || 'N/A'
-            }));
-          }
-          break;
-      }
-    } catch (error) {
-      console.error(`Error fetching ${type} details:`, error);
-      switch (type) {
-        case 'user':
-          setUsers(prev => ({ ...prev, [id]: 'N/A' }));
-          break;
-        case 'job':
-          setJobs(prev => ({ ...prev, [id]: 'N/A' }));
-          break;
-        case 'company':
-          setCompanies(prev => ({ ...prev, [id]: 'N/A' }));
-          break;
-      }
-    }
-  };
-
   const fetchResumes = async (params = {}) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await resumeApi.search({
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const queryParams = {
         current: params.current || pagination.current,
         pageSize: params.pageSize || pagination.pageSize,
+        ...searchValues,
         ...params
-      });
+      };
 
-      if (response?.data) {
-        const formattedResumes = response.data.result.map((resume, index) => ({
+      // Lấy danh sách hồ sơ
+      const resumeResponse = await resumeApi.getAll(queryParams);
+
+      if (resumeResponse?.data) {
+        const formattedResumes = resumeResponse.data.result.map((resume, index) => ({
           key: resume._id,
-          stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
+          stt: index + 1 + ((resumeResponse.data.meta.current - 1) * resumeResponse.data.meta.pageSize),
           id: resume._id,
           email: resume.email,
           url: resume.url,
@@ -120,27 +76,49 @@ const ResumePage = () => {
           updatedAt: new Date(resume.updatedAt).toLocaleString(),
         }));
 
-        const uniqueIds = {
-          company: [...new Set(formattedResumes.map(resume => resume.companyId))],
-          job: [...new Set(formattedResumes.map(resume => resume.jobId))],
-          user: [...new Set(formattedResumes.map(resume => resume.userId))]
-        };
+        // Tạo mảng các promise để fetch thông tin
+        const uniqueUserIds = [...new Set(formattedResumes.map(resume => resume.userId))];
+        const uniqueCompanyIds = [...new Set(formattedResumes.map(resume => resume.companyId))];
+        const uniqueJobIds = [...new Set(formattedResumes.map(resume => resume.jobId))];
 
-        Object.entries(uniqueIds).forEach(([type, ids]) => {
-          ids.forEach(id => {
-            const stateMap = type === 'company' ? companies :
-              type === 'job' ? jobs : users;
-            if (id && !stateMap[id]) {
-              fetchDetails(id, type);
-            }
-          });
+        // Fetch tất cả dữ liệu cùng một lúc
+        const [userResponses, companyResponses, jobResponses] = await Promise.all([
+          Promise.all(uniqueUserIds.map(id => id ? userApi.getOne(id).catch(() => ({ data: null })) : null)),
+          Promise.all(uniqueCompanyIds.map(id => id ? companyApi.findOne(id).catch(() => ({ data: null })) : null)),
+          Promise.all(uniqueJobIds.map(id => id ? jobApi.getOne(id).catch(() => ({ data: null })) : null))
+        ]);
+
+        // Cập nhật state một lần duy nhất
+        const newUsers = {};
+        const newCompanies = {};
+        const newJobs = {};
+
+        userResponses.forEach((response, index) => {
+          if (response?.data) {
+            newUsers[uniqueUserIds[index]] = response.data.email;
+          }
         });
 
+        companyResponses.forEach((response, index) => {
+          if (response?.data) {
+            newCompanies[uniqueCompanyIds[index]] = response.data.name;
+          }
+        });
+
+        jobResponses.forEach((response, index) => {
+          if (response?.data) {
+            newJobs[uniqueJobIds[index]] = response.data.name;
+          }
+        });
+
+        setUsers(newUsers);
+        setCompanies(newCompanies);
+        setJobs(newJobs);
         setResumes(formattedResumes);
         setPagination({
-          current: response.data.meta.current,
-          pageSize: response.data.meta.pageSize,
-          total: response.data.meta.total,
+          current: resumeResponse.data.meta.current,
+          pageSize: resumeResponse.data.meta.pageSize,
+          total: resumeResponse.data.meta.total,
         });
       }
     } catch (error) {
@@ -183,7 +161,12 @@ const ResumePage = () => {
     try {
       await resumeApi.updateStatus(id, newStatus);
       message.success('Cập nhật trạng thái thành công');
-      fetchResumes(pagination);
+      // Gọi fetchResumes với đầy đủ các tham số hiện tại
+      fetchResumes({
+        current: pagination.current,
+        pageSize: pagination.pageSize,
+        ...searchValues // Thêm các điều kiện tìm kiếm hiện tại
+      });
     } catch (error) {
       message.error('Không thể cập nhật trạng thái');
       console.error('Error:', error);
@@ -194,12 +177,8 @@ const ResumePage = () => {
     {
       title: "STT",
       dataIndex: "stt",
-      key: "stt",
       width: 80,
-      align: "center",
-      render: (text) => (
-        <span className="text-gray-500">{text}</span>
-      )
+      align: "center"
     },
     {
       title: "Email",
@@ -262,6 +241,30 @@ const ResumePage = () => {
             />
           </svg>
           {companies[companyId] || ''}
+        </div>
+      ),
+    },
+    {
+      title: "Công Việc",
+      align: "center",
+      dataIndex: "jobId",
+      render: (jobId) => (
+        <div className="flex items-center justify-center text-gray-600">
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+          {jobs[jobId] || 'N/A'}
         </div>
       ),
     },
@@ -455,8 +458,7 @@ const ResumePage = () => {
 
             {/* List Section */}
             <motion.div
-              className="bg-white p-6 shadow-sm rounded-xl border border-gray-100 relative"
-              style={{ minHeight: '600px' }}
+              className="bg-white p-6 shadow-sm rounded-xl border border-gray-100 relative min-h-[600px]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
@@ -487,7 +489,7 @@ const ResumePage = () => {
                       />
                     </Tooltip>
                   </motion.div>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  {/* <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Tooltip title="Cài đặt hiển thị">
                       <Button
                         icon={<SettingOutlined />}
@@ -495,7 +497,7 @@ const ResumePage = () => {
                         className="h-11 hover:bg-gray-50 hover:border-gray-300"
                       />
                     </Tooltip>
-                  </motion.div>
+                  </motion.div> */}
                 </Space>
               </div>
 
@@ -504,14 +506,9 @@ const ResumePage = () => {
                   dataSource={resumes}
                   columns={columns}
                   pagination={false}
-                  bordered={false}
-                  size="middle"
                   className="shadow-sm rounded-lg overflow-hidden"
                   loading={loading}
-                  rowClassName={() => 'hover:bg-gray-50 transition-colors'}
-                  onRow={(record) => ({
-                    className: 'cursor-pointer'
-                  })}
+                  rowClassName="hover:bg-gray-50 transition-colors cursor-pointer"
                 />
               </div>
               <div

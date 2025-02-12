@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import { companyApi } from "../../api/AdminPageAPI/companyApi";
@@ -6,6 +6,7 @@ import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message
 import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, SearchOutlined, EnvironmentOutlined, MailOutlined, EyeOutlined } from "@ant-design/icons";
 import { motion } from 'framer-motion';
 import CustomButton from '../../components/CustomButton';
+import debounce from 'lodash/debounce';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -27,15 +28,35 @@ const CompanyPage = () => {
     total: 0,
   });
 
+  const debouncedSearch = useCallback(
+    debounce((searchParams) => {
+      fetchCompanies({
+        current: 1,
+        pageSize: pagination.pageSize,
+        ...searchParams
+      });
+    }, 500),
+    []
+  );
+
+  // Sửa lại phần fetchCompanies
   const fetchCompanies = async (params = {}) => {
     setLoading(true);
     try {
-      const response = await companyApi.getAll({
-        page: params.current || pagination.current,
-        pageSize: params.pageSize || pagination.pageSize,
-        ...params
-      });
 
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Tạo object chứa các tham số tìm kiếm
+      const searchParams = {
+        current: params.current || pagination.current,
+        pageSize: params.pageSize || pagination.pageSize,
+      };
+  
+      // Chỉ thêm vào nếu có giá trị và không phải chuỗi rỗng
+      if (params.name?.trim()) searchParams.name = params.name.trim();
+      if (params.address?.trim()) searchParams.address = params.address.trim();
+  
+      const response = await companyApi.getAll(searchParams);
+  
       if (response?.data?.data) {
         const { result, meta } = response.data.data;
         const dataWithKeys = result.map((item, index) => ({
@@ -45,9 +66,9 @@ const CompanyPage = () => {
         }));
         setData(dataWithKeys);
         setPagination({
-          current: meta.current || params.current || pagination.current,
-          pageSize: meta.pageSize || params.pageSize || pagination.pageSize,
-          total: meta.total || 0,
+          current: meta.current,
+          pageSize: meta.pageSize,
+          total: meta.total,
         });
       }
     } catch (error) {
@@ -168,25 +189,35 @@ const CompanyPage = () => {
     },
   ];
 
+  const handleSearchChange = (e, fieldName) => {
+    const value = e.target.value;
+    const newSearchValues = {
+      ...searchValues,
+      [fieldName]: value
+    };
+    setSearchValues(newSearchValues);
+
+    // Gọi search với debounce
+    debouncedSearch(newSearchValues);
+  };
+
   const handleTableChange = (newPagination, filters, sorter) => {
     fetchCompanies({
-      ...newPagination,
-      sortField: sorter.field,
-      sortOrder: sorter.order,
-      ...filters,
-      ...searchValues
+      current: newPagination.current,
+      pageSize: newPagination.pageSize,
+      ...searchValues // Giữ lại các giá trị tìm kiếm khi chuyển trang
     });
   };
 
   const onFinish = (values) => {
     setSearchValues(values);
+    // Gọi API với các tham số tìm kiếm
     fetchCompanies({
-      ...values,
-      current: 1,
-      pageSize: pagination.pageSize
+      current: 1, // Reset về trang 1 khi tìm kiếm
+      pageSize: pagination.pageSize,
+      ...values // Thêm các giá trị tìm kiếm
     });
   };
-
   const onReset = () => {
     form.resetFields();
     setSearchValues({
@@ -194,6 +225,7 @@ const CompanyPage = () => {
       address: '',
       email: ''
     });
+    // Reset về trạng thái ban đầu
     fetchCompanies({
       current: 1,
       pageSize: pagination.pageSize
@@ -257,27 +289,25 @@ const CompanyPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Form.Item
                     name="name"
-                    label={
-                      <span className="text-gray-700 font-medium">Tên Công Ty</span>
-                    }
+                    label={<span className="text-gray-700 font-medium">Tên Công Ty</span>}
                   >
                     <Input
                       prefix={<SearchOutlined className="text-gray-400" />}
                       placeholder="Nhập tên công ty cần tìm"
                       className="h-11 rounded-lg"
+                      onChange={(e) => handleSearchChange(e, 'name')}
                     />
                   </Form.Item>
 
                   <Form.Item
                     name="address"
-                    label={
-                      <span className="text-gray-700 font-medium">Địa chỉ</span>
-                    }
+                    label={<span className="text-gray-700 font-medium">Địa chỉ</span>}
                   >
                     <Input
                       prefix={<EnvironmentOutlined className="text-gray-400" />}
                       placeholder="Nhập địa chỉ"
                       className="h-11 rounded-lg"
+                      onChange={(e) => handleSearchChange(e, 'address')}
                     />
                   </Form.Item>
 
@@ -339,7 +369,7 @@ const CompanyPage = () => {
                       />
                     </Tooltip>
                   </motion.div>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  {/* <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Tooltip title="Cài đặt hiển thị">
                       <Button
                         icon={<SettingOutlined />}
@@ -347,7 +377,7 @@ const CompanyPage = () => {
                         className="h-11 hover:bg-gray-50 hover:border-gray-300"
                       />
                     </Tooltip>
-                  </motion.div>
+                  </motion.div> */}
                 </Space>
               </div>
 
@@ -382,7 +412,7 @@ const CompanyPage = () => {
                   }}
                 />
               </div>
-              
+
             </motion.div>
           </motion.div>
         </Content>

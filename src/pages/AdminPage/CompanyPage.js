@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
 import { companyApi } from "../../api/AdminPageAPI/companyApi";
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Modal } from "antd";
 import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import debounce from 'lodash/debounce';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -25,14 +26,29 @@ const CompanyPage = () => {
     total: 0,
   });
 
+  const debouncedSearch = useCallback(
+    debounce((searchParams) => {
+      fetchCompanies({
+        current: 1,
+        pageSize: pagination.pageSize,
+        ...searchParams
+      });
+    }, 500),
+    []
+  );
+
   const fetchCompanies = async (params = {}) => {
     setLoading(true);
     try {
-      const response = await companyApi.getAll({
-        page: params.current || pagination.current,
+      const searchParams = {
+        current: params.current || pagination.current,
         pageSize: params.pageSize || pagination.pageSize,
-        ...params
-      });
+      };
+
+      if (params.name?.trim()) searchParams.name = params.name.trim();
+      if (params.address?.trim()) searchParams.address = params.address.trim();
+
+      const response = await companyApi.getAll(searchParams);
 
       if (response?.data?.data) {
         const { result, meta } = response.data.data;
@@ -43,9 +59,9 @@ const CompanyPage = () => {
         }));
         setData(dataWithKeys);
         setPagination({
-          current: meta.current || params.current || pagination.current,
-          pageSize: meta.pageSize || params.pageSize || pagination.pageSize,
-          total: meta.total || 0,
+          current: meta.current,
+          pageSize: meta.pageSize,
+          total: meta.total,
         });
       }
     } catch (error) {
@@ -58,6 +74,16 @@ const CompanyPage = () => {
   useEffect(() => {
     fetchCompanies();
   }, []);
+
+  const handleSearchChange = (e, fieldName) => {
+    const value = e.target.value;
+    const newSearchValues = {
+      ...searchValues,
+      [fieldName]: value
+    };
+    setSearchValues(newSearchValues);
+    debouncedSearch(newSearchValues);
+  };
 
   const handleDelete = (id) => {
     confirm({
@@ -140,10 +166,8 @@ const CompanyPage = () => {
 
   const handleTableChange = (newPagination, filters, sorter) => {
     fetchCompanies({
-      ...newPagination,
-      sortField: sorter.field,
-      sortOrder: sorter.order,
-      ...filters,
+      current: newPagination.current,
+      pageSize: newPagination.pageSize,
       ...searchValues
     });
   };
@@ -151,12 +175,12 @@ const CompanyPage = () => {
   const onFinish = (values) => {
     setSearchValues(values);
     fetchCompanies({
-      ...values,
       current: 1,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
+      ...values
     });
   };
-
+  
   const onReset = () => {
     form.resetFields();
     setSearchValues({
@@ -196,11 +220,19 @@ const CompanyPage = () => {
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Form.Item name="name" label="Tên Công Ty" className="col-span-1">
-                  <Input placeholder="Nhập tên công ty" style={{ height: '40px' }} />
+                  <Input
+                    placeholder="Nhập tên công ty"
+                    style={{ height: '40px' }}
+                    onChange={(e) => handleSearchChange(e, 'name')}
+                  />
                 </Form.Item>
 
                 <Form.Item name="address" label="Địa chỉ" className="col-span-1">
-                  <Input placeholder="Nhập địa chỉ" style={{ height: '40px' }} />
+                  <Input
+                    placeholder="Nhập địa chỉ"
+                    style={{ height: '40px' }}
+                    onChange={(e) => handleSearchChange(e, 'address')}
+                  />
                 </Form.Item>
 
                 <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
@@ -226,8 +258,8 @@ const CompanyPage = () => {
                   Thêm mới
                 </Button>
                 <Tooltip title="Làm mới">
-                  <Button 
-                    icon={<ReloadOutlined />} 
+                  <Button
+                    icon={<ReloadOutlined />}
                     onClick={handleRefresh}
                   />
                 </Tooltip>
