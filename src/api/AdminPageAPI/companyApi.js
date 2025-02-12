@@ -7,10 +7,7 @@ const axiosInstance = axios.create({
 export const companyApi = {
   getAll: (params) => {
     return axiosInstance.get('/companies', { 
-      params: {
-        current: params.page,   
-        pageSize: params.pageSize
-      }
+      params: params 
     });
   },
 
@@ -20,7 +17,7 @@ export const companyApi = {
   },
 
   update: async (id, data) => {
-    const response = await axiosInstance.put(`/companies/${id}`, data);
+    const response = await axiosInstance.patch(`/companies/${id}`, data);
     return response.data;
   },
 
@@ -29,19 +26,19 @@ export const companyApi = {
     return response.data;
   },
 
-  search: async (params) => {
-    return axiosInstance.get("/companies", { 
-      params: {
-        current: params.page,    // Đổi thành current
-        pageSize: params.pageSize,
-        ...params
-      }
-    });
-  },
-
-  // Thêm method findOne
   findOne: async (id) => {
     const response = await axiosInstance.get(`/companies/${id}`);
     return response.data;
   },
+
+  search: (params) => {
+    const { current, pageSize, ...searchParams } = params;
+    return axiosInstance.get('/companies', { 
+      params: {
+        current,
+        pageSize,
+        ...searchParams // For search parameters like name, address
+      }
+    });
+  }
 };

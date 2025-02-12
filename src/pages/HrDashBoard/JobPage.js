@@ -24,8 +24,10 @@ const JobPage = () => {
   });
 
   const fetchJobs = async (params = {}) => {
+    setLoading(true);
     try {
-      setLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       const response = await jobApi.getAll({
         page: params.current || 1,
         pageSize: params.pageSize || 10,
@@ -373,7 +375,7 @@ const JobPage = () => {
                       />
                     </Tooltip>
                   </motion.div>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  {/* <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Tooltip title="Cài đặt hiển thị">
                       <Button
                         icon={<SettingOutlined />}
@@ -381,7 +383,7 @@ const JobPage = () => {
                         className="h-11 hover:bg-gray-50 hover:border-gray-300"
                       />
                     </Tooltip>
-                  </motion.div>
+                  </motion.div> */}
                 </Space>
               </div>
 
