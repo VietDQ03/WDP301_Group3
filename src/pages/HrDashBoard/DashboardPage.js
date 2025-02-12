@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Card, Row, Col, Statistic, message } from 'antd';
-import { UserOutlined, ShoppingOutlined, FileOutlined, TeamOutlined } from '@ant-design/icons';
+import { Layout } from 'antd';
+import { motion } from 'framer-motion';
+import {
+  Users,
+  Briefcase,
+  FileText,
+  TrendingUp,
+  Calendar,
+  ArrowUp,
+  ArrowDown
+} from 'lucide-react';
 import Sidebar from '../../components/HrDashBoard/Sidebar';
 import Header from '../../components/HrDashBoard/Header';
 import { companyApi } from "../../api/AdminPageAPI/companyApi";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
 import { resumeApi } from "../../api/AdminPageAPI/resumeAPI";
-import CountUp from 'react-countup';
 
 const { Content } = Layout;
 
@@ -38,7 +46,6 @@ const DashboardPage = () => {
         setDataResumes(resumeResponse.data);
       }
     } catch (error) {
-      message.error('Không thể tải dữ liệu');
       console.error('Error:', error);
     }
     setLoading(false);
@@ -48,22 +55,66 @@ const DashboardPage = () => {
     fetchData();
   }, []);
 
+  const monthlyData = [
+    { month: 'T1', value: 65 },
+    { month: 'T2', value: 85 },
+    { month: 'T3', value: 95 },
+    { month: 'T4', value: 75 },
+    { month: 'T5', value: 100 },
+    { month: 'T6', value: 120 },
+  ];
+
   const recentActivity = [
     {
+      icon: <FileText className="w-5 h-5" />,
       title: 'Đơn Ứng Tuyển Mới',
-      value: '45 hôm nay',
-      description: 'Tăng 20% so với hôm qua',
+      value: `${dataResumes?.meta?.total || 0} hôm nay`,
+      change: '+20%',
+      isIncrease: true,
+      description: 'so với hôm qua',
+      color: 'bg-blue-500'
     },
     {
+      icon: <Calendar className="w-5 h-5" />,
       title: 'Phỏng Vấn Đang Diễn Ra',
       value: '23 đã lên lịch',
-      description: '5 chờ xác nhận',
+      change: '+5',
+      isIncrease: true,
+      description: 'chờ xác nhận',
+      color: 'bg-purple-500'
     },
     {
+      icon: <Briefcase className="w-5 h-5" />,
       title: 'Tin Tuyển Dụng',
-      value: '12 tin mới',
-      description: '3 vị trí cấp bách',
+      value: `${dataJobs?.meta?.total || 0} tin mới`,
+      change: '3',
+      isIncrease: true,
+      description: 'vị trí cấp bách',
+      color: 'bg-green-500'
     },
+  ];
+
+  const maxValue = Math.max(...monthlyData.map(item => item.value));
+
+  const stats = [
+    {
+      icon: <FileText />,
+      title: 'Tổng Số Ứng Tuyển',
+      value: dataResumes?.meta?.total || 0,
+      color: 'bg-blue-500'
+    },
+    {
+      icon: <Briefcase />,
+      title: 'Tổng số Công Việc',
+      value: dataJobs?.meta?.total || 0,
+      color: 'bg-green-500'
+    },
+    {
+      icon: <Users />,
+      title: 'Tổng Số Công Ty',
+      value: dataCompanies?.meta?.total || 0,
+      color: 'bg-purple-500'
+    }
   ];
 
   return (
@@ -74,136 +125,89 @@ const DashboardPage = () => {
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
 
         <Content className="m-6">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Trang Tổng Quan</h1>
-
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12} lg={8}>
-                <Card
-                  className="bg-purple-50 hover:shadow-md transition-shadow"
-                  bordered={false}
-                >
-                  <div className="flex justify-between items-start">
-                    <Statistic
-                      title={<span className="text-gray-600">Tổng Số Ứng Tuyển</span>}
-                      value={dataResumes?.meta?.total || 0}
-                      formatter={() => (
-                        <CountUp
-                          start={0}
-                          end={dataResumes?.meta?.total || 0}
-                          duration={0.5}
-                          separator=","
-                        />
-                      )}
-                    />
-                    <div className="p-2 rounded-lg bg-white/60">
-                      <FileOutlined className="text-purple-500 text-2xl" />
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <>
+              {/* Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {stats.map((stat, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center">
+                      <div className={`${stat.color} p-3 rounded-lg text-white`}>
+                        {stat.icon}
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm text-gray-500">{stat.title}</p>
+                        <p className="text-2xl font-semibold">{stat.value.toLocaleString()}</p>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              </Col>
+                  </motion.div>
+                ))}
+              </div>
 
-              <Col xs={24} sm={12} lg={8}>
-                <Card
-                  className="bg-green-50 hover:shadow-md transition-shadow"
-                  bordered={false}
-                >
-                  <div className="flex justify-between items-start">
-                    <Statistic
-                      title={<span className="text-gray-600">Tổng số Công Việc</span>}
-                      value={dataJobs?.meta?.total || 0}
-                      formatter={() => (
-                        <CountUp
-                          start={0}
-                          end={dataJobs?.meta?.total || 0}
-                          duration={0.5}
-                          separator=","
-                        />
-                      )}
-                    />
-                    <div className="p-2 rounded-lg bg-white/60">
-                      <ShoppingOutlined className="text-green-500 text-2xl" />
+              {/* Recent Activity */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {recentActivity.map((activity, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center mb-4">
+                      <div className={`${activity.color} p-2 rounded-lg text-white`}>
+                        {activity.icon}
+                      </div>
+                      <h3 className="ml-3 font-medium">{activity.title}</h3>
                     </div>
-                  </div>
-                </Card>
-              </Col>
-
-              <Col xs={24} sm={12} lg={8}>
-                <Card
-                  className="bg-orange-50 hover:shadow-md transition-shadow"
-                  bordered={false}
-                >
-                  <div className="flex justify-between items-start">
-                    <Statistic
-                      title={<span className="text-gray-600">Tổng Số Công Ty</span>}
-                      value={dataCompanies?.meta?.total || 0}
-                      formatter={() => (
-                        <CountUp
-                          start={0}
-                          end={dataCompanies?.meta?.total || 0}
-                          duration={0.5}
-                          separator=","
-                        />
+                    <p className="text-2xl font-semibold mb-2">{activity.value}</p>
+                    <div className="flex items-center text-sm">
+                      {activity.isIncrease ? (
+                        <ArrowUp className="w-4 h-4 text-green-500 mr-1" />
+                      ) : (
+                        <ArrowDown className="w-4 h-4 text-red-500 mr-1" />
                       )}
-                    />
-                    <div className="p-2 rounded-lg bg-white/60">
-                      <TeamOutlined className="text-orange-500 text-2xl" />
+                      <span className={activity.isIncrease ? "text-green-500" : "text-red-500"}>
+                        {activity.change}
+                      </span>
+                      <span className="text-gray-500 ml-1">{activity.description}</span>
                     </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Charts and Quick Actions */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-lg font-semibold mb-6">Thống Kê Theo Tháng</h3>
+                  <div className="h-80 flex items-end space-x-4">
+                    {monthlyData.map((item, index) => (
+                      <div key={index} className="flex-1 flex flex-col items-center">
+                        <div
+                          className="w-full bg-blue-500 rounded-t-lg transition-all duration-300 hover:bg-blue-600"
+                          style={{ height: `${(item.value / maxValue) * 100}%` }}
+                        />
+                        <div className="mt-2 text-sm text-gray-600">{item.month}</div>
+                        <div className="text-xs text-gray-500">{item.value}</div>
+                      </div>
+                    ))}
                   </div>
-                </Card>
-              </Col>
-            </Row>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Hoạt Động Gần Đây</h2>
-            <Row gutter={[16, 16]}>
-              {recentActivity.map((activity, index) => (
-                <Col xs={24} sm={8} key={index}>
-                  <Card className="hover:shadow-md transition-shadow">
-                    <h3 className="text-lg font-medium mb-2">{activity.title}</h3>
-                    <p className="text-2xl font-semibold text-gray-800 mb-1">
-                      {activity.value}
-                    </p>
-                    <p className="text-gray-500">{activity.description}</p>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </div>
-
-          {/* Additional Content */}
-          <Row gutter={[16, 16]}>
-            <Col xs={24} lg={16}>
-              <Card
-                title="Thống Kê Theo Tháng"
-                className="hover:shadow-md transition-shadow"
-              >
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  Chart Component will be placed here
                 </div>
-              </Card>
-            </Col>
-            <Col xs={24} lg={8}>
-              <Card
-                title="Thao Tác Nhanh"
-                className="hover:shadow-md transition-shadow"
-              >
-                <ul className="space-y-4">
-                  <li className="flex items-center text-blue-600 cursor-pointer hover:text-blue-800">
-                    <FileOutlined className="mr-2" /> Đăng Tin Tuyển Dụng
-                  </li>
-                  <li className="flex items-center text-blue-600 cursor-pointer hover:text-blue-800">
-                    <UserOutlined className="mr-2" /> Xem Đơn Ứng Tuyển
-                  </li>
-                  <li className="flex items-center text-blue-600 cursor-pointer hover:text-blue-800">
-                    <TeamOutlined className="mr-2" /> Lên Lịch Phỏng Vấn
-                  </li>
-                </ul>
-              </Card>
-            </Col>
-          </Row>
+
+                
+              </div>
+            </>
+          )}
         </Content>
       </Layout>
     </Layout>

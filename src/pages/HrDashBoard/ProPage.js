@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, X, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Check, X, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import BackButton from '../../components/BackButton';
 
 const ProPage = () => {
   const navigate = useNavigate();
@@ -78,19 +79,10 @@ const ProPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div className="max-w-7xl mx-auto">
-      {/* Dashboard Button */}
-      <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        onClick={handleNavigateToDashboard}
-        className="mb-8 flex items-center text-white hover:text-gray-200 transition-colors duration-200 group"
-      >
-        <div className="bg-white p-2 rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
-          <ArrowLeft className="h-5 w-5 text-gray-600" />
-        </div>
-        <span className="ml-2 font-medium">Quay lại</span>
-      </motion.button>
+      <div className="max-w-7xl mx-auto">
+        <BackButton onClick={handleNavigateToDashboard}>
+          Quay lại
+        </BackButton>
 
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -107,9 +99,15 @@ const ProPage = () => {
               key={plan.name}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              whileHover={{ 
+                scale: 1.03,
+                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                transition: { duration: 0.2 }
+              }}
               transition={{ delay: index * 0.1 }}
-              className={`relative rounded-2xl bg-white p-8 shadow-lg ${plan.popular ? 'border-2 border-blue-500' : ''
-                }`}
+              className={`relative rounded-2xl bg-white p-8 shadow-lg flex flex-col ${
+                plan.popular ? 'border-2 border-blue-500' : ''
+              }`}
             >
               {plan.popular && (
                 <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
@@ -130,7 +128,7 @@ const ProPage = () => {
                 </div>
               </div>
 
-              <div className="mt-8 space-y-4">
+              <div className="mt-8 space-y-4 flex-grow">
                 {plan.features.map((feature) => (
                   <div key={feature} className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
@@ -151,10 +149,11 @@ const ProPage = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleSelectPlan(plan)}
-                  className={`w-full rounded-lg px-4 py-2 text-center font-medium ${plan.popular
+                  className={`w-full rounded-lg px-4 py-2 text-center font-medium ${
+                    plan.popular
                       ? 'bg-blue-500 text-white hover:bg-blue-600'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                    } transition-colors duration-200 flex items-center justify-center`}
+                  } transition-colors duration-200 flex items-center justify-center`}
                 >
                   <span>Chọn gói này</span>
                   <ArrowRight className="ml-2 h-4 w-4" />

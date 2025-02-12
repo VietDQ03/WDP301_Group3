@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, AlertCircle, CheckCircle2, Copy } from 'lucide-react';
+import BackButton from '../../components/BackButton';
+import CustomButton from '../../components/CustomButton';
 
 const PaymentPage = () => {
     const location = useLocation();
@@ -39,17 +41,11 @@ const PaymentPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
-                <motion.button
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                <BackButton
                     onClick={() => navigate(-1)}
-                    className="mb-8 flex items-center text-white hover:text-gray-200 transition-colors duration-200 group"
                 >
-                    <div className="bg-white p-2 rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
-                        <ArrowLeft className="h-5 w-5 text-gray-600" />
-                    </div>
-                    <span className="ml-2 font-medium">Quay lại</span>
-                </motion.button>
+                    Quay lại
+                </BackButton>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -165,25 +161,31 @@ const PaymentPage = () => {
                                     </div>
                                 </div>
 
-                                <motion.button
+                                <motion.div
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
-                                    onClick={handleComplete}
-                                    disabled={isCompleted}
-                                    className={`w-full flex justify-center items-center py-4 px-6 rounded-xl shadow-lg text-sm font-medium text-white transition-all duration-200 ${isCompleted
-                                        ? 'bg-green-500 cursor-not-allowed'
-                                        : 'bg-[#2b65a5] hover:bg-[#009345]'
-                                        }`}
                                 >
-                                    {isCompleted ? (
-                                        <>
-                                            <CheckCircle2 className="mr-2 h-5 w-5" />
-                                            Đã hoàn thành
-                                        </>
-                                    ) : (
-                                        'Đã hoàn thành'
-                                    )}
-                                </motion.button>
+                                    <CustomButton
+                                        onClick={handleComplete}
+                                        disabled={isCompleted}
+                                        className="w-full"
+                                        icon={isCompleted ? <CheckCircle2 className="mr-2 h-6 w-6" /> : null}
+                                        style={{
+                                            width: '100%', 
+                                            paddingLeft: '1.5rem',
+                                            paddingRight: '1.5rem',
+                                            fontSize: '1rem', 
+                                            ...(isCompleted && {
+                                                backgroundColor: '#22c55e',
+                                                borderColor: '#22c55e',
+                                                cursor: 'not-allowed',
+                                                color: 'white'
+                                            })
+                                        }}
+                                    >
+                                        {isCompleted ? 'Cảm ơn quý khách!' : 'Đã hoàn thành'}
+                                    </CustomButton>
+                                </motion.div>
                             </motion.div>
                         </div>
 
