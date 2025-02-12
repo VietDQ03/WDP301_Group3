@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message, } from "antd";
-import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, } from "@ant-design/icons";
+import CustomButton from '../../components/CustomButton';
+import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message, Pagination } from "antd";
+import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, SearchOutlined, EnvironmentOutlined, DollarOutlined, TeamOutlined, EyeOutlined } from "@ant-design/icons";
+import { motion } from 'framer-motion';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -11,7 +13,7 @@ const { Option } = Select;
 const { confirm } = Modal;
 
 const JobPage = () => {
-  const [collapsed, setCollapsed] = React.useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [jobs, setJobs] = useState([]);
@@ -54,7 +56,6 @@ const JobPage = () => {
         pageSize: meta.pageSize || 10,
       });
     } catch (error) {
-      console.error("Error fetching jobs:", error);
       message.error("Có lỗi xảy ra khi tải danh sách công việc!");
     } finally {
       setLoading(false);
@@ -67,31 +68,25 @@ const JobPage = () => {
 
   const handleDelete = (id) => {
     confirm({
-      title: 'Bạn có chắc chắn muốn xóa công việc này?',
-      icon: <ExclamationCircleOutlined />,
-      content: 'Hành động này không thể hoàn tác',
+      title: 'Xác nhận xóa',
+      icon: <ExclamationCircleOutlined className="text-red-500" />,
+      content: 'Bạn có chắc chắn muốn xóa công việc này? Hành động này không thể hoàn tác.',
       okText: 'Xóa',
       okType: 'danger',
       cancelText: 'Hủy',
+      okButtonProps: {
+        className: 'bg-red-500 hover:bg-red-600',
+      },
       onOk: async () => {
         try {
           await jobApi.delete(id);
-          message.success('Xóa công việc thành công!');
-          fetchJobs({
-            current: pagination.current,
-            pageSize: pagination.pageSize
-          });
+          message.success('Xóa công việc thành công');
+          fetchJobs(pagination);
         } catch (error) {
-          console.error("Error deleting job:", error);
-          message.error('Có lỗi xảy ra khi xóa công việc!');
+          message.error('Không thể xóa công việc');
         }
       },
     });
-  };
-
-  const statusMap = {
-    "ACTIVE": "Hoạt động",
-    "INACTIVE": "Không hoạt động"
   };
 
   const columns = [
@@ -99,81 +94,117 @@ const JobPage = () => {
       title: "STT",
       dataIndex: "stt",
       key: "stt",
-      width: 70,
-      className: "text-center",
+      width: 80,
       align: "center",
+      render: (text) => (
+        <span className="text-gray-500">{text}</span>
+      )
     },
     {
-      title: "Tên Job",
+      title: "Tên Công Việc",
       dataIndex: "name",
       key: "name",
+      render: (text) => (
+        <div className="font-medium text-gray-800">{text}</div>
+      ),
       onHeaderCell: () => ({
-        style: { textAlign: 'center' }
+        style: { textAlign: 'left' }
       })
     },
     {
       title: "Công Ty",
       dataIndex: "company",
       key: "company",
+      render: (text) => (
+        <div className="font-medium text-gray-700">{text}</div>
+      ),
       onHeaderCell: () => ({
-        style: { textAlign: 'center' }
+        style: { textAlign: 'left' }
       })
     },
     {
       title: "Địa Điểm",
       dataIndex: "location",
       key: "location",
-      align: "center",
+      render: (text) => (
+        <div className="flex items-center text-gray-600">
+          <EnvironmentOutlined className="mr-2" />
+          {text}
+        </div>
+      )
     },
     {
       title: "Mức Lương",
       dataIndex: "salary",
       key: "salary",
-      align: "center",
+      render: (text) => (
+        <div className="flex items-center justify-center text-gray-600">
+          <DollarOutlined className="mr-2" />
+          {text}
+        </div>
+      ),
+      align: "center"
     },
     {
-      title: "Mức Độ",
-      align: "center",
+      title: "Cấp Bậc",
       dataIndex: "level",
       key: "level",
+      align: "center",
+      render: (level) => (
+        <Tag color="blue" className="px-3 py-1">
+          {level}
+        </Tag>
+      )
     },
     {
       title: "Số Lượng",
       dataIndex: "quantity",
-      align: "center",
       key: "quantity",
+      align: "center",
+      render: (text) => (
+        <div className="flex items-center justify-center text-gray-600">
+          <TeamOutlined className="mr-2" />
+          {text}
+        </div>
+      )
     },
     {
       title: "Trạng Thái",
-      align: "center",
       dataIndex: "status",
       key: "status",
+      align: "center",
       render: (status) => (
-        <Tag color={status === "ACTIVE" ? "green" : "red"}>
-          {statusMap[status]}
+        <Tag color={status === "ACTIVE" ? "green" : "red"} className="px-3 py-1">
+          {status === "ACTIVE" ? "Hoạt động" : "Không hoạt động"}
         </Tag>
-      ),
+      )
     },
     {
       title: "Hành Động",
-      align: "center",
       key: "actions",
-      width: 120,
+      width: 150,
+      align: "center",
       render: (_, record) => (
-        <Space>
-          <Tooltip title="Edit">
+        <Space size="middle">
+          <Tooltip title="Xem chi tiết">
+            <Button
+              type="text"
+              icon={<EyeOutlined />}
+              className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+            />
+          </Tooltip>
+          <Tooltip title="Chỉnh sửa">
             <Button
               type="text"
               icon={<EditOutlined />}
-              className="text-blue-500 hover:text-blue-700"
-              onClick={() => handleEdit(record.key)}
+              className="text-green-500 hover:text-green-600 hover:bg-green-50"
             />
           </Tooltip>
-          <Tooltip title="Delete">
+          <Tooltip title="Xóa">
             <Button
               type="text"
               icon={<DeleteOutlined />}
-              className="text-red-500 hover:text-red-700"
+              className="text-red-500 hover:text-red-600 hover:bg-red-50"
               onClick={() => handleDelete(record.key)}
             />
           </Tooltip>
@@ -210,10 +241,6 @@ const JobPage = () => {
     });
   };
 
-  const handleEdit = (id) => {
-    console.log("Edit job with id:", id);
-  };
-
   return (
     <Layout className="min-h-screen flex flex-row">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
@@ -222,73 +249,175 @@ const JobPage = () => {
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
 
         <Content className="m-6">
-          {/* Search Section */}
-          <div className="bg-white p-4 shadow rounded-lg mb-6">
-            <Form
-              form={form}
-              onFinish={onFinish}
-              className="ml-4"
-              layout="vertical"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Form.Item name="name" label="Tên Việc Làm" className="col-span-1">
-                  <Input placeholder="Nhập tên việc làm" style={{ height: '40px' }} />
-                </Form.Item>
-
-                <Form.Item name="level" label="Mức Độ" className="col-span-1">
-                  <Select placeholder="Chọn mức độ" style={{ height: '40px' }}>
-                    <Option value="FRESHER">FRESHER</Option>
-                    <Option value="JUNIOR">JUNIOR</Option>
-                    <Option value="MIDDLE">MIDDLE</Option>
-                    <Option value="SENIOR">SENIOR</Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
-                  <div className="flex space-x-2">
-                    <Button type="primary" htmlType="submit">
-                      Tìm kiếm
-                    </Button>
-                    <Button onClick={onReset}>Đặt lại</Button>
-                  </div>
-                </Form.Item>
-              </div>
-            </Form>
-          </div>
-
-          {/* List Section */}
-          <div className="bg-white p-6 shadow rounded-lg">
-            <div className="flex justify-between items-center mb-4">
-              <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
-                DANH SÁCH VIỆC LÀM
-              </Title>
-              <Space>
-                <Button type="primary" icon={<PlusOutlined />}>
-                  Thêm mới
-                </Button>
-                <Tooltip title="Làm mới">
-                  <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
-                </Tooltip>
-                <Tooltip title="Cài đặt">
-                  <Button icon={<SettingOutlined />} />
-                </Tooltip>
-              </Space>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* Page Header */}
+            <div className="mb-6">
+              <motion.h1
+                className="text-2xl font-bold text-gray-800"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Quản lý Việc Làm
+              </motion.h1>
+              <motion.p
+                className="text-gray-500 mt-1"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                Quản lý và theo dõi thông tin các việc làm
+              </motion.p>
             </div>
 
-            <Table
-              loading={loading}
-              dataSource={jobs}
-              columns={columns}
-              pagination={{
-                ...pagination,
-                showSizeChanger: true,
-              }}
-              onChange={handleTableChange}
-              bordered
-              size="middle"
-              className="overflow-x-auto"
-            />
-          </div>
+            {/* Search Section */}
+            <motion.div
+              className="bg-white p-6 shadow-sm rounded-xl mb-6 border border-gray-100"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Form
+                form={form}
+                onFinish={onFinish}
+                layout="vertical"
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Form.Item
+                    name="name"
+                    label={
+                      <span className="text-gray-700 font-medium">Tên Công Việc</span>
+                    }
+                  >
+                    <Input
+                      prefix={<SearchOutlined className="text-gray-400" />}
+                      placeholder="Nhập tên công việc cần tìm"
+                      className="h-11 rounded-lg"
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="level"
+                    label={
+                      <span className="text-gray-700 font-medium">Cấp Bậc</span>
+                    }
+                  >
+                    <Select placeholder="Chọn cấp bậc" className="h-11 rounded-lg">
+                      <Option value="FRESHER">FRESHER</Option>
+                      <Option value="JUNIOR">JUNIOR</Option>
+                      <Option value="MIDDLE">MIDDLE</Option>
+                      <Option value="SENIOR">SENIOR</Option>
+                    </Select>
+                  </Form.Item>
+
+                  <div className="flex items-center h-full">
+                    <Form.Item className="mb-0 w-full">
+                      <Space size="middle" className="flex w-full">
+                        <CustomButton
+                          htmlType="submit"
+                          icon={<SearchOutlined />}
+                        >
+                          Tìm kiếm
+                        </CustomButton>
+                        <Button
+                          onClick={onReset}
+                          size="large"
+                          className="h-11 px-6 flex items-center"
+                          icon={<ReloadOutlined />}
+                        >
+                          Đặt lại
+                        </Button>
+                      </Space>
+                    </Form.Item>
+                  </div>
+                </div>
+              </Form>
+            </motion.div>
+
+            {/* List Section */}
+            <motion.div
+              className="bg-white p-6 shadow-sm rounded-xl border border-gray-100 relative"
+              style={{ minHeight: '600px' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <Title level={4} className="!text-xl !mb-1">Danh sách Việc làm</Title>
+                  <p className="text-gray-500 text-sm">
+                    Hiển thị {jobs.length} trên tổng số {pagination.total} việc làm
+                  </p>
+                </div>
+                <Space size="middle">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <CustomButton
+                      htmlType="submit"
+                      icon={<PlusOutlined />}
+                    >
+                      Thêm việc làm mới
+                    </CustomButton>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Tooltip title="Làm mới dữ liệu">
+                      <Button
+                        icon={<ReloadOutlined />}
+                        onClick={handleRefresh}
+                        size="large"
+                        className="h-11 hover:bg-gray-50 hover:border-gray-300"
+                      />
+                    </Tooltip>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Tooltip title="Cài đặt hiển thị">
+                      <Button
+                        icon={<SettingOutlined />}
+                        size="large"
+                        className="h-11 hover:bg-gray-50 hover:border-gray-300"
+                      />
+                    </Tooltip>
+                  </motion.div>
+                </Space>
+              </div>
+
+              <div className="pb-16 overflow-x-auto">
+                <Table
+                  dataSource={jobs}
+                  columns={columns}
+                  pagination={false}
+                  bordered={false}
+                  size="middle"
+                  className="shadow-sm rounded-lg overflow-hidden"
+                  loading={loading}
+                  rowClassName={() => 'hover:bg-gray-50 transition-colors'}
+                  onRow={(record) => ({
+                    className: 'cursor-pointer'
+                  })}
+                />
+              </div>
+              <div
+                className="absolute bottom-0 left-0 right-0 bg-white px-6 py-4 border-t border-gray-100"
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  alignItems: 'center'
+                }}
+              >
+                <Pagination
+                  {...pagination}
+                  showSizeChanger
+                  onChange={(page, pageSize) => {
+                    handleTableChange({ current: page, pageSize }, {}, {});
+                  }}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
         </Content>
       </Layout>
     </Layout>
