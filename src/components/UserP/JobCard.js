@@ -13,7 +13,7 @@ dayjs.extend(relativeTime);
 const JobCard = ({ showPagination = true, filters = {} }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [current, setCurrent] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(6);
   const [total, setTotal] = useState(0);
   const [jobs, setJobs] = useState([]);
   const navigate = useNavigate();
@@ -33,7 +33,10 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
         key: job._id,
         stt: index + 1 + (meta.current - 1) * meta.pageSize,
         name: job.name,
-        company: job.company.name,
+        company: {
+          name: job.company.name,
+          logo: job.company.logo
+        },
         location: job.location,
         salary: new Intl.NumberFormat("vi-VN").format(job.salary) + " đ",
         level: job.level,
@@ -69,15 +72,16 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
     navigate(`/job/${item.key}`);
   };
 
+  console.log(jobs)
+
   return (
     <div className="p-4 bg-gray-100 rounded-lg shadow-md">
       <Spin spinning={isLoading} tip="Loading...">
         <Row gutter={[20, 20]}>
           <Col span={24}>
             <div
-              className={`flex justify-between items-center ${
-                isMobile ? "flex-col" : "flex-row"
-              }`}
+              className={`flex justify-between items-center ${isMobile ? "flex-col" : "flex-row"
+                }`}
             >
               <span className="text-xl font-bold">Công Việc Mới Nhất</span>
               {!showPagination && (

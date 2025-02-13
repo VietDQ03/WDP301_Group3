@@ -5,11 +5,14 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (credentials, thunkAPI) => {
     try {
-      const data = await login(credentials);
-      console.log("Login API Response:", data);
-      return data;
+      const response = await login(credentials);
+      // Kiểm tra và trả về data từ response
+      if (response?.data) {
+        return response.data;
+      }
+      return thunkAPI.rejectWithValue("Không có dữ liệu trả về");
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      return thunkAPI.rejectWithValue(error);
     }
   }
 );
@@ -18,11 +21,10 @@ export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (userData, thunkAPI) => {
     try {
-      const data = await register(userData);
-      return data;
+      const response = await register(userData);
+      return response;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Something went wrong";
-      return thunkAPI.rejectWithValue(errorMessage);
+      throw error.response.data;
     }
   }
 );
@@ -32,7 +34,7 @@ const authSlice = createSlice({
   initialState: {
     user: null,
     role: null,
-    isAuthenticated: false, // 🆕 Thêm isAuthenticated vào state
+    isAuthenticated: false,
     isLoading: false,
     error: null,
   },
@@ -41,7 +43,9 @@ const authSlice = createSlice({
       state.user = null;
       state.role = null;
       state.isAuthenticated = false;
+      state.error = null;
       localStorage.removeItem("access_token");
+      window.location.href = '/';
     },
   },
   extraReducers: (builder) => {
@@ -51,32 +55,23 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        console.log("Login Fulfilled Payload:", action.payload);
         state.isLoading = false;
-        state.user = action.payload.data.user;
-        state.role = action.payload.data.user.role;
-        state.isAuthenticated = true; // 🆕 Đánh dấu người dùng đã đăng nhập
-        localStorage.setItem("access_token", action.payload.data.access_token);
+        // Cập nhật state với dữ liệu từ response.data
+        if (action.payload) {
+          state.user = action.payload.user;
+          state.role = action.payload.user?.role;
+          state.isAuthenticated = true;
+          state.error = null;
+          // Lưu token vào localStorage
+          if (action.payload.access_token) {
+            localStorage.setItem("access_token", action.payload.access_token);
+          }
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
-        state.isAuthenticated = false; // 🆕 Đảm bảo khi login thất bại, trạng thái là false
-      })
-      .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.data.user;
-        state.isAuthenticated = true; // 🆕 Cập nhật trạng thái đăng nhập
-        localStorage.setItem("access_token", action.payload.data.access_token);
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-        state.isAuthenticated = false; // 🆕 Đảm bảo khi đăng ký thất bại, trạng thái là false
+        state.error = action.payload?.message || "Đã có lỗi xảy ra";
+        state.isAuthenticated = false;
       });
   },
 });

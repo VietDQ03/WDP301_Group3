@@ -1,5 +1,55 @@
 import React from 'react';
 import { Button as AntButton } from 'antd';
+import styled from 'styled-components';
+
+const StyledButton = styled(AntButton)`
+  &.ant-btn {
+    background-color: #2b65a5;
+    border-color: #2b65a5;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.75rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    transition: all 0.3s ease;
+    gap: 0.5rem;
+
+    &:hover, &:focus {
+      background-color: #009345 !important;
+      border-color: #009345 !important;
+      color: white !important;
+    }
+
+    &:active {
+      background-color: #007a3a !important;
+      border-color: #007a3a !important;
+    }
+
+    &[disabled] {
+      background-color: #d9d9d9 !important;
+      border-color: #d9d9d9 !important;
+      color: rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .anticon {
+      display: flex;
+      align-items: center;
+    }
+
+    &.ant-btn-lg {
+      font-size: 1rem;
+    }
+
+    &.ant-btn-sm {
+      height: 2rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      font-size: 0.875rem;
+    }
+  }
+`;
 
 const CustomButton = ({ 
   children, 
@@ -11,38 +61,18 @@ const CustomButton = ({
   className,
   ...props 
 }) => {
-  const baseStyle = {
-    backgroundColor: '#2b65a5',
-    borderColor: '#2b65a5',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    height: '2.75rem',
-    paddingLeft: '1.5rem',
-    paddingRight: '1.5rem',
-    transition: 'all 0.3s ease'
-  };
-
   return (
-    <AntButton
+    <StyledButton
       type={type}
       htmlType={htmlType}
       size={size}
       icon={icon}
       onClick={onClick}
-      style={baseStyle}
-      onMouseOver={(e) => {
-        e.currentTarget.style.backgroundColor = '#009345';
-        e.currentTarget.style.borderColor = '#009345';
-      }}
-      onMouseOut={(e) => {
-        e.currentTarget.style.backgroundColor = '#2b65a5';
-        e.currentTarget.style.borderColor = '#2b65a5';
-      }}
+      className={className}
       {...props}
     >
       {children}
-    </AntButton>
+    </StyledButton>
   );
 };
 

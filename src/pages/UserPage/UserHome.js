@@ -6,6 +6,7 @@ import CompanyCard from "../../components/UserP/CompanyCard";
 import Header from "../../components/UserP/Header";
 import Footer from "../../components/UserP/Footer";
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message, } from "antd";
+import CustomButton from "../../components/CustomButton";
 
 const HomePage = () => {
   const [filterTab, setFilterTab] = useState("salary");
@@ -70,13 +71,13 @@ const HomePage = () => {
               </Form.Item>
 
               <Form.Item className="m-0">
-                <Button
+                <CustomButton
                   type="primary"
                   htmlType="submit"
                   className="h-12 px-6 rounded-lg bg-blue-500 hover:bg-blue-600 transition"
                 >
                   Tìm kiếm
-                </Button>
+                </CustomButton>
               </Form.Item>
             </div>
           </Form>

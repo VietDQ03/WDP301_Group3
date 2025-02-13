@@ -1,21 +1,21 @@
 import { useState } from 'react';
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { ProForm, ProFormText } from "@ant-design/pro-components";
-import { Button, Col, ConfigProvider, Divider, Modal, Row, Upload, message, notification } from "antd";
-import enUS from 'antd/lib/locale/en_US';
-import { UploadOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { Dialog } from '@headlessui/react';
+import { Upload, X, FileWarning, LogIn } from 'lucide-react';
 import { callCreateResume, callUploadSingleFile } from "../../api/UserApi/UserApi";
+import CustomButton from '../../components/CustomButton';
 
 const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
-    const { user,isAuthenticated } = useSelector((state) => state.auth);
+    const { user, isAuthenticated } = useSelector((state) => state.auth);
     const [urlCV, setUrlCV] = useState("");
-
     const navigate = useNavigate();
 
-    const handleOkButton = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
         if (!urlCV && isAuthenticated) {
-            message.error("Vui lòng upload CV!");
+            alert("Vui lòng upload CV!");
             return;
         }
 
@@ -24,94 +24,164 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
             navigate(`/login?callback=${window.location.href}`);
         } else {
             if (jobDetail) {
-                const res = await callCreateResume(urlCV, jobDetail?.company?._id, jobDetail?._id);
-                if (res.data) {
-                    message.success("Rải CV thành công!");
-                    setIsModalOpen(false);
-                } else {
-                    notification.error({
-                        message: 'Có lỗi xảy ra',
-                        description: res.message
-                    });
+                try {
+                    const res = await callCreateResume(urlCV, jobDetail?.company?._id, jobDetail?._id);
+                    if (res.data) {
+                        alert("Rải CV thành công!");
+                        setIsModalOpen(false);
+                    } else {
+                        alert(res.message || 'Có lỗi xảy ra');
+                    }
+                } catch (error) {
+                    alert('Có lỗi xảy ra khi gửi CV');
                 }
             }
         }
     };
 
-    const propsUpload = {
-        maxCount: 1,
-        multiple: false,
-        accept: "application/pdf,application/msword,.doc,.docx,.pdf",
-        async customRequest({ file, onSuccess, onError }) {
+    const handleFileUpload = async (file) => {
+        try {
             const res = await callUploadSingleFile(file, "resume");
             if (res && res.data) {
                 setUrlCV(res.data.fileName);
-                if (onSuccess) onSuccess('ok');
+                alert(`${file.name} uploaded successfully`);
             } else {
                 setUrlCV("");
-                if (onError) {
-                    onError({ event: new Error(res.message) });
-                }
+                throw new Error(res.message || 'Upload failed');
             }
-        },
-        onChange(info) {
-            if (info.file.status === 'done') {
-                message.success(`${info.file.name} file uploaded successfully`);
-            } else if (info.file.status === 'error') {
-                message.error(info?.file?.error?.event?.message ?? "Đã có lỗi xảy ra khi upload file.");
-            }
-        },
+        } catch (error) {
+            alert(error.message || 'Đã có lỗi xảy ra khi upload file');
+        }
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            await handleFileUpload(file);
+        }
     };
 
     return (
-        <Modal
-            title="Ứng Tuyển Job"
-            open={isModalOpen}
-            onOk={handleOkButton}
-            onCancel={() => setIsModalOpen(false)}
-            maskClosable={false}
-            okText={isAuthenticated ? "Rải CV Nào" : "Đăng Nhập Nhanh"}
-            cancelButtonProps={{ style: { display: "none" } }}
-            destroyOnClose
+        <Dialog 
+            open={isModalOpen} 
+            onClose={() => setIsModalOpen(false)}
+            className="relative z-50"
         >
-            <Divider />
-            {isAuthenticated ? (
-                <ConfigProvider locale={enUS}>
-                    <ProForm submitter={{ render: () => null }}>
-                        <Row gutter={[10, 10]}>
-                            <Col span={24}>
-                                <div>
-                                    Bạn đang ứng tuyển công việc <b>{jobDetail?.name} </b>
-                                    tại <b>{jobDetail?.company?.name}</b>
+            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+                <Dialog.Panel className="w-full max-w-md rounded-lg bg-white p-6">
+                    <div className="flex items-center justify-between">
+                        <Dialog.Title className="text-lg font-medium text-gray-900">
+                            Ứng Tuyển Job
+                        </Dialog.Title>
+                        {isAuthenticated && (
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="rounded-full p-1 hover:bg-gray-100"
+                            >
+                                <X className="h-5 w-5 text-gray-500" />
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="mt-4">
+                        {isAuthenticated ? (
+                            <form onSubmit={handleSubmit}>
+                                <div className="space-y-4">
+                                    <div className="text-sm text-gray-600">
+                                        Bạn đang ứng tuyển công việc <span className="font-semibold">{jobDetail?.name}</span>{" "}
+                                        tại <span className="font-semibold">{jobDetail?.company?.name}</span>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">
+                                            Email
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={user?.email}
+                                            disabled
+                                            className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">
+                                            Upload file CV
+                                        </label>
+                                        <div className="mt-1 flex items-center">
+                                            <label className="flex w-full cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+                                                <Upload className="mr-2 h-4 w-4" />
+                                                {urlCV ? urlCV : "Tải lên CV của bạn"}
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept=".doc,.docx,.pdf"
+                                                    onChange={handleFileChange}
+                                                />
+                                            </label>
+                                        </div>
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Hỗ trợ *.doc, *.docx, *.pdf, và &lt; 5MB
+                                        </p>
+                                    </div>
                                 </div>
-                            </Col>
-                            <Col span={24}>
-                                <ProFormText
-                                    fieldProps={{ type: "email" }}
-                                    label="Email"
-                                    name="email"
-                                    labelAlign="right"
-                                    disabled
-                                    initialValue={user?.email}
-                                />
-                            </Col>
-                            <Col span={24}>
-                                <ProForm.Item label="Upload file CV" rules={[{ required: true, message: 'Vui lòng upload file!' }]}>
-                                    <Upload {...propsUpload}>
-                                        <Button icon={<UploadOutlined />}>
-                                            Tải lên CV của bạn (Hỗ trợ *.doc, *.docx, *.pdf, and &lt; 5MB)
-                                        </Button>
-                                    </Upload>
-                                </ProForm.Item>
-                            </Col>
-                        </Row>
-                    </ProForm>
-                </ConfigProvider>
-            ) : (
-                <div>Bạn chưa đăng nhập hệ thống. Vui lòng đăng nhập để có thể "Rải CV" bạn nhé -.-</div>
-            )}
-            <Divider />
-        </Modal>
+
+                                <div className="mt-6">
+                                    <CustomButton
+                                        htmlType="submit"
+                                        icon={<Upload className="mr-2 h-4 w-4" />}
+                                        className="w-full"
+                                    >
+                                        Rải CV Nào
+                                    </CustomButton>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="py-6 px-4">
+                                <div className="text-center">
+                                    <FileWarning className="mx-auto h-12 w-12 text-gray-400" />
+                                    <div className="mt-4">
+                                        <h3 className="text-lg font-medium text-gray-900">
+                                            Bạn chưa đăng nhập
+                                        </h3>
+                                        <div className="mt-2 space-y-4">
+                                            <p className="text-sm text-gray-500">
+                                                Để ứng tuyển vào vị trí
+                                                <span className="font-medium text-gray-900"> {jobDetail?.name} </span>
+                                                tại
+                                                <span className="font-medium text-gray-900"> {jobDetail?.company?.name}</span>,
+                                                bạn cần đăng nhập trước.
+                                            </p>
+                                            <div className="rounded-lg bg-gray-50 p-4">
+                                                <div className="text-sm text-gray-700">
+                                                    <ul className="list-disc space-y-2 pl-5">
+                                                        <li>Theo dõi trạng thái ứng tuyển</li>
+                                                        <li>Nhận thông báo phỏng vấn</li>
+                                                        <li>Quản lý hồ sơ ứng tuyển</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-6">
+                                    <CustomButton
+                                        htmlType="button"
+                                        icon={<LogIn className="mr-2 h-4 w-4" />}
+                                        onClick={() => navigate(`/login?callback=${window.location.href}`)}
+                                        style={{ width: "100%" }}
+                                    >
+                                        Đăng Nhập Ngay
+                                    </CustomButton>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </Dialog.Panel>
+            </div>
+        </Dialog>
     );
 };
 

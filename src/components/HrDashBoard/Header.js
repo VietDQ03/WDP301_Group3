@@ -2,31 +2,41 @@ import React from 'react';
 import { Layout, Avatar, Dropdown } from 'antd';
 import { UserOutlined, HomeOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { LogOut } from 'lucide-react';
+import { logout } from '../../redux/slices/auth';
 
 const { Header } = Layout;
 
 const AdminHeader = ({ collapsed, setCollapsed }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
-  const menuItems = [
-    {
-      key: 'home',
-      icon: <HomeOutlined />,
-      label: 'Trang chủ',
-      onClick: () => navigate('/')
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: 'Đăng xuất',
-      onClick: () => navigate('/login')
-    }
-  ];
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
+  const menuItems = {
+    items: [
+      {
+        key: 'home',
+        icon: <HomeOutlined />,
+        label: 'Trang chủ',
+        onClick: () => navigate('/')
+      },
+      {
+        key: 'logout',
+        icon: <LogOut size={16} />,
+        label: 'Đăng xuất',
+        onClick: handleLogout
+      }
+    ]
+  };
 
   const CollapseButton = () => (
     <button
+      type="button"
       onClick={() => setCollapsed(!collapsed)}
       className="text-white hover:bg-white/10 p-2 rounded-lg transition-colors"
     >
@@ -40,7 +50,7 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
 
   const UserDropdown = () => (
     <Dropdown
-      menu={{ items: menuItems, style: { width: '200px' } }}
+      menu={menuItems}  // Truyền trực tiếp menuItems object
       placement="bottomRight"
       arrow
       trigger={['hover']}

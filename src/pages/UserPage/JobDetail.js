@@ -5,6 +5,8 @@ import ApplyModal from "../../components/UserP/ModalApply";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
 import Header from "../../components/UserP/Header";
 import Footer from "../../components/UserP/Footer";
+import CustomButton from "../../components/CustomButton";
+import { DollarSign, MapPin } from "lucide-react";
 
 
 const JobDetail = () => {
@@ -52,19 +54,22 @@ const JobDetail = () => {
                         <h1 className="text-3xl font-bold text-gray-800">{job.name}</h1>
                         <div className="mt-3 flex flex-wrap gap-4 text-gray-600">
                             <div className="flex items-center gap-2">
-                                <span className="material-icons text-blue-500">place</span>
+                                <MapPin className="h-5 w-5 text-blue-500" />
                                 <span>{job.location}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="material-icons text-green-500">attach_money</span>
+                                <DollarSign className="h-5 w-5 text-green-500" />
                                 <span className="font-semibold text-lg">{job.salary?.toLocaleString()} đ</span>
                             </div>
                         </div>
-                        <button
+                        <CustomButton
+                            htmlType="button"
                             onClick={() => setIsModalOpen(true)}
-                            className="mt-6 w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold shadow-md hover:bg-blue-700 transition duration-300">
+                            className="mt-10 w-full py-3 text-lg font-semibold"
+                            style={{ width: "100%", marginTop: "15px" }}
+                        >
                             Ứng tuyển ngay
-                        </button>
+                        </CustomButton>
                     </div>
 
                     <div className="p-6 bg-white shadow-md rounded-xl border border-gray-200">
