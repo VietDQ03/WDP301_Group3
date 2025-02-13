@@ -348,14 +348,18 @@ const JobPage = () => {
 
   return (
     <Layout className="min-h-screen flex flex-row">
-      <div className="w-[255px] flex-shrink-0"> {/* Fixed width sidebar container */}
+      <div
+        className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+          } flex-shrink-0`}
+      >
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       </div>
 
-      <div className="flex-1"> {/* Flexible content area */}
+      <div className="flex-1">
+        {/* Nội dung chính */}
         <Layout>
           <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-          <Content className="m-6" >
+          <Content className="m-6">
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}

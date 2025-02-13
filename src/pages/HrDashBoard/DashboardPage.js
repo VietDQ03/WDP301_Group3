@@ -99,14 +99,18 @@ const DashboardPage = () => {
 
   return (
     <Layout className="min-h-screen flex flex-row">
-      <div className="w-[255px] flex-shrink-0">
-        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      </div>
+    <div
+      className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+        } flex-shrink-0`}
+    >
+      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+    </div>
 
-      <div className="flex-1">
-        <Layout>
-          <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-          <Content className="m-6" >
+    <div className="flex-1">
+      {/* Nội dung chính */}
+      <Layout>
+        <Header collapsed={collapsed} setCollapsed={setCollapsed} />
+        <Content className="m-6">
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
