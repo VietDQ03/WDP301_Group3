@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../redux/slices/auth";
+import CustomButton from "../../components/CustomButton"
 
 function LoginPage() {
   const [username, setUsername] = useState("");
@@ -35,7 +36,7 @@ function LoginPage() {
       {/* Left Section */}
       <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-green-400 to-blue-500">
         <img
-          src="https://placehold.co/600x600"
+          src="/login.png"
           alt="Login Illustration"
           className="w-2/3 max-w-md rounded-lg shadow-lg"
         />
@@ -85,13 +86,10 @@ function LoginPage() {
             </div>
 
             {/* Submit Button */}
-            <button
-              onClick={handleLogin}
-              disabled={isLoading}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
-            >
+            <CustomButton style={{ width: '100%' }} onClick={handleLogin}
+              disabled={isLoading}>
               {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
-            </button>
+            </CustomButton>
 
             {/* Error Message */}
             {error && (

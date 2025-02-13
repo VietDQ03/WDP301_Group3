@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { isMobile } from 'react-device-detect';
 import { Link, useNavigate } from 'react-router-dom';
 
-const CompanyCard = ({ showPagination = false }) => {
+const CompanyCard = ({ showPagination = true }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [current, setCurrent] = useState(1);
     const [pageSize, setPageSize] = useState(4);
@@ -20,54 +20,67 @@ const CompanyCard = ({ showPagination = false }) => {
     const navigate = useNavigate();
 
     const fetchCompanies = async (params = {}) => {
+        setIsLoading(true);
         try {
-            setIsLoading(true);
-            const response = await companyApi.getAll({
-                page: params.current || 1,
-                pageSize: params.pageSize || 10,
-                ...params
-            });
-
-            const { result, meta } = response.data.data;
-
-            if (!Array.isArray(result)) {
-                console.warn("API returned an unexpected result:", result);
-                setCompanies([]);
-                return;
+            const searchParams = {
+                current: params.current || pagination.current,
+                pageSize: params.pageSize || pagination.pageSize,
+            };
+    
+            if (params.name?.trim()) searchParams.name = params.name.trim();
+            if (params.address?.trim()) searchParams.address = params.address.trim();
+    
+            const response = await companyApi.getAll(searchParams);
+    
+            if (response?.data?.data) {
+                const { result, meta } = response.data.data;
+                const dataWithKeys = result.map((item, index) => ({
+                    ...item,
+                    key: item._id,
+                    stt: index + 1 + ((meta.current - 1) * meta.pageSize)
+                }));
+                
+                setCompanies(dataWithKeys);
+                setPagination({
+                    current: meta.current,
+                    pageSize: meta.pageSize,
+                    total: meta.total,
+                });
+                setTotal(meta.total);
             }
-
-            setCompanies(result);
-            setPagination({
-                ...pagination,
-                total: meta.total,
-                current: meta.current || 1,
-                pageSize: meta.pageSize || 10,
-            });
         } catch (error) {
-            console.error("Error fetching companies:", error);
-            message.error("Có lỗi xảy ra khi tải danh sách công ty!");
-        } finally {
-            setIsLoading(false);
+            message.error('Không thể tải danh sách công ty');
+            console.error('Error:', error);
         }
+        setIsLoading(false);
     };
 
     useEffect(() => {
         fetchCompanies({ current, pageSize });
     }, []);
 
+    useEffect(() => {
+        console.log("Pagination state:", pagination);
+    }, [pagination]);
+
+    useEffect(() => {
+        console.log("Updated companies:", companies);
+    }, [companies]);
+
     const handleOnchangePage = (currentPage, newPageSize) => {
-        if (currentPage !== current) {
-            setCurrent(currentPage);
-        }
-        if (newPageSize !== pageSize) {
-            setPageSize(newPageSize);
-            setCurrent(1);
-        }
+        setCurrent(currentPage);
+        setPageSize(newPageSize);
+        
+        fetchCompanies({ current: currentPage, pageSize: newPageSize });
     };
 
     const handleViewDetailCompany = (item) => {
         navigate(`/companies/${item._id}`);
     };
+    
+    useEffect(() => {
+        fetchCompanies({ current, pageSize });
+    }, [current, pageSize]);
 
     return (
         <div className="p-8 bg-gray-100 rounded-lg shadow-md">
