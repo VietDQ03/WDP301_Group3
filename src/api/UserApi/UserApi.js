@@ -1,7 +1,7 @@
 import axios from "../axiosCustom";
 
 export const callCreateResume = (url, companyId, jobId) => {
-    return axios.post('/api/v1/resumes', { url, companyId, jobId });
+    return axios.post('/resumes', { url, companyId, jobId });
 };
 
 export const callUploadSingleFile = (file, folderType) => {
@@ -10,7 +10,7 @@ export const callUploadSingleFile = (file, folderType) => {
     
     return axios({
         method: 'post',
-        url: '/api/v1/files/upload',
+        url: '/files/upload',
         data: bodyFormData,
         headers: {
             "Content-Type": "multipart/form-data",
