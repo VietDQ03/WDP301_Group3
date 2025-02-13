@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../redux/slices/auth";
 import { callActivateAccount } from "../../api/UserApi/UserApi";
+import CustomButton from "../../components/CustomButton"
+
 function RegisterPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -77,7 +79,7 @@ function RegisterPage() {
           {/* Left Section */}
           <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-purple-400 to-pink-500">
             <img
-              src="https://via.placeholder.com/600x600"
+              src="/login.png"
               alt="Register Illustration"
               className="w-2/3 max-w-md rounded-lg shadow-lg"
             />
@@ -206,13 +208,9 @@ function RegisterPage() {
                 </div>
 
                 {/* Submit Button */}
-                <button
-                  onClick={handleRegister}
-                  disabled={isLoading}
-                  className="w-full bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition"
-                >
+                <CustomButton style={{width: '100%'}}>
                   {isLoading ? "Đang xử lý..." : "Đăng ký"}
-                </button>
+                </CustomButton>
 
                 {/* Hiển thị lỗi */}
                 {error && (

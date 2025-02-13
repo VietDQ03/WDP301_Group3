@@ -40,7 +40,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.role = null;
-      state.isAuthenticated = false; // 🆕 Cập nhật isAuthenticated khi logout
+      state.isAuthenticated = false;
       localStorage.removeItem("access_token");
     },
   },
