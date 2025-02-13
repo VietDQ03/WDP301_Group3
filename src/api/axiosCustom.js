@@ -33,7 +33,7 @@ instance.interceptors.request.use((config) => {
 });
 
 instance.interceptors.response.use(
-    (res) => res.data,
+    (response) => response.data,
     async (error) => {
         if (
             error.config && error.response &&
@@ -55,8 +55,14 @@ instance.interceptors.response.use(
             error.response.status === 400 &&
             error.config.url === "/auth/refresh" &&
             window.location.pathname.startsWith("/admin")
-        )
-        return error?.response?.data ?? Promise.reject(error);
+        ) {
+            // Xử lý refresh token thất bại
+            localStorage.removeItem("access_token");
+            window.location.href = '/login';
+        }
+
+        // Trả về error.response.data nếu có, nếu không thì reject error
+        return Promise.reject(error.response?.data || error);
     }
 );
 

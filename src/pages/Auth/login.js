@@ -7,23 +7,43 @@ import CustomButton from "../../components/CustomButton"
 function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { error, isLoading, user } = useSelector((state) => state.auth);
+  const { isLoading, user } = useSelector((state) => state.auth);
 
   const handleLogin = async () => {
-    const resultAction = await dispatch(loginUser({ username, password }));
-    console.log("Login Response:", resultAction);
+    try {
+      const result = await dispatch(loginUser({ username, password })).unwrap();
+      console.log("Login Result:", result);
+      
+      // Kiểm tra data từ result
+      if (result?.user?.role) {
+        const roleName = result.user.role.name;
+        console.log("User Role:", roleName);
+  
+        if (roleName === "SUPER_ADMIN") {
+          navigate("/admin");
+        } else if (roleName === "HR_ROLE") {
+          navigate("/dashboard");
+        } else {
+          navigate("/");
+        }
+      }
+    } catch (error) {
+      console.log("Login Error:", error);
+      setErrorMessage(error?.message || "Đã có lỗi xảy ra");
+    }
   };
-
-
+  
+  // Vẫn giữ useEffect để handle trường hợp refresh page
   useEffect(() => {
-    if (user && user.role) {
-      console.log(user.role)
-      if (user.role.name === "SUPER_ADMIN") {
+    if (user?.role) {
+      const roleName = user.role.name;
+      if (roleName === "SUPER_ADMIN") {
         navigate("/admin");
-      } else if (user.role.name === "HR_ROLE") {
+      } else if (roleName === "HR_ROLE") {
         navigate("/dashboard");
       } else {
         navigate("/");
@@ -86,14 +106,17 @@ function LoginPage() {
             </div>
 
             {/* Submit Button */}
-            <CustomButton style={{ width: '100%' }} onClick={handleLogin}
-              disabled={isLoading}>
+            <CustomButton 
+              style={{ width: '100%' }} 
+              onClick={handleLogin}
+              disabled={isLoading}
+            >
               {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
             </CustomButton>
 
             {/* Error Message */}
-            {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
+            {errorMessage && (
+              <p className="text-red-500 text-sm text-center">{errorMessage}</p>
             )}
           </div>
 
