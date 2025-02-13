@@ -18,8 +18,13 @@ export const login = async (credentials) => {
 export const register = async (userData) => {
   try {
     const response = await axios.post("/auth/register", userData);
-    return response;
+    console.log("Register API Response:", response);
+    if (response?.data) {
+      return response;
+    }
+    throw new Error("Invalid response format");
   } catch (error) {
+    console.log("Register API Error:", error);
     throw error;
   }
 };

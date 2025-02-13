@@ -22,9 +22,12 @@ export const registerUser = createAsyncThunk(
   async (userData, thunkAPI) => {
     try {
       const response = await register(userData);
-      return response;
+      if (response?.data) {
+        return response.data;
+      }
+      return thunkAPI.rejectWithValue("Không có dữ liệu trả về");
     } catch (error) {
-      throw error.response.data;
+      return thunkAPI.rejectWithValue(error);
     }
   }
 );
@@ -50,19 +53,18 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Login cases
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        // Cập nhật state với dữ liệu từ response.data
         if (action.payload) {
           state.user = action.payload.user;
           state.role = action.payload.user?.role;
           state.isAuthenticated = true;
           state.error = null;
-          // Lưu token vào localStorage
           if (action.payload.access_token) {
             localStorage.setItem("access_token", action.payload.access_token);
           }
@@ -72,6 +74,19 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload?.message || "Đã có lỗi xảy ra";
         state.isAuthenticated = false;
+      })
+      // Register cases
+      .addCase(registerUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || "Đăng ký thất bại";
       });
   },
 });
