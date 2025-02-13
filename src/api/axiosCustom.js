@@ -2,7 +2,7 @@ import { Mutex } from "async-mutex";
 import axiosClient from "axios";
 
 const instance = axiosClient.create({
-    baseURL: "http://localhost:8000/api/v1",
+    baseURL: "http://54.252.173.49:8000/api/v1",
     withCredentials: true
 });
 
