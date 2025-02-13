@@ -79,7 +79,8 @@ const JobCard = ({ showPagination = false }) => {
     };
 
     const handleViewDetailJob = (item) => {
-        navigate(`/job/${item._id}`);
+        navigate(`/job/${item.key}`);
+        console.log("Navigating to job:", item.key);
     };
 
     return (
