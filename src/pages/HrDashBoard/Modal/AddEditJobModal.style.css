@@ -1,0 +1,165 @@
+/* AddEditJobModal.style.css */
+
+/* Modal Styles */
+.custom-modal .ant-modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+    padding: 0;
+}
+
+.custom-modal .ant-modal-header {
+    margin: 0 !important;
+    padding: 20px 24px !important;
+}
+
+.custom-modal .ant-modal-body {
+    padding: 24px !important;
+}
+
+.custom-modal .ant-modal-footer {
+    margin: 0 !important;
+    padding: 16px 24px !important;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* Form Styles */
+.custom-form .ant-form-item {
+    margin-bottom: 24px;
+}
+
+.custom-form .ant-form-item-label {
+    padding-bottom: 4px;
+}
+
+.custom-form .ant-form-item-label > label {
+    color: #374151;
+    font-weight: 500;
+    font-size: 14px;
+    height: 28px;
+}
+
+/* Input Styles */
+.custom-form .ant-input,
+.custom-form .ant-input-number,
+.custom-form .ant-select-selector,
+.custom-form .ant-picker {
+    border-radius: 8px;
+    border-color: #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.custom-form .ant-input-number-input {
+    height: 38px;
+}
+
+.custom-form .ant-input:hover,
+.custom-form .ant-input-number:hover,
+.custom-form .ant-select-selector:hover,
+.custom-form .ant-picker:hover {
+    border-color: #3b82f6;
+}
+
+.custom-form .ant-input:focus,
+.custom-form .ant-input-number:focus,
+.custom-form .ant-select-selector:focus,
+.custom-form .ant-picker:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Select Styles */
+.custom-form .ant-select-selector {
+    height: 40px !important;
+}
+
+.custom-form .ant-select-selection-item {
+    line-height: 38px !important;
+}
+
+/* DatePicker Styles */
+.custom-form .ant-picker {
+    width: 100%;
+}
+
+/* TextArea Styles */
+.custom-form .ant-input-textarea textarea {
+    min-height: 120px;
+}
+
+/* Switch Styles */
+.custom-form .ant-switch {
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.custom-form .ant-switch-checked {
+    background-color: #3b82f6 !important;
+}
+
+/* Button Styles */
+.custom-modal .ant-modal-footer .ant-btn {
+    height: 40px;
+    padding: 6px 20px;
+    font-size: 14px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.custom-modal .ant-modal-footer .ant-btn-default {
+    border-color: #e5e7eb;
+    color: #374151;
+}
+
+.custom-modal .ant-modal-footer .ant-btn-default:hover {
+    color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.custom-modal .ant-modal-footer .ant-btn-primary {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+.custom-modal .ant-modal-footer .ant-btn-primary:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+/* Error State Styles */
+.custom-form .ant-form-item-explain-error {
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+/* Icon Wrapper Styles */
+.icon-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon-wrapper .lucide-icon {
+    width: 16px;
+    height: 16px;
+    color: #6b7280;
+}
+
+/* Loading State Styles */
+.custom-form .ant-form-item-loading {
+    opacity: 0.7;
+}
+
+/* Responsive Styles */
+@media (max-width: 640px) {
+    .custom-modal .ant-modal-content {
+        border-radius: 12px;
+    }
+
+    .custom-form .ant-form-item {
+        margin-bottom: 16px;
+    }
+
+    .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+}
