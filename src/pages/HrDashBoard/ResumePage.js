@@ -361,135 +361,141 @@ const ResumePage = () => {
 
   return (
     <Layout className="min-h-screen flex flex-row">
+    <div
+      className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+        } flex-shrink-0`}
+    >
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+    </div>
 
+    <div className="flex-1">
+      {/* Nội dung chính */}
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-
         <Content className="m-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {/* Page Header */}
-            <div className="mb-6">
-              <motion.h1
-                className="text-2xl font-bold text-gray-800"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                Quản lý Hồ sơ Ứng tuyển
-              </motion.h1>
-              <motion.p
-                className="text-gray-500 mt-1"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                Quản lý và theo dõi hồ sơ ứng tuyển của ứng viên
-              </motion.p>
-            </div>
-
-            {/* Search Section */}
             <motion.div
-              className="bg-white p-6 shadow-sm rounded-xl mb-6 border border-gray-100"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ duration: 0.5 }}
             >
-              <Form
-                form={form}
-                onFinish={onFinish}
-                layout="vertical"
-                className="space-y-4"
+              {/* Page Header */}
+              <div className="mb-6">
+                <motion.h1
+                  className="text-2xl font-bold text-gray-800"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  Quản lý Hồ sơ Ứng tuyển
+                </motion.h1>
+                <motion.p
+                  className="text-gray-500 mt-1"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  Quản lý và theo dõi hồ sơ ứng tuyển của ứng viên
+                </motion.p>
+              </div>
+
+              {/* Search Section */}
+              <motion.div
+                className="bg-white p-6 shadow-sm rounded-xl mb-6 border border-gray-100"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
               >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Form.Item
-                    name="candidate"
-                    label={
-                      <span className="text-gray-700 font-medium">Tên Ứng Viên</span>
-                    }
-                  >
-                    <Input
-                      prefix={<SearchOutlined className="text-gray-400" />}
-                      placeholder="Nhập tên ứng viên"
-                      className="h-11 rounded-lg"
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="company"
-                    label={
-                      <span className="text-gray-700 font-medium">Công ty</span>
-                    }
-                  >
-                    <Input
-                      prefix={<EnvironmentOutlined className="text-gray-400" />}
-                      placeholder="Nhập tên công ty"
-                      className="h-11 rounded-lg"
-                    />
-                  </Form.Item>
-
-                  <div className="flex items-center h-full">
-                    <Form.Item className="mb-0 w-full">
-                      <Space size="middle" className="flex w-full">
-                        <CustomButton
-                          htmlType="submit"
-                          icon={<SearchOutlined />}
-                        >
-                          Tìm kiếm
-                        </CustomButton>
-                        <Button
-                          onClick={onReset}
-                          size="large"
-                          className="h-11 px-6 flex items-center"
-                          icon={<ReloadOutlined />}
-                        >
-                          Đặt lại
-                        </Button>
-                      </Space>
-                    </Form.Item>
-                  </div>
-                </div>
-              </Form>
-            </motion.div>
-
-            {/* List Section */}
-            <motion.div
-              className="bg-white p-6 shadow-sm rounded-xl border border-gray-100 relative min-h-[600px]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <Title level={4} className="!text-xl !mb-1">Danh sách Hồ sơ Ứng tuyển</Title>
-                  <p className="text-gray-500 text-sm">
-                    Hiển thị {resumes.length} trên tổng số {pagination.total} hồ sơ
-                  </p>
-                </div>
-                <Space size="middle">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <CustomButton
-                      htmlType="submit"
-                      icon={<PlusOutlined />}
+                <Form
+                  form={form}
+                  onFinish={onFinish}
+                  layout="vertical"
+                  className="space-y-4"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Form.Item
+                      name="candidate"
+                      label={
+                        <span className="text-gray-700 font-medium">Tên Ứng Viên</span>
+                      }
                     >
-                      Thêm hồ sơ mới
-                    </CustomButton>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Tooltip title="Làm mới dữ liệu">
-                      <Button
-                        icon={<ReloadOutlined />}
-                        onClick={handleRefresh}
-                        size="large"
-                        className="h-11 hover:bg-gray-50 hover:border-gray-300"
+                      <Input
+                        prefix={<SearchOutlined className="text-gray-400" />}
+                        placeholder="Nhập tên ứng viên"
+                        className="h-11 rounded-lg"
                       />
-                    </Tooltip>
-                  </motion.div>
-                  {/* <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    </Form.Item>
+
+                    <Form.Item
+                      name="company"
+                      label={
+                        <span className="text-gray-700 font-medium">Công ty</span>
+                      }
+                    >
+                      <Input
+                        prefix={<EnvironmentOutlined className="text-gray-400" />}
+                        placeholder="Nhập tên công ty"
+                        className="h-11 rounded-lg"
+                      />
+                    </Form.Item>
+
+                    <div className="flex items-center h-full">
+                      <Form.Item className="mb-0 w-full">
+                        <Space size="middle" className="flex w-full">
+                          <CustomButton
+                            htmlType="submit"
+                            icon={<SearchOutlined />}
+                          >
+                            Tìm kiếm
+                          </CustomButton>
+                          <Button
+                            onClick={onReset}
+                            size="large"
+                            className="h-11 px-6 flex items-center"
+                            icon={<ReloadOutlined />}
+                          >
+                            Đặt lại
+                          </Button>
+                        </Space>
+                      </Form.Item>
+                    </div>
+                  </div>
+                </Form>
+              </motion.div>
+
+              {/* List Section */}
+              <motion.div
+                className="bg-white p-6 shadow-sm rounded-xl border border-gray-100 relative min-h-[600px]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <Title level={4} className="!text-xl !mb-1">Danh sách Hồ sơ Ứng tuyển</Title>
+                    <p className="text-gray-500 text-sm">
+                      Hiển thị {resumes.length} trên tổng số {pagination.total} hồ sơ
+                    </p>
+                  </div>
+                  <Space size="middle">
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <CustomButton
+                        htmlType="submit"
+                        icon={<PlusOutlined />}
+                      >
+                        Thêm hồ sơ mới
+                      </CustomButton>
+                    </motion.div>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Tooltip title="Làm mới dữ liệu">
+                        <Button
+                          icon={<ReloadOutlined />}
+                          onClick={handleRefresh}
+                          size="large"
+                          className="h-11 hover:bg-gray-50 hover:border-gray-300"
+                        />
+                      </Tooltip>
+                    </motion.div>
+                    {/* <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Tooltip title="Cài đặt hiển thị">
                       <Button
                         icon={<SettingOutlined />}
@@ -498,42 +504,43 @@ const ResumePage = () => {
                       />
                     </Tooltip>
                   </motion.div> */}
-                </Space>
-              </div>
+                  </Space>
+                </div>
 
-              <div className="pb-16 overflow-x-auto">
-                <Table
-                  dataSource={resumes}
-                  columns={columns}
-                  pagination={false}
-                  className="shadow-sm rounded-lg overflow-hidden"
-                  loading={loading}
-                  rowClassName="hover:bg-gray-50 transition-colors cursor-pointer"
-                />
-              </div>
-              <div
-                className="absolute bottom-0 left-0 right-0 bg-white px-6 py-4 border-t border-gray-100"
-                style={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center'
-                }}
-              >
-                <Pagination
-                  {...pagination}
-                  showSizeChanger
-                  onChange={(page, pageSize) => {
-                    fetchResumes({
-                      current: page,
-                      pageSize: pageSize
-                    });
+                <div className="pb-16 overflow-x-auto">
+                  <Table
+                    dataSource={resumes}
+                    columns={columns}
+                    pagination={false}
+                    className="shadow-sm rounded-lg overflow-hidden"
+                    loading={loading}
+                    rowClassName="hover:bg-gray-50 transition-colors cursor-pointer"
+                  />
+                </div>
+                <div
+                  className="absolute bottom-0 left-0 right-0 bg-white px-6 py-4 border-t border-gray-100"
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'center'
                   }}
-                />
-              </div>
+                >
+                  <Pagination
+                    {...pagination}
+                    showSizeChanger
+                    onChange={(page, pageSize) => {
+                      fetchResumes({
+                        current: page,
+                        pageSize: pageSize
+                      });
+                    }}
+                  />
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        </Content>
-      </Layout>
+          </Content >
+        </Layout>
+      </div>
     </Layout>
   );
 };
