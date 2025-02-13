@@ -8,6 +8,7 @@ import CustomButton from "../../components/CustomButton"
 function RegisterPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [isVerifying, setIsVerifying] = useState(false);
   const { isLoading, error } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
@@ -29,45 +30,73 @@ function RegisterPage() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleRegister = async () => {
+  const validateForm = () => {
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
+      return false;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       alert("Mật khẩu và xác nhận mật khẩu không khớp!");
-      return;
+      return false;
     }
+
+    if (formData.password.length < 6) {
+      alert("Mật khẩu phải có ít nhất 6 ký tự!");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      alert("Email không hợp lệ!");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleRegister = async () => {
+    if (!validateForm()) return;
 
     const userData = {
       name: formData.name,
       email: formData.email,
       password: formData.password,
-      age: formData.age,
+      age: parseInt(formData.age),
       gender: formData.gender,
       address: formData.address,
     };
 
     try {
-      const result = await dispatch(registerUser(userData)).unwrap();
-      console.log("Đăng ký thành công:", result);
-
+      await dispatch(registerUser(userData)).unwrap();
       setUserEmail(formData.email);
       setIsOtpSent(true);
     } catch (error) {
       console.error("Đăng ký thất bại:", error);
+      alert(error?.message || "Đăng ký thất bại. Vui lòng thử lại.");
     }
   };
 
   const handleVerifyOtp = async () => {
+    if (!otp) {
+      alert("Vui lòng nhập mã OTP!");
+      return;
+    }
+
+    setIsVerifying(true);
     try {
-      const response = await callActivateAccount(userEmail, otp); // Gọi API xác minh OTP
-  
-      if (response.data) { 
+      const response = await callActivateAccount(userEmail, otp);
+      if (response.data) {
         alert("Xác thực thành công!");
-        navigate("/login"); 
+        navigate("/login");
       } else {
         alert("Mã OTP không hợp lệ!");
       }
     } catch (error) {
       console.error("Lỗi xác thực OTP:", error);
-      alert("Đã xảy ra lỗi khi xác thực OTP. Vui lòng thử lại.");
+      alert(error?.message || "Đã xảy ra lỗi khi xác thực OTP. Vui lòng thử lại.");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -208,7 +237,11 @@ function RegisterPage() {
                 </div>
 
                 {/* Submit Button */}
-                <CustomButton style={{width: '100%'}}>
+                <CustomButton
+                  onClick={handleRegister}
+                  style={{ width: '100%' }}
+                  disabled={isLoading}
+                >
                   {isLoading ? "Đang xử lý..." : "Đăng ký"}
                 </CustomButton>
 
@@ -246,12 +279,13 @@ function RegisterPage() {
               onChange={(e) => setOtp(e.target.value)}
               className="w-full px-4 py-2 border rounded-lg text-center text-xl tracking-widest"
             />
-            <button
+            <CustomButton
               onClick={handleVerifyOtp}
-              className="w-full bg-purple-500 text-white py-2 rounded-lg mt-4"
+              disabled={isVerifying}
+              className="w-full bg-purple-500 text-white py-2 rounded-lg mt-4 disabled:bg-purple-300"
             >
-              Xác thực
-            </button>
+              {isVerifying ? "Đang xác thực..." : "Xác thực"}
+            </CustomButton>
           </div>
         </div>
       )}
