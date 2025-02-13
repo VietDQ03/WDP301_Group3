@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { message } from "antd";
 import ApplyModal from "../../components/UserP/ModalApply";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
+import Header from "../../components/UserP/Header";
+import Footer from "../../components/UserP/Footer";
 
 
 const JobDetail = () => {
@@ -37,46 +39,60 @@ const JobDetail = () => {
     }
 
     if (!job) {
-        return <div className="text-center text-red-500 text-lg">Không tìm thấy công việc!</div>;
+        return <div className="text-center text-red-500 text-lg mt-10">Không tìm thấy công việc!</div>;
     }
 
     return (
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
-            <div className="p-6 shadow-lg rounded-lg border border-gray-300">
-                <h1 className="text-2xl font-bold mb-4">{job.name}</h1>
-                <div className="flex items-center gap-2 text-gray-600">
-                    <span className="material-icons">place</span>
-                    <span>{job.location}</span>
+        <>
+            <Header />
+            <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Cột chính: Thông tin và mô tả công việc */}
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="p-6 bg-white shadow-md rounded-xl border border-gray-200">
+                        <h1 className="text-3xl font-bold text-gray-800">{job.name}</h1>
+                        <div className="mt-3 flex flex-wrap gap-4 text-gray-600">
+                            <div className="flex items-center gap-2">
+                                <span className="material-icons text-blue-500">place</span>
+                                <span>{job.location}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="material-icons text-green-500">attach_money</span>
+                                <span className="font-semibold text-lg">{job.salary?.toLocaleString()} đ</span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="mt-6 w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold shadow-md hover:bg-blue-700 transition duration-300">
+                            Ứng tuyển ngay
+                        </button>
+                    </div>
+
+                    <div className="p-6 bg-white shadow-md rounded-xl border border-gray-200">
+                        <h2 className="text-xl font-semibold text-gray-800">Mô tả công việc</h2>
+                        <p
+                            className="text-gray-700 mt-4 leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: job.description || "Chưa có mô tả." }}
+                        />
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600 mt-2">
-                    <span className="material-icons">attach_money</span>
-                    <span>{job.salary?.toLocaleString()} đ</span>
+
+                {/* Cột bên phải: Thông tin công ty + Nút ứng tuyển */}
+                <div className="space-y-6">
+                    <div className="p-6 bg-white shadow-md rounded-xl border border-gray-200 flex flex-col items-center text-center">
+                        <img
+                            className="w-24 h-24 rounded-full border border-gray-300 object-cover"
+                            src={`http://localhost:8000/images/company/${job.company?.logo}`}
+                            alt="Company Logo"
+                        />
+                        <h3 className="text-lg font-semibold text-gray-800 mt-4">{job.company?.name}</h3>
+                        <p className="text-gray-500">Công ty uy tín - Môi trường làm việc năng động</p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600 mt-2">
-                    <span className="material-icons">access_time</span>
-                </div>
-                <button 
-                    onClick={() => setIsModalOpen(true)} 
-                    className="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                    Ứng tuyển ngay
-                </button>
             </div>
-            <div className="p-6 shadow-lg rounded-lg border border-gray-300">
-                <h2 className="text-lg font-semibold">Mô tả công việc</h2>
-                <p className="text-gray-700 mt-2">{job.description}</p>
-            </div>
-            <div className="p-6 shadow-lg rounded-lg border border-gray-300 flex items-center gap-4">
-                <img 
-                    className="w-16 h-16 rounded-full border border-gray-300" 
-                    src={`http://localhost:8000/images/company/${job.company?.logo}`} 
-                    alt="Company Logo" 
-                />
-                <div>
-                    <h3 className="text-lg font-semibold">{job.company?.name}</h3>
-                </div>
-            </div>
+
             <ApplyModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} jobDetail={job} />
-        </div>
+            <Footer />
+        </>
     );
 };
 
