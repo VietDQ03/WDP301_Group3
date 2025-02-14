@@ -49,7 +49,7 @@ const CompanyDetail = () => {
                     {/* Logo + Tên công ty */}
                     <div className="flex flex-col items-center">
                         <img
-                            src={`http://54.252.173.49:8000/images/company/${company.logo}`}
+                            src={`${process.env.REACT_APP_BASE_URL}/images/company/${item?.company?.logo}`}
                             alt={company.name}
                             className="w-32 h-32 object-cover rounded-full shadow-md"
                         />
