@@ -146,17 +146,35 @@ const JobPage = () => {
         style: { textAlign: 'left' }
       })
     },
-    {
-      title: "Địa Điểm",
-      dataIndex: "location",
-      key: "location",
-      render: (text) => (
+      {
+    title: "Địa Điểm",
+    dataIndex: "location",
+    key: "location",
+    render: (location) => {
+      // Logic chuyển đổi giá trị location sang tên tiếng Việt
+      const renderLocation = (value) => {
+        switch (value) {
+          case "HANOI":
+            return "Hà Nội";
+          case "HOCHIMINH":
+            return "Hồ Chí Minh";
+          case "DANANG":
+            return "Đà Nẵng";
+          case "OTHER":
+            return "Khác";
+          default:
+            return value || "Không xác định"; // Trường hợp không khớp giá trị nào
+        }
+      };
+
+      return (
         <div className="flex items-center text-gray-600">
           <EnvironmentOutlined className="mr-2" />
-          {text}
+          {renderLocation(location)}
         </div>
-      )
-    },
+      );
+    }
+  },
     {
       title: "Mức Lương",
       dataIndex: "salary",

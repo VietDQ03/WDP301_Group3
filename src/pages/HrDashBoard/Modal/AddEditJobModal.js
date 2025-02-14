@@ -129,15 +129,14 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
 
                     <Form.Item
                         name="level"
-                        label={renderLabel(<Building2 />, "Cấp bậc")}
-                        rules={[{ required: true, message: 'Vui lòng chọn cấp bậc!' }]}
+                        label={renderLabel(<Building2 />, "Thời gian làm việc")}
+                        rules={[{ required: true, message: 'Vui lòng chọn thời gian!' }]}
                     >
-                        <Select placeholder="Chọn cấp bậc">
-                            <Option value="FRESHER">Fresher</Option>
-                            <Option value="JUNIOR">Junior</Option>
-                            <Option value="MIDDLE">Middle</Option>
-                            <Option value="SENIOR">Senior</Option>
-                            <Option value="LEADER">Leader</Option>
+                        <Select placeholder="Chọn thời gian">
+                            <Option value="PARTTIME">Bán thời gian</Option>
+                            <Option value="FULLTIME">Toàn thời gian</Option>
+                            <Option value="OTHER">Khác</Option>
+
                         </Select>
                     </Form.Item>
                 </div>
