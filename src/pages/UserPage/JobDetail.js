@@ -86,7 +86,7 @@ const JobDetail = () => {
                     <div className="p-6 bg-white shadow-md rounded-xl border border-gray-200 flex flex-col items-center text-center">
                         <img
                             className="w-24 h-24 rounded-full border border-gray-300 object-cover"
-                            src={`http://localhost:8000/images/company/${job.company?.logo}`}
+                            src={`http://54.252.173.49:8000/images/company/${job.company?.logo}`}
                             alt="Company Logo"
                         />
                         <h3 className="text-lg font-semibold text-gray-800 mt-4">{job.company?.name}</h3>

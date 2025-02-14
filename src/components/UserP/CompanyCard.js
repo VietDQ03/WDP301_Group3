@@ -99,7 +99,7 @@ const CompanyCard = ({ showPagination = true }) => {
                                 <div className="flex flex-col items-center p-2">
                                     <img
                                         alt="company logo"
-                                        src={`http://localhost:8000/images/company/${item?.logo}`}
+                                        src={`http://54.252.173.49:8000/images/company/${item?.logo}`}
                                         className="w-20 h-20 object-cover rounded-md"
                                     />
                                     <div className="text-lg font-semibold mt-2">{item.name}</div>

@@ -99,7 +99,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
                   <div className="flex-shrink-0">
                     <img
                       alt="company logo"
-                      src={`http://localhost:8000/images/company/${item?.company?.logo}`}
+                      src={`http://54.252.173.49:8000/images/company/${item?.company?.logo}`}
                       className="w-16 h-16 object-cover rounded-md"
                     />
                   </div>
