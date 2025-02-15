@@ -3,17 +3,18 @@ import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
 import CustomButton from '../../components/CustomButton';
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message, Pagination } from "antd";
-import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, SearchOutlined, EnvironmentOutlined, DollarOutlined, TeamOutlined, EyeOutlined } from "@ant-design/icons";
+import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, message, Pagination } from "antd";
+import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EnvironmentOutlined, DollarOutlined, TeamOutlined, EyeOutlined } from "@ant-design/icons";
 import { motion } from 'framer-motion';
 import { debounce } from 'lodash';
 import AddEditModal from './Modal/AddEditJobModal';
 import ViewJobModal from './Modal/ViewJobModal';
+import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 
 const { Content } = Layout;
 const { Title } = Typography;
 const { Option } = Select;
-const { confirm } = Modal;
+
 
 const JobPage = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -25,11 +26,14 @@ const JobPage = () => {
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [selectedJob, setSelectedJob] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0
   });
+
 
   const debouncedSearch = useCallback(
     debounce((params) => {
@@ -89,29 +93,26 @@ const JobPage = () => {
   }, []);
 
   const handleDelete = (id) => {
-    confirm({
-      title: 'Xác nhận xóa',
-      icon: <ExclamationCircleOutlined className="text-red-500" />,
-      content: 'Bạn có chắc chắn muốn xóa công việc này? Hành động này không thể hoàn tác.',
-      okText: 'Xóa',
-      okType: 'danger',
-      cancelText: 'Hủy',
-      okButtonProps: {
-        className: 'bg-red-500 hover:bg-red-600',
-      },
-      onOk: async () => {
-        try {
-          await jobApi.delete(id);
-          message.success('Xóa công việc thành công');
-          fetchJobs(pagination);
-        } catch (error) {
-          message.error('Không thể xóa công việc');
-        }
-      },
-    });
+    setDeleteTargetId(id);
+    setIsDeleteModalOpen(true);
   };
 
+  const handleConfirmDelete = async () => {
+    try {
+      await jobApi.delete(deleteTargetId);
+      message.success('Xóa công việc thành công');
+      await fetchJobs(pagination);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      message.error('Không thể xóa công việc');
+    }
+  };
 
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeleteTargetId(null);
+  };
 
   const columns = [
     {
@@ -146,35 +147,35 @@ const JobPage = () => {
         style: { textAlign: 'left' }
       })
     },
-      {
-    title: "Địa Điểm",
-    dataIndex: "location",
-    key: "location",
-    render: (location) => {
-      // Logic chuyển đổi giá trị location sang tên tiếng Việt
-      const renderLocation = (value) => {
-        switch (value) {
-          case "HANOI":
-            return "Hà Nội";
-          case "HOCHIMINH":
-            return "Hồ Chí Minh";
-          case "DANANG":
-            return "Đà Nẵng";
-          case "OTHER":
-            return "Khác";
-          default:
-            return value || "Không xác định"; // Trường hợp không khớp giá trị nào
-        }
-      };
+    {
+      title: "Địa Điểm",
+      dataIndex: "location",
+      key: "location",
+      render: (location) => {
+        // Logic chuyển đổi giá trị location sang tên tiếng Việt
+        const renderLocation = (value) => {
+          switch (value) {
+            case "HANOI":
+              return "Hà Nội";
+            case "HOCHIMINH":
+              return "Hồ Chí Minh";
+            case "DANANG":
+              return "Đà Nẵng";
+            case "OTHER":
+              return "Khác";
+            default:
+              return value || "Không xác định"; // Trường hợp không khớp giá trị nào
+          }
+        };
 
-      return (
-        <div className="flex items-center text-gray-600">
-          <EnvironmentOutlined className="mr-2" />
-          {renderLocation(location)}
-        </div>
-      );
-    }
-  },
+        return (
+          <div className="flex items-center text-gray-600">
+            <EnvironmentOutlined className="mr-2" />
+            {renderLocation(location)}
+          </div>
+        );
+      }
+    },
     {
       title: "Mức Lương",
       dataIndex: "salary",
@@ -217,7 +218,7 @@ const JobPage = () => {
       align: "center",
       render: (status) => (
         <Tag color={status === "ACTIVE" ? "green" : "red"} className="px-3 py-1">
-          {status === "ACTIVE" ? "Hoạt động" : "Không hoạt động"}
+          {status === "ACTIVE" ? "Đang tuyển" : "Ngưng tuyển"}
         </Tag>
       )
     },
@@ -325,10 +326,34 @@ const JobPage = () => {
     }
   };
 
-  const handleEdit = (record) => {
-    setModalMode('edit');
-    setSelectedJob(record);
-    setIsAddEditModalOpen(true);
+  const handleEdit = async (record) => {
+    try {
+      const response = await jobApi.getOne(record.key);
+      const jobDetail = response.data;
+
+      const formattedJobDetail = {
+        _id: jobDetail._id,
+        name: jobDetail.name,
+        skills: jobDetail.skills, // Thêm skills vào đây
+        company: jobDetail.company,
+        location: jobDetail.location,
+        salary: jobDetail.salary,
+        quantity: jobDetail.quantity,
+        level: jobDetail.level,
+        description: jobDetail.description,
+        startDate: jobDetail.startDate,
+        endDate: jobDetail.endDate,
+        isActive: jobDetail.isActive,
+        key: record.key // Thêm key để có thể update
+      };
+
+      setModalMode('edit');
+      setSelectedJob(formattedJobDetail);
+      setIsAddEditModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching job detail:", error);
+      message.error("Có lỗi xảy ra khi tải thông tin công việc!");
+    }
   };
 
   const handleAdd = () => {
@@ -581,6 +606,14 @@ const JobPage = () => {
             </motion.div>
           </Content >
 
+          <DeleteConfirmModal
+            isOpen={isDeleteModalOpen}
+            onClose={handleCloseDeleteModal}
+            onConfirm={handleConfirmDelete}
+            title="Xóa công việc"
+            content="Bạn có chắc chắn muốn xóa công việc này? Hành động này không thể hoàn tác."
+          />
+
           <AddEditModal
             isOpen={isAddEditModalOpen}
             onClose={handleCloseAddEditModal}
@@ -597,8 +630,6 @@ const JobPage = () => {
         </Layout>
       </div>
     </Layout>
-
-
   );
 };
 

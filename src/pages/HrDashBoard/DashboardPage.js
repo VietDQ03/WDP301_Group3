@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from 'antd';
 import { motion } from 'framer-motion';
 import {
-  Users,
   Briefcase,
   FileText,
   Calendar,

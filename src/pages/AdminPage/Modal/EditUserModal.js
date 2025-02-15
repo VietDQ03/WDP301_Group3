@@ -4,13 +4,10 @@ import {
     User,
     Mail,
     Calendar,
-    MapPin,
-    Building2,
     FileText,
     Users,
     Building,
     Check,
-    Search
 } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import { companyApi } from "../../../api/AdminPageAPI/companyApi";
