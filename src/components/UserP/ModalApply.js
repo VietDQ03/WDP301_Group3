@@ -75,14 +75,6 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
                         <Dialog.Title className="text-lg font-medium text-gray-900">
                             Ứng Tuyển Job
                         </Dialog.Title>
-                        {isAuthenticated && (
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="rounded-full p-1 hover:bg-gray-100"
-                            >
-                                <X className="h-5 w-5 text-gray-500" />
-                            </button>
-                        )}
                     </div>
 
                     <div className="mt-4">

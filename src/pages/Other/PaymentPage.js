@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertCircle, CheckCircle2, Copy } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Copy } from 'lucide-react';
 import BackButton from '../../components/BackButton';
 import CustomButton from '../../components/CustomButton';
 

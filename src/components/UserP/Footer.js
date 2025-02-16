@@ -11,8 +11,8 @@ const Footer = () => {
         </div>
         <div className="footer-section">
           <h3>Liên Hệ</h3>
-          <p><i className="fas fa-envelope"></i> contact@rabota.com</p>
-          <p><i className="fas fa-phone"></i> 1900-xxx-xxx</p>
+          <p><i className="fas fa-envelope"></i> rabotasp25@gmail.com</p>
+          <p><i className="fas fa-phone"></i> 0865072140</p>
         </div>
         <div className="footer-section">
           <h3>Theo Dõi</h3>

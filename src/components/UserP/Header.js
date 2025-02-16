@@ -8,8 +8,8 @@ import { logout } from "../../redux/slices/auth";
 const navItems = [
   { icon: Home, text: "Trang Chủ", path: "/" },
   { icon: FileText, text: "Tạo CV", path: "#" },
-  { icon: PlusCircle, text: "Đăng Tuyển", path: "#" },
-  { icon: Mail, text: "Liên Hệ", path: "#" },
+  { icon: PlusCircle, text: "Đăng Tuyển", path: "#" }, 
+  // { icon: Mail, text: "Liên Hệ", path: "#" },
 ];
 
 const NavItem = ({ Icon, text, path }) => (
