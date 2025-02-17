@@ -31,8 +31,8 @@ const CompanyCard = ({ showPagination = true }) => {
     
             const response = await companyApi.getAll(searchParams);
     
-            if (response?.data?.data) {
-                const { result, meta } = response.data.data;
+            if (response?.data) {
+                const { result, meta } = response.data;
                 const dataWithKeys = result.map((item, index) => ({
                     ...item,
                     key: item._id,
@@ -60,11 +60,9 @@ const CompanyCard = ({ showPagination = true }) => {
 
     useEffect(() => {
         console.log("Pagination state:", pagination);
-    }, [pagination]);
-
-    useEffect(() => {
         console.log("Updated companies:", companies);
-    }, [companies]);
+
+    }, [pagination, companies]);
 
     const handleOnchangePage = (currentPage, newPageSize) => {
         setCurrent(currentPage);

@@ -4,12 +4,16 @@ import LoginPage from '../pages/Auth/login.js';
 import RegisterPage from '../pages/Auth/register.js';
 import JobDetail from '../pages/UserPage/JobDetail.js'
 import CompanyDetail from '../pages/UserPage/CompanyDetail.js'
-import JobHistory
- from '../pages/UserPage/JobHistory.js';
+import JobHistory from '../pages/UserPage/JobHistory.js';
+import Profile from '../pages/UserPage/Profile.js';
 const USER_ROUTES = [
   {
     path: '/',
     element: <HomePage />,
+  },
+  {
+    path: '/profile',
+    element: <Profile />,
   },
   {
     path: '/jobhistory',

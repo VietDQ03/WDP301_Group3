@@ -16,7 +16,7 @@ const CompanyDetail = () => {
         const fetchCompanyDetail = async () => {
             try {
                 const response = await companyApi.findOne(id);
-                setCompany(response.data);
+                setCompany(response);
             } catch (error) {
                 console.error("Lỗi khi tải chi tiết công ty:", error);
                 message.error("Không tìm thấy công ty!");

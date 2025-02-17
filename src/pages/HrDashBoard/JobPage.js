@@ -54,7 +54,7 @@ const JobPage = () => {
         sort: params.sort, // Thêm tham số sort
       });
 
-      const { result, meta } = response.data.data;
+      const { result, meta } = response.data;
 
       const currentPage = meta.current || params.current || 1;
       const pageSize = meta.pageSize || params.pageSize || 10;
@@ -299,7 +299,7 @@ const JobPage = () => {
   const handleViewDetail = async (record) => {
     try {
       const response = await jobApi.getOne(record.key);
-      const jobDetail = response.data;
+      const jobDetail = response;
 
       const formattedJobDetail = {
         _id: jobDetail._id,
@@ -328,8 +328,9 @@ const JobPage = () => {
 
   const handleEdit = async (record) => {
     try {
+      console.log(record)
       const response = await jobApi.getOne(record.key);
-      const jobDetail = response.data;
+      const jobDetail = response;
 
       const formattedJobDetail = {
         _id: jobDetail._id,

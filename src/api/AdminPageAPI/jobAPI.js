@@ -1,18 +1,13 @@
-import axios from "axios";
 
-const axiosInstance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
-});
+import axios from "../axiosCustom";
 
 export const jobApi = {
   getAll: (params) => {
     const queryString = new URLSearchParams();
 
-    // Add pagination params
     if (params.current) queryString.append('current', params.current);
     if (params.pageSize) queryString.append('pageSize', params.pageSize);
 
-    // Add search filters
     if (params.name) queryString.append('name', params.name);
     if (params.location) queryString.append('location', params.location);
     if (params.level) queryString.append('level', params.level);
@@ -24,14 +19,13 @@ export const jobApi = {
       }
     }
 
-    // Add sorting
     if (params.sort) queryString.append('sort', params.sort);
 
-    return axiosInstance.get(`/jobs?${queryString.toString()}`);
+    return axios.get(`/jobs?${queryString.toString()}`);
   },
 
   create: async (data) => {
-    const response = await axiosInstance.post("/jobs", {
+    const response = await axios.post("/jobs", {
       name: data.name,
       skills: data.skills,
       company: data.company,
@@ -48,17 +42,17 @@ export const jobApi = {
   },
 
   getOne: async (id) => {
-    const response = await axiosInstance.get(`/jobs/${id}`);
+    const response = await axios.get(`/jobs/${id}`);
     return response.data;
   },
 
   update: async (id, data) => {
-    const response = await axiosInstance.patch(`/jobs/${id}`, data);
+    const response = await axios.patch(`/jobs/${id}`, data);
     return response.data;
   },
 
   delete: async (id) => {
-    const response = await axiosInstance.delete(`/jobs/${id}`);
+    const response = await axios.delete(`/jobs/${id}`);
     return response.data;
   }
 };

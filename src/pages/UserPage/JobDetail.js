@@ -20,7 +20,7 @@ const JobDetail = () => {
         const fetchJobDetail = async () => {
             try {
                 const response = await jobApi.getOne(id);
-                setJob(response.data);
+                setJob(response);
             } catch (error) {
                 console.error("Lỗi khi tải chi tiết công việc:", error);
                 message.error("Không tìm thấy công việc!");

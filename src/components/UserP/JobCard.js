@@ -28,7 +28,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
         ...params,
       });
 
-      const { result, meta } = response.data.data;
+      const { result, meta } = response.data;
       const formattedJobs = result.map((job, index) => ({
         key: job._id,
         stt: index + 1 + (meta.current - 1) * meta.pageSize,
@@ -71,8 +71,6 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
   const handleViewDetailJob = (item) => {
     navigate(`/job/${item.key}`);
   };
-
-  console.log(jobs)
 
   return (
     <div className="p-4 bg-gray-100 rounded-lg shadow-md">

@@ -29,12 +29,12 @@ const DashboardPage = () => {
         resumeApi.getAll({ ...params })
       ]);
 
-      if (companiesResponse?.data?.data) {
-        setDataCompanies(companiesResponse.data.data);
+      if (companiesResponse?.data) {
+        setDataCompanies(companiesResponse.data);
       }
 
-      if (jobsResponse?.data?.data) {
-        setDataJobs(jobsResponse.data.data);
+      if (jobsResponse?.data) {
+        setDataJobs(jobsResponse.data);
       }
 
       if (usersResponse?.data) {
