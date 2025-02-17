@@ -1,12 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { login, register } from "../../api/authAPI";
+import { login, register, getUserProfile } from "../../api/authAPI";
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (credentials, thunkAPI) => {
     try {
       const response = await login(credentials);
-      // Kiểm tra và trả về data từ response
       if (response?.data) {
         return response.data;
       }
@@ -26,6 +25,26 @@ export const registerUser = createAsyncThunk(
         return response.data;
       }
       return thunkAPI.rejectWithValue("Không có dữ liệu trả về");
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+// 🆕 Thêm checkAuth để kiểm tra đăng nhập khi load trang
+export const checkAuth = createAsyncThunk(
+  "auth/checkAuth",
+  async (_, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        return thunkAPI.rejectWithValue("Không có token");
+      }
+      const response = await getUserProfile(token); // Gọi API lấy user từ token
+      if (response?.data) {
+        return response.data;
+      }
+      return thunkAPI.rejectWithValue("Token không hợp lệ");
     } catch (error) {
       return thunkAPI.rejectWithValue(error);
     }
@@ -53,7 +72,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login cases
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -75,18 +93,36 @@ const authSlice = createSlice({
         state.error = action.payload?.message || "Đã có lỗi xảy ra";
         state.isAuthenticated = false;
       })
-      // Register cases
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(registerUser.fulfilled, (state) => {
         state.isLoading = false;
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload?.message || "Đăng ký thất bại";
+      })
+      // 🆕 Xử lý checkAuth khi load trang
+      .addCase(checkAuth.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(checkAuth.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.role = action.payload.user?.role;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(checkAuth.rejected, (state) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.role = null;
+        localStorage.removeItem("access_token"); 
       });
   },
 });

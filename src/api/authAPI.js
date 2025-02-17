@@ -28,3 +28,8 @@ export const register = async (userData) => {
     throw error;
   }
 };
+
+export const getUserProfile = (token) =>
+  axios.get("/auth/account", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
