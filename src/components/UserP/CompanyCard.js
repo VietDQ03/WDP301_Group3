@@ -60,11 +60,9 @@ const CompanyCard = ({ showPagination = true }) => {
 
     useEffect(() => {
         console.log("Pagination state:", pagination);
-    }, [pagination]);
-
-    useEffect(() => {
         console.log("Updated companies:", companies);
-    }, [companies]);
+
+    }, [pagination, companies]);
 
     const handleOnchangePage = (currentPage, newPageSize) => {
         setCurrent(currentPage);

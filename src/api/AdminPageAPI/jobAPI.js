@@ -5,11 +5,9 @@ export const jobApi = {
   getAll: (params) => {
     const queryString = new URLSearchParams();
 
-    // Add pagination params
     if (params.current) queryString.append('current', params.current);
     if (params.pageSize) queryString.append('pageSize', params.pageSize);
 
-    // Add search filters
     if (params.name) queryString.append('name', params.name);
     if (params.location) queryString.append('location', params.location);
     if (params.level) queryString.append('level', params.level);
@@ -21,7 +19,6 @@ export const jobApi = {
       }
     }
 
-    // Add sorting
     if (params.sort) queryString.append('sort', params.sort);
 
     return axios.get(`/jobs?${queryString.toString()}`);
