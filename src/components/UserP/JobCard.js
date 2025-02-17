@@ -28,7 +28,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
         ...params,
       });
 
-      const { result, meta } = response.data.data;
+      const { result, meta } = response.data;
       const formattedJobs = result.map((job, index) => ({
         key: job._id,
         stt: index + 1 + (meta.current - 1) * meta.pageSize,

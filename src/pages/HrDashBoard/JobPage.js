@@ -54,7 +54,7 @@ const JobPage = () => {
         sort: params.sort, // Thêm tham số sort
       });
 
-      const { result, meta } = response.data.data;
+      const { result, meta } = response.data;
 
       const currentPage = meta.current || params.current || 1;
       const pageSize = meta.pageSize || params.pageSize || 10;

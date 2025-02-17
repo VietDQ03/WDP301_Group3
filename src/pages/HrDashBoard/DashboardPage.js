@@ -32,8 +32,8 @@ const DashboardPage = () => {
         resumeApi.getAll({})
       ]);
 
-      setDataCompanies(companiesResponse?.data?.data || []);
-      setDataJobs(jobsResponse?.data?.data || []);
+      setDataCompanies(companiesResponse?.data || []);
+      setDataJobs(jobsResponse?.data || []);
       setDataResumes(resumeResponse?.data || []);
     } catch (error) {
       console.error('Error:', error);

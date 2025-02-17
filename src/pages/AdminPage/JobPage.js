@@ -30,7 +30,7 @@ const JobPage = () => {
         ...params
       });
 
-      const { result, meta } = response.data.data;
+      const { result, meta } = response.data;
 
       const formattedJobs = result.map((job, index) => ({
         key: job._id,
