@@ -7,7 +7,7 @@ export const callCreateResume = (url, companyId, jobId) => {
 export const callUploadSingleFile = (file, folderType) => {
     const bodyFormData = new FormData();
     bodyFormData.append('fileUpload', file);
-    
+
     return axios({
         method: 'post',
         url: '/files/upload',
@@ -21,4 +21,8 @@ export const callUploadSingleFile = (file, folderType) => {
 
 export const callActivateAccount = (email, otp) => {
     return axios.post('/auth/active', { email, otp });
+};
+
+export const getAppliedJobs = async () => {
+    return axios.post('/resumes/by-user');
 };
