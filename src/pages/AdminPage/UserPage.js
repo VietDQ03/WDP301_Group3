@@ -4,7 +4,7 @@ import Header from "../../components/AdminPage/Header";
 import { userApi } from "../../api/AdminPageAPI/userAPI";
 import { roleApi } from "../../api/AdminPageAPI/roleAPI";
 import EditUserModal from './Modal/EditUserModal';
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Tag, Modal, Select, InputNumber } from "antd";
+import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Tag, Modal } from "antd";
 import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, } from "@ant-design/icons";
 
 const { Content } = Layout;

@@ -1,20 +1,11 @@
 import React from 'react';
 import { Form, Input, Select, InputNumber, DatePicker, Switch, Modal } from 'antd';
-import {
-    MapPin,
-    Users,
-    Briefcase,
-    Building2,
-    BanknoteIcon,
-    Power,
-    Code,
-    Calendar,
-    FileText,
-} from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { MapPin, Users, Briefcase, Building2, BanknoteIcon, Power, Code, Calendar, FileText, } from 'lucide-react';
 import dayjs from 'dayjs';
 import './AddEditJobModal.style.css';
 
-const { TextArea } = Input;
 const { Option } = Select;
 
 const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
@@ -74,6 +65,25 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
         return current.isBefore(startDate, 'day');
     };
 
+    const formats = [
+        'header',
+        'bold', 'italic', 'underline',
+        'list', 'bullet',
+        'color',
+        'background', 
+    ];
+
+    const modules = {
+        toolbar: [
+            [{ 'header': [1, 2, false] }],
+            ['bold', 'italic', 'underline'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'color': [] }],
+            [{ 'background': [] }],
+            ['clean']
+        ]
+    };
+
     return (
         <Modal
             title={renderLabel(
@@ -87,6 +97,11 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
             className="custom-modal"
             okText={mode === 'add' ? 'Thêm mới' : 'Cập nhật'}
             cancelText="Hủy"
+            bodyStyle={{ 
+                maxHeight: 'calc(100vh - 300px)', 
+                overflow: 'auto',
+                paddingRight: '20px'
+            }}
         >
             <Form
                 form={form}
@@ -97,131 +112,134 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                     isActive: true,
                 }}
             >
-                <Form.Item
-                    name="name"
-                    label={renderLabel(<Briefcase />, "Tên công việc")}
-                    rules={[{ required: true, message: 'Vui lòng nhập tên công việc!' }]}
-                >
-                    <Input placeholder="Nhập tên công việc" />
-                </Form.Item>
-
-                <Form.Item
-                    name="skills"
-                    label={renderLabel(<Code />, "Kỹ năng")}
-                    rules={[{ required: true, message: 'Vui lòng nhập kỹ năng!' }]}
-                >
-                    <Input placeholder="VD: REACT, JAVASCRIPT, NODEJS (phân cách bởi dấu phẩy)" />
-                </Form.Item>
-
-                <div className="grid grid-cols-2 gap-6">
+                <div className="pr-4">
                     <Form.Item
-                        name="location"
-                        label={renderLabel(<MapPin />, "Địa điểm")}
-                        rules={[{ required: true, message: 'Vui lòng chọn địa điểm!' }]}
+                        name="name"
+                        label={renderLabel(<Briefcase />, "Tên công việc")}
+                        rules={[{ required: true, message: 'Vui lòng nhập tên công việc!' }]}
                     >
-                        <Select placeholder="Chọn địa điểm">
-                            <Option value="HANOI">Hà Nội</Option>
-                            <Option value="HOCHIMINH">Hồ Chí Minh</Option>
-                            <Option value="DANANG">Đà Nẵng</Option>
-                            <Option value="OTHER">Khác</Option>
-                        </Select>
+                        <Input placeholder="Nhập tên công việc" />
                     </Form.Item>
 
                     <Form.Item
-                        name="level"
-                        label={renderLabel(<Building2 />, "Cấp bậc")}
-                        rules={[{ required: true, message: 'Vui lòng chọn cấp bậc!' }]}
+                        name="skills"
+                        label={renderLabel(<Code />, "Kỹ năng")}
+                        rules={[{ required: true, message: 'Vui lòng nhập kỹ năng!' }]}
                     >
-                        <Select placeholder="Chọn cấp bậc">
-                            <Option value="FRESHER">Fresher</Option>
-                            <Option value="JUNIOR">Junior</Option>
-                            <Option value="MIDDLE">Middle</Option>
-                            <Option value="SENIOR">Senior</Option>
-                            <Option value="LEADER">Leader</Option>
-                        </Select>
+                        <Input placeholder="VD: REACT, JAVASCRIPT, NODEJS (phân cách bởi dấu phẩy)" />
+                    </Form.Item>
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <Form.Item
+                            name="location"
+                            label={renderLabel(<MapPin />, "Địa điểm")}
+                            rules={[{ required: true, message: 'Vui lòng chọn địa điểm!' }]}
+                        >
+                            <Select placeholder="Chọn địa điểm">
+                                <Option value="HANOI">Hà Nội</Option>
+                                <Option value="HOCHIMINH">Hồ Chí Minh</Option>
+                                <Option value="DANANG">Đà Nẵng</Option>
+                                <Option value="OTHER">Khác</Option>
+                            </Select>
+                        </Form.Item>
+
+                        <Form.Item
+                            name="level"
+                            label={renderLabel(<Building2 />, "Thời gian làm việc")}
+                            rules={[{ required: true, message: 'Vui lòng chọn thời gian!' }]}
+                        >
+                            <Select placeholder="Chọn thời gian">
+                                <Option value="PARTTIME">Bán thời gian</Option>
+                                <Option value="FULLTIME">Toàn thời gian</Option>
+                                <Option value="OTHER">Khác</Option>
+                            </Select>
+                        </Form.Item>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <Form.Item
+                            name="quantity"
+                            label={renderLabel(<Users />, "Số lượng")}
+                            rules={[{ required: true, message: 'Vui lòng nhập số lượng!' }]}
+                        >
+                            <InputNumber
+                                min={1}
+                                placeholder="Nhập số lượng"
+                                className="w-full"
+                                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="salary"
+                            label={renderLabel(<BanknoteIcon />, "Mức lương")}
+                            rules={[{ required: true, message: 'Vui lòng nhập mức lương!' }]}
+                        >
+                            <InputNumber
+                                min={0}
+                                className="w-full"
+                                placeholder="Nhập mức lương"
+                                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                addonAfter="VNĐ"
+                            />
+                        </Form.Item>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <Form.Item
+                            name="startDate"
+                            label={renderLabel(<Calendar />, "Ngày bắt đầu")}
+                            rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu!' }]}
+                        >
+                            <DatePicker
+                                className="w-full"
+                                format="DD/MM/YYYY"
+                                disabledDate={disabledStartDate}
+                                placeholder="Chọn ngày bắt đầu"
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="endDate"
+                            label={renderLabel(<Calendar />, "Ngày kết thúc")}
+                            rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc!' }]}
+                        >
+                            <DatePicker
+                                className="w-full"
+                                format="DD/MM/YYYY"
+                                disabledDate={disabledEndDate}
+                                placeholder="Chọn ngày kết thúc"
+                            />
+                        </Form.Item>
+                    </div>
+
+                    <Form.Item
+                        name="description"
+                        label={renderLabel(<FileText />, "Mô tả công việc")}
+                        rules={[{ required: true, message: 'Vui lòng nhập mô tả công việc!' }]}
+                    >
+                        <ReactQuill
+                            theme="snow"
+                            modules={modules}
+                            formats={formats}
+                            className="h-64"
+                            placeholder="Nhập mô tả chi tiết về công việc"
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="isActive"
+                        label={renderLabel(<Power />, "Trạng thái")}
+                        valuePropName="checked"
+                    >
+                        <Switch
+                            checkedChildren="Đang tuyển"
+                            unCheckedChildren="Đã đóng"
+                        />
                     </Form.Item>
                 </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                    <Form.Item
-                        name="quantity"
-                        label={renderLabel(<Users />, "Số lượng")}
-                        rules={[{ required: true, message: 'Vui lòng nhập số lượng!' }]}
-                    >
-                        <InputNumber
-                            min={1}
-                            placeholder="Nhập số lượng"
-                            className="w-full"
-                            formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="salary"
-                        label={renderLabel(<BanknoteIcon />, "Mức lương")}
-                        rules={[{ required: true, message: 'Vui lòng nhập mức lương!' }]}
-                    >
-                        <InputNumber
-                            min={0}
-                            className="w-full"
-                            placeholder="Nhập mức lương"
-                            formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                            addonAfter="VNĐ"
-                        />
-                    </Form.Item>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                    <Form.Item
-                        name="startDate"
-                        label={renderLabel(<Calendar />, "Ngày bắt đầu")}
-                        rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu!' }]}
-                    >
-                        <DatePicker
-                            className="w-full"
-                            format="DD/MM/YYYY"
-                            disabledDate={disabledStartDate}
-                            placeholder="Chọn ngày bắt đầu"
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="endDate"
-                        label={renderLabel(<Calendar />, "Ngày kết thúc")}
-                        rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc!' }]}
-                    >
-                        <DatePicker
-                            className="w-full"
-                            format="DD/MM/YYYY"
-                            disabledDate={disabledEndDate}
-                            placeholder="Chọn ngày kết thúc"
-                        />
-                    </Form.Item>
-                </div>
-
-                <Form.Item
-                    name="description"
-                    label={renderLabel(<FileText />, "Mô tả công việc")}
-                    rules={[{ required: true, message: 'Vui lòng nhập mô tả công việc!' }]}
-                >
-                    <TextArea
-                        rows={4}
-                        placeholder="Nhập mô tả chi tiết về công việc"
-                    />
-                </Form.Item>
-
-                <Form.Item
-                    name="isActive"
-                    label={renderLabel(<Power />, "Trạng thái")}
-                    valuePropName="checked"
-                >
-                    <Switch
-                        checkedChildren="Đang tuyển"
-                        unCheckedChildren="Đã đóng"
-                    />
-                </Form.Item>
             </Form>
         </Modal>
     );

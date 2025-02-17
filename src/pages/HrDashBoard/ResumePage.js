@@ -9,7 +9,6 @@ import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select,
 import {
   PlusOutlined,
   ReloadOutlined,
-  SettingOutlined,
   EditOutlined,
   DeleteOutlined,
   ExclamationCircleOutlined,
@@ -202,20 +201,24 @@ const ResumePage = () => {
       ),
     },
     {
-      title: "Hồ sơ",
+      title: "Hồ sơ", 
       key: "resume",
-      align: "center",
+      align: "center", 
       render: (_, record) => (
         <Space size="middle">
           <Tooltip title="Xem hồ sơ">
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
+            <a
+              href={`${process.env.REACT_APP_API_URL}/images/resume/${record?.url}`}
+              target="_blank"
               className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-              onClick={() => window.open(record.url, '_blank')}
             >
-              Xem hồ sơ
-            </Button>
+              <Button
+                type="text"
+                icon={<EyeOutlined />}
+              >
+                Xem hồ sơ
+              </Button>
+            </a>
           </Tooltip>
         </Space>
       ),

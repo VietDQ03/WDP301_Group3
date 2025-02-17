@@ -1,48 +1,15 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import "./HomePage.css"
 import JobCard from "../../components/UserP/JobCard";
 import CompanyCard from "../../components/UserP/CompanyCard";
 import Header from "../../components/UserP/Header";
 import Footer from "../../components/UserP/Footer";
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message, } from "antd";
+import { Input,  Form } from "antd";
 import CustomButton from "../../components/CustomButton";
 
 const HomePage = () => {
-  const [filterTab, setFilterTab] = useState("salary");
   const [form] = Form.useForm();
   const [searchFilters, setSearchFilters] = useState({});
-
-  const renderFilterTabs = () => {
-    if (filterTab === "salary") {
-      return ["5-10tr", "10-15tr", "15-20tr", "20-25tr", "25-30tr"].map((range, index) => (
-        <button
-          key={index}
-          className="bg-white shadow-md px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-300"
-        >
-          {range}
-        </button>
-      ));
-    } else if (filterTab === "experience") {
-      return ["<1 năm", "1-2 năm", "3-5 năm", "5-10 năm", ">10 năm"].map((exp, index) => (
-        <button
-          key={index}
-          className="bg-white shadow-md px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-300"
-        >
-          {exp}
-        </button>
-      ));
-    } else if (filterTab === "industry") {
-      return ["Công nghệ", "Kinh doanh", "Marketing", "Y tế", "Xây dựng"].map((industry, index) => (
-        <button
-          key={index}
-          className="bg-white shadow-md px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-300"
-        >
-          {industry}
-        </button>
-      ));
-    }
-  };
 
   const onFinish = (values) => {
     setSearchFilters(values);

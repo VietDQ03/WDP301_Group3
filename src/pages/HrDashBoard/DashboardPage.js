@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from 'antd';
 import { motion } from 'framer-motion';
 import {
-  Users,
   Briefcase,
   FileText,
   Calendar,
@@ -89,12 +88,6 @@ const DashboardPage = () => {
       value: dataJobs?.meta?.total || 0,
       color: 'bg-green-500'
     },
-    {
-      icon: <Users />,
-      title: 'Tổng Số Công Ty',
-      value: dataCompanies?.meta?.total || 0,
-      color: 'bg-purple-500'
-    }
   ];
 
   return (
@@ -118,7 +111,7 @@ const DashboardPage = () => {
             ) : (
               <div className="max-w-screen-2xl mx-auto space-y-8">
                 <h1 className="text-3xl font-bold text-gray-800 mb-8 mt-4">Trang Tổng Quan</h1>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {stats.map((stat, index) => (
                     <motion.div
                       key={index}

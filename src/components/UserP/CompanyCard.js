@@ -1,5 +1,4 @@
 import { companyApi } from "../../api/AdminPageAPI/companyApi";
-import { convertSlug } from '../../config/ultil';
 import { Card, Col, Empty, Pagination, Row, Spin, message } from 'antd';
 import { useState, useEffect } from 'react';
 import { isMobile } from 'react-device-detect';
