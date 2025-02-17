@@ -55,6 +55,13 @@ const Header = () => {
         label: 'Trang Tổng Quan',
         onClick: () => navigate('/dashboard')
       });
+    }else if (user?.role?.name === "NORMAL_USER"){
+      baseItems.unshift({
+        key: 'dashboard',
+        icon: <LayoutDashboard size={16} />,
+        label: 'Việc đã ứng tuyển',
+        onClick: () => navigate('/jobhistory')
+      });
     }
 
     return baseItems;
