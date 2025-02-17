@@ -57,7 +57,7 @@ const Header = () => {
       });
     }else if (user?.role?.name === "NORMAL_USER"){
       baseItems.unshift({
-        key: 'dashboard',
+        key: 'jobhistory',
         icon: <LayoutDashboard size={16} />,
         label: 'Việc đã ứng tuyển',
         onClick: () => navigate('/jobhistory')

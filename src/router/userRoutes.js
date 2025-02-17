@@ -4,6 +4,8 @@ import LoginPage from '../pages/Auth/login.js';
 import RegisterPage from '../pages/Auth/register.js';
 import JobDetail from '../pages/UserPage/JobDetail.js'
 import CompanyDetail from '../pages/UserPage/CompanyDetail.js'
+import JobHistory
+ from '../pages/UserPage/JobHistory.js';
 const USER_ROUTES = [
   {
     path: '/',
@@ -11,7 +13,7 @@ const USER_ROUTES = [
   },
   {
     path: '/jobhistory',
-    element: <HomePage />
+    element: <JobHistory />
   },
   {
     path: '/job/:id',
