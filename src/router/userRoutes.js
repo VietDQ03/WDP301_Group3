@@ -10,6 +10,10 @@ const USER_ROUTES = [
     element: <HomePage />,
   },
   {
+    path: '/jobhistory',
+    element: <HomePage />
+  },
+  {
     path: '/job/:id',
     element: <JobDetail />
   },
