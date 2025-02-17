@@ -93,15 +93,15 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
             open={isOpen}
             onCancel={onClose}
             onOk={handleSubmit}
-            width={800}
+            width={830}
             className="custom-modal"
             okText={mode === 'add' ? 'Thêm mới' : 'Cập nhật'}
             cancelText="Hủy"
             bodyStyle={{ 
-                maxHeight: 'calc(100vh - 300px)', 
+                padding: '24px',
+                maxHeight: 'calc(100vh - 270px)', 
                 overflow: 'auto',
-                paddingRight: '20px'
-            }}
+            }}            
         >
             <Form
                 form={form}
@@ -112,7 +112,7 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                     isActive: true,
                 }}
             >
-                <div className="pr-4">
+                <div>
                     <Form.Item
                         name="name"
                         label={renderLabel(<Briefcase />, "Tên công việc")}

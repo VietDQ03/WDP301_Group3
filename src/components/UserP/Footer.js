@@ -17,9 +17,7 @@ const Footer = () => {
         <div className="footer-section">
           <h3>Theo Dõi</h3>
           <div className="social-links">
-            <a href="#"><i className="fab fa-facebook"></i></a>
-            <a href="#"><i className="fab fa-linkedin"></i></a>
-            <a href="#"><i className="fab fa-twitter"></i></a>
+            <a href="https://www.facebook.com/profile.php?id=61551537480234&mibextid=wwXIfr&rdid=IJvbMvKBsJvBuO6V&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F12H8M3Uo3Eh%2F%3Fmibextid%3DwwXIfr#"><i className="fab fa-facebook"></i></a>
           </div>
         </div>
       </div>

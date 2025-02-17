@@ -72,8 +72,6 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
     navigate(`/job/${item.key}`);
   };
 
-  console.log(jobs)
-
   return (
     <div className="p-4 bg-gray-100 rounded-lg shadow-md">
       <Spin spinning={isLoading} tip="Loading...">
