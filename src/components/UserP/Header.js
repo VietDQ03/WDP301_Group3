@@ -7,10 +7,13 @@ import { logout } from "../../redux/slices/auth";
 import LoginModal from "./LoginModal";
 
 const NavItem = ({ Icon, text, path, onClick }) => {
+  const navigate = useNavigate();
+
   const handleClick = (e) => {
     if (path === "/") {
       e.preventDefault();
-      window.location.reload();
+      navigate("/");
+      return;
     }
     if (onClick) {
       e.preventDefault();
@@ -101,7 +104,7 @@ const Header = () => {
       });
     } else if (user?.role?.name === "NORMAL_USER") {
       baseItems.unshift({
-        key: 'dashboard',
+        key: 'jobhistory',
         icon: <LayoutDashboard size={16} />,
         label: 'Việc đã ứng tuyển',
         onClick: () => navigate('/jobhistory')
