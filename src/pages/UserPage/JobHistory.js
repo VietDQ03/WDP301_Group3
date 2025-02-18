@@ -48,10 +48,10 @@ const JobHistory = () => {
                             {appliedJobs.map((job) => (
                                 <li key={job._id} className="border p-5 rounded-lg shadow-md bg-gray-50">
                                     <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                                        {job.jobId.name}
+                                        {job?.jobId?.name}
                                     </h2>
                                     <Link
-                                        to={`/job/${job.jobId._id}`}
+                                        to={`/job/${job?.jobId?._id}`}
                                         className="inline-block bg-blue-500 text-white px-4 py-2 rounded-lg text-lg hover:bg-blue-600 transition duration-200"
                                     >
                                         Xem chi tiết

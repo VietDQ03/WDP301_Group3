@@ -4,23 +4,40 @@ import JobPage from '../pages/HrDashBoard/JobPage';
 import ResumePage from '../pages/HrDashBoard/ResumePage';
 import ProPage from '../pages/HrDashBoard/ProPage';
 import PaymentPage from '../pages/Other/PaymentPage';
+import ProtectedRoute from './protectedRouter.js';
 
 const DASHBOARD_ROUTER = [
   {
     path: '/dashboard',
-    element: <DashboardPage />,
+    element: (
+      <ProtectedRoute requiredRole="HR_ROLE">
+        <DashboardPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/dashboard/job',
-    element: <JobPage />,
+    element: (
+      <ProtectedRoute requiredRole="HR_ROLE">
+        <JobPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/dashboard/resume',
-    element: <ResumePage />,
+    element: (
+      <ProtectedRoute requiredRole="HR_ROLE">
+        <ResumePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/dashboard/pro',
-    element: <ProPage />,
+    element: (
+      <ProtectedRoute requiredRole="HR_ROLE">
+        <ProPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/payment',

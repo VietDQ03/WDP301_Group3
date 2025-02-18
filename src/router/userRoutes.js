@@ -6,6 +6,8 @@ import JobDetail from '../pages/UserPage/JobDetail.js'
 import CompanyDetail from '../pages/UserPage/CompanyDetail.js'
 import JobHistory from '../pages/UserPage/JobHistory.js';
 import Profile from '../pages/UserPage/Profile.js';
+import Unauthorized from '../pages/Other/UnauthorizedPage.js'
+
 const USER_ROUTES = [
   {
     path: '/',
@@ -34,6 +36,10 @@ const USER_ROUTES = [
   {
     path: "/register",
     element: < RegisterPage/>,
+  },
+  {
+    path: '/unauthorized',
+    element: < Unauthorized/>,
   },
   {
     path: '*',
