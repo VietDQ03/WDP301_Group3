@@ -1,6 +1,9 @@
-/* AddEditJobModal.style.css */
-
 /* Modal Styles */
+.custom-modal .ant-modal {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
 .custom-modal .ant-modal-content {
     border-radius: 16px;
     overflow: hidden;
@@ -10,10 +13,24 @@
 .custom-modal .ant-modal-header {
     margin: 0 !important;
     padding: 20px 24px !important;
+    display: flex;
+    align-items: center;
 }
 
 .custom-modal .ant-modal-body {
     padding: 24px !important;
+    max-height: calc(100vh - 230px);
+    overflow-y: auto;
+}
+
+/* Customize Body Scroll */
+.custom-modal .ant-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-modal .ant-modal-body::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 3px;
 }
 
 .custom-modal .ant-modal-footer {
@@ -95,36 +112,6 @@
     background-color: #3b82f6 !important;
 }
 
-/* Button Styles */
-.custom-modal .ant-modal-footer .ant-btn {
-    height: 40px;
-    padding: 6px 20px;
-    font-size: 14px;
-    border-radius: 8px;
-    font-weight: 500;
-}
-
-.custom-modal .ant-modal-footer .ant-btn-default {
-    border-color: #e5e7eb;
-    color: #374151;
-}
-
-.custom-modal .ant-modal-footer .ant-btn-default:hover {
-    color: #3b82f6;
-    border-color: #3b82f6;
-}
-
-.custom-modal .ant-modal-footer .ant-btn-primary {
-    background-color: #3b82f6;
-    border-color: #3b82f6;
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
-}
-
-.custom-modal .ant-modal-footer .ant-btn-primary:hover {
-    background-color: #2563eb;
-    border-color: #2563eb;
-}
-
 /* Error State Styles */
 .custom-form .ant-form-item-explain-error {
     font-size: 13px;
@@ -152,25 +139,6 @@
 .custom-form .quill {
     margin-bottom: 48px;
 }
-
-.custom-modal .ant-modal-body {
-    scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
-}
-
-.custom-modal .ant-modal-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-.custom-modal .ant-modal-body::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.custom-modal .ant-modal-body::-webkit-scrollbar-thumb {
-    background-color: #d1d5db;
-    border-radius: 3px;
-}
-
 
 /* Responsive Styles */
 @media (max-width: 640px) {

@@ -22,7 +22,7 @@ const UserProfile = () => {
         age: 30,
         gender: "Nam",
         address: "123 Đường ABC, Quận XYZ, TP.HCM",
-        role: "Senior Developer",
+        role: "HR_ROLE",
         company: "Tech Company Ltd"
     };
 
@@ -49,7 +49,6 @@ const UserProfile = () => {
                             />
                             <div>
                                 <Title level={2} className="mb-2">{userInfo.name}</Title>
-                                <Tag color="blue">{userInfo.role}</Tag>
                             </div>
                         </div>
 
@@ -85,11 +84,13 @@ const UserProfile = () => {
                                 {userInfo.address}
                             </Descriptions.Item>
 
-                            <Descriptions.Item
-                                label={<span><BankOutlined className="mr-2" />Công ty</span>}
-                            >
-                                {userInfo.company}
-                            </Descriptions.Item>
+                            {userInfo.role === 'HR_ROLE' && (
+                                <Descriptions.Item
+                                    label={<span><BankOutlined className="mr-2" />Công ty</span>}
+                                >
+                                    {userInfo.company}
+                                </Descriptions.Item>
+                            )}
                         </Descriptions>
 
                         {/* Action Buttons */}
