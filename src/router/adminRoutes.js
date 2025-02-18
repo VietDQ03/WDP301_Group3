@@ -7,6 +7,7 @@ import JobPage from '../pages/AdminPage/JobPage';
 import ResumePage from '../pages/AdminPage/ResumePage';
 import PermissionPage from '../pages/AdminPage/PermissionPage';
 import RolePage from '../pages/AdminPage/RolePage';
+import ProtectedRoute from './protectedRouter.js';
 
 // // Company routes
 // import CompanyList from '../pages/company/CompanyList';
@@ -23,31 +24,59 @@ import RolePage from '../pages/AdminPage/RolePage';
 const ADMIN_ROUTER = [
   {
     path: '/admin',
-    element: <DashboardPage />,
+    element: (
+      <ProtectedRoute requiredRole="SUPER_ADMIN">
+        <DashboardPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/admin/company/*',
-    element: <CompanyPage />,
+    element: (
+      <ProtectedRoute requiredRole="SUPER_ADMIN">
+        <CompanyPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/admin/user/*',
-    element: <UserPage />,
+    element: (
+      <ProtectedRoute requiredRole="SUPER_ADMIN">
+        <UserPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/admin/job',
-    element: <JobPage />,
+    element: (
+      <ProtectedRoute requiredRole="SUPER_ADMIN">
+        <JobPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/admin/resume',
-    element: <ResumePage />,
+    element: (
+      <ProtectedRoute requiredRole="SUPER_ADMIN">
+        <ResumePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/admin/permission',
-    element: <PermissionPage />,
+    element: (
+      <ProtectedRoute requiredRole="SUPER_ADMIN">
+        <PermissionPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/admin/role',
-    element: <RolePage />,
+    element: (
+      <ProtectedRoute requiredRole="SUPER_ADMIN">
+        <RolePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '*',
