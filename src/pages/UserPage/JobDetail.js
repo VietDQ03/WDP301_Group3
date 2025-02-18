@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { message } from "antd";
+import { message, Spin } from "antd";
 import ApplyModal from "../../components/UserP/ModalApply";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
 import Header from "../../components/UserP/Header";
@@ -35,7 +35,7 @@ const JobDetail = () => {
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-screen">
-                <div className="w-3/4 h-32 bg-gray-200 animate-pulse rounded-lg" />
+                <Spin tip="Đang tải..." />
             </div>
         );
     }
