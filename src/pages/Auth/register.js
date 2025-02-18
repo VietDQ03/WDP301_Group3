@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../redux/slices/auth";
 import { callActivateAccount } from "../../api/UserApi/UserApi";
-import CustomButton from "../../components/CustomButton"
+import CustomButton from "../../components/Other/CustomButton"
 
 function RegisterPage() {
   const dispatch = useDispatch();

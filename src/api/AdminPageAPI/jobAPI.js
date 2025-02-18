@@ -1,5 +1,4 @@
-
-import axios from "../axiosCustom";
+import axios from "../../config/axiosCustom";
 
 export const jobApi = {
   getAll: (params) => {

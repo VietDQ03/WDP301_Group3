@@ -11,7 +11,7 @@ import {
 import { motion } from 'framer-motion';
 import Header from "../../components/UserP/Header";
 import Footer from "../../components/UserP/Footer";
-import CustomButton from "../../components/CustomButton"
+import CustomButton from "../../components/Other/CustomButton"
 
 const { Title } = Typography;
 

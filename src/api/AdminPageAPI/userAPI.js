@@ -1,4 +1,4 @@
-import axios from "../axiosCustom";
+import axios from "../../config/axiosCustom";
 
 export const userApi = {
   getAll: (params) => {
