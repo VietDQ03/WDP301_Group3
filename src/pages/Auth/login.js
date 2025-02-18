@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../redux/slices/auth";
-import CustomButton from "../../components/CustomButton"
+import CustomButton from "../../components/Other/CustomButton"
 
 function LoginPage() {
   const [username, setUsername] = useState("");

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle2, Copy } from 'lucide-react';
-import BackButton from '../../components/BackButton';
-import CustomButton from '../../components/CustomButton';
+import BackButton from '../../components/Other/BackButton';
+import CustomButton from '../../components/Other/CustomButton';
 
 const PaymentPage = () => {
     const location = useLocation();

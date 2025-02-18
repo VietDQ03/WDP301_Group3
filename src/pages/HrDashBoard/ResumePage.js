@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import { resumeApi } from "../../api/AdminPageAPI/resumeAPI";
@@ -10,15 +10,14 @@ import {
   PlusOutlined,
   ReloadOutlined,
   EditOutlined,
-  DeleteOutlined,
   ExclamationCircleOutlined,
-  SearchOutlined,
-  EnvironmentOutlined,
   MailOutlined,
-  EyeOutlined
+  EyeOutlined,
+  UserOutlined
 } from "@ant-design/icons";
 import { motion } from 'framer-motion';
-import CustomButton from '../../components/CustomButton';
+import CustomButton from '../../components/Other/CustomButton';
+import { debounce } from "lodash";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -34,8 +33,8 @@ const ResumePage = () => {
   const [jobs, setJobs] = useState({});
   const [users, setUsers] = useState({});
   const [searchValues, setSearchValues] = useState({
-    candidate: '',
-    company: '',
+    email: '',
+    username: '',
     status: ''
   });
   const [pagination, setPagination] = useState({
@@ -47,7 +46,7 @@ const ResumePage = () => {
   const fetchResumes = async (params = {}) => {
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       const queryParams = {
         current: params.current || pagination.current,
@@ -99,14 +98,14 @@ const ResumePage = () => {
         });
 
         companyResponses.forEach((response, index) => {
-          if (response?.data) {
-            newCompanies[uniqueCompanyIds[index]] = response.data.name;
+          if (response) {
+            newCompanies[uniqueCompanyIds[index]] = response.name;
           }
         });
 
         jobResponses.forEach((response, index) => {
-          if (response?.data) {
-            newJobs[uniqueJobIds[index]] = response.data.name;
+          if (response) {
+            newJobs[uniqueJobIds[index]] = response.name;
           }
         });
 
@@ -128,8 +127,31 @@ const ResumePage = () => {
     }
   };
 
+  const debouncedSearch = useCallback(
+    debounce((values) => {
+      fetchResumes({
+        ...values,
+        current: 1,
+        pageSize: pagination.pageSize
+      });
+    }, 500),
+    [pagination.pageSize]
+  );
+
+  const handleInputChange = (field, value) => {
+    const newSearchValues = {
+      ...searchValues,
+      [field]: value
+    };
+    setSearchValues(newSearchValues);
+    debouncedSearch(newSearchValues);
+  };
+
   useEffect(() => {
     fetchResumes();
+    return () => {
+      debouncedSearch.cancel();
+    };
   }, []);
 
   const handleDelete = (id) => {
@@ -223,30 +245,30 @@ const ResumePage = () => {
         </Space>
       ),
     },
-    {
-      title: "Công ty",
-      align: "center",
-      dataIndex: "companyId",
-      render: (companyId) => (
-        <div className="flex items-center justify-center text-gray-600">
-          <svg
-            className="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-            />
-          </svg>
-          {companies[companyId] || ''}
-        </div>
-      ),
-    },
+    // {
+    //   title: "Công ty",
+    //   align: "center",
+    //   dataIndex: "companyId",
+    //   render: (companyId) => (
+    //     <div className="flex items-center justify-center text-gray-600">
+    //       <svg
+    //         className="w-4 h-4 mr-2"
+    //         fill="none"
+    //         stroke="currentColor"
+    //         viewBox="0 0 24 24"
+    //         xmlns="http://www.w3.org/2000/svg"
+    //       >
+    //         <path
+    //           strokeLinecap="round"
+    //           strokeLinejoin="round"
+    //           strokeWidth={2}
+    //           d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+    //         />
+    //       </svg>
+    //       {companies[companyId] || ''}
+    //     </div>
+    //   ),
+    // },
     {
       title: "Công Việc",
       align: "center",
@@ -283,13 +305,13 @@ const ResumePage = () => {
           onChange={(newStatus) => handleUpdateStatus(record.id, newStatus)}
         >
           <Option value="PENDING">
-            <span className="text-orange-500">PENDING</span>
+            <span className="text-orange-500">Đang chờ</span>
           </Option>
           <Option value="APPROVED">
-            <span className="text-green-500">APPROVED</span>
+            <span className="text-green-500">Đã duyệt</span>
           </Option>
           <Option value="REJECTED">
-            <span className="text-red-500">REJECTED</span>
+            <span className="text-red-500">Từ chối</span>
           </Option>
         </Select>
       ),
@@ -309,14 +331,14 @@ const ResumePage = () => {
               onClick={() => console.log('Edit resume:', record)}
             />
           </Tooltip>
-          <Tooltip title="Xóa">
+          {/* <Tooltip title="Xóa">
             <Button
               type="text"
               icon={<DeleteOutlined />}
               className="text-red-500 hover:text-red-600 hover:bg-red-50"
               onClick={() => handleDelete(record.key)}
             />
-          </Tooltip>
+          </Tooltip> */}
         </Space>
       ),
     }
@@ -343,14 +365,16 @@ const ResumePage = () => {
 
   const onReset = () => {
     form.resetFields();
-    setSearchValues({
-      candidate: '',
-      company: '',
+    const newSearchValues = {
+      email: '',
+      username: '',
       status: ''
-    });
+    };
+    setSearchValues(newSearchValues);
     fetchResumes({
       current: 1,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
+      ...newSearchValues
     });
   };
 
@@ -408,61 +432,61 @@ const ResumePage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <Form
-                  form={form}
-                  onFinish={onFinish}
-                  layout="vertical"
-                  className="space-y-4"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Form.Item
-                      name="candidate"
-                      label={
-                        <span className="text-gray-700 font-medium">Tên Ứng Viên</span>
-                      }
-                    >
-                      <Input
-                        prefix={<SearchOutlined className="text-gray-400" />}
-                        placeholder="Nhập tên ứng viên"
-                        className="h-11 rounded-lg"
-                      />
-                    </Form.Item>
-
-                    <Form.Item
-                      name="company"
-                      label={
-                        <span className="text-gray-700 font-medium">Công ty</span>
-                      }
-                    >
-                      <Input
-                        prefix={<EnvironmentOutlined className="text-gray-400" />}
-                        placeholder="Nhập tên công ty"
-                        className="h-11 rounded-lg"
-                      />
-                    </Form.Item>
-
-                    <div className="flex items-center h-full">
-                      <Form.Item className="mb-0 w-full">
-                        <Space size="middle" className="flex w-full">
-                          <CustomButton
-                            htmlType="submit"
-                            icon={<SearchOutlined />}
-                          >
-                            Tìm kiếm
-                          </CustomButton>
-                          <Button
-                            onClick={onReset}
-                            size="large"
-                            className="h-11 px-6 flex items-center"
-                            icon={<ReloadOutlined />}
-                          >
-                            Đặt lại
-                          </Button>
-                        </Space>
-                      </Form.Item>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div>
+                    <label className="text-gray-700 font-medium mb-2 block">Email</label>
+                    <Input
+                      prefix={<MailOutlined className="text-gray-400" />}
+                      placeholder="Nhập email ứng viên"
+                      className="h-11 rounded-lg"
+                      value={searchValues.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                    />
                   </div>
-                </Form>
+
+                  <div>
+                    <label className="text-gray-700 font-medium mb-2 block">Tên người dùng</label>
+                    <Input
+                      prefix={<UserOutlined className="text-gray-400" />}
+                      placeholder="Nhập tên người dùng"
+                      className="h-11 rounded-lg"
+                      value={searchValues.username}
+                      onChange={(e) => handleInputChange('username', e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-gray-700 font-medium mb-2 block">Trạng thái</label>
+                    <Select
+                      placeholder="Chọn trạng thái"
+                      className="h-11 w-full"
+                      value={searchValues.status}
+                      onChange={(value) => handleInputChange('status', value)}
+                    >
+                      <Option value="">Tất cả</Option>
+                      <Option value="PENDING">
+                        <span className="text-orange-500">Đang chờ</span>
+                      </Option>
+                      <Option value="APPROVED">
+                        <span className="text-green-500">Đã duyệt</span>
+                      </Option>
+                      <Option value="REJECTED">
+                        <span className="text-red-500">Từ chối</span>
+                      </Option>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-end">
+                    <Button
+                      onClick={onReset}
+                      size="large"
+                      className="h-11 px-6 flex items-center"
+                      icon={<ReloadOutlined />}
+                    >
+                      Đặt lại
+                    </Button>
+                  </div>
+                </div>
               </motion.div>
 
               {/* List Section */}

@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { Dialog } from '@headlessui/react';
 import { Upload, X, FileWarning, LogIn } from 'lucide-react';
 import { callCreateResume, callUploadSingleFile } from "../../api/UserApi/UserApi";
-import CustomButton from '../../components/CustomButton';
+import CustomButton from '../../components/Other/CustomButton';
 
 const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
     const { user, isAuthenticated } = useSelector((state) => state.auth);

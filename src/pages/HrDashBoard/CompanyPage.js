@@ -5,7 +5,7 @@ import { companyApi } from "../../api/AdminPageAPI/companyApi";
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Modal, Pagination } from "antd";
 import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, SearchOutlined, EnvironmentOutlined, MailOutlined, EyeOutlined } from "@ant-design/icons";
 import { motion } from 'framer-motion';
-import CustomButton from '../../components/CustomButton';
+import CustomButton from '../../components/Other/CustomButton';
 import debounce from 'lodash/debounce';
 
 const { Content } = Layout;

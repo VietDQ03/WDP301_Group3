@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import "./HomePage.css"
+import "./UserHome.css";
 import JobCard from "../../components/UserP/JobCard";
 import CompanyCard from "../../components/UserP/CompanyCard";
 import Header from "../../components/UserP/Header";
 import Footer from "../../components/UserP/Footer";
 import { Input,  Form } from "antd";
-import CustomButton from "../../components/CustomButton";
+import CustomButton from "../../components/Other/CustomButton";
 
-const HomePage = () => {
+const UserHome = () => {
   const [form] = Form.useForm();
   const [searchFilters, setSearchFilters] = useState({});
 
@@ -59,4 +59,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default UserHome;

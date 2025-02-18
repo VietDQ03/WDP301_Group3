@@ -1,4 +1,5 @@
-import axios from "../axiosCustom";
+import axios from "../../config/axiosCustom";
+
 
 export const callCreateResume = (url, companyId, jobId) => {
     return axios.post('/resumes', { url, companyId, jobId });

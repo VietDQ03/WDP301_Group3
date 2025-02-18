@@ -2,14 +2,14 @@ import React, { useEffect, useState, useCallback } from "react";
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
-import CustomButton from '../../components/CustomButton';
+import CustomButton from '../../components/Other/CustomButton';
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, message, Pagination } from "antd";
 import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EnvironmentOutlined, DollarOutlined, TeamOutlined, EyeOutlined } from "@ant-design/icons";
 import { motion } from 'framer-motion';
 import { debounce } from 'lodash';
 import AddEditModal from './Modal/AddEditJobModal';
 import ViewJobModal from './Modal/ViewJobModal';
-import DeleteConfirmModal from '../../components/DeleteConfirmModal';
+import DeleteConfirmModal from '../../components/Other/DeleteConfirmModal';
 
 const { Content } = Layout;
 const { Title } = Typography;

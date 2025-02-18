@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Check, X, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import BackButton from '../../components/BackButton';
+import BackButton from '../../components/Other/BackButton';
 
 const ProPage = () => {
   const navigate = useNavigate();
@@ -24,58 +24,56 @@ const ProPage = () => {
 
   const plans = [
     {
-      name: 'Cơ Bản',
-      price: '499.000',
+      name: 'Rabota Basic',
+      price: '99.000',
+      originalPrice: '299.000',
       period: '/tháng',
-      description: 'Dành cho doanh nghiệp nhỏ',
+      description: 'Giải pháp khởi đầu tối ưu cho doanh nghiệp',
       features: [
-        'Đăng 10 tin tuyển dụng/tháng',
-        'Xem 50 hồ sơ ứng viên',
+        'Đăng 5 tin tuyển dụng/tháng',
+        'Thống kê chi tiết',
         'Hỗ trợ email',
-        'Thống kê cơ bản',
-        'Tùy chỉnh mẫu JD',
       ],
       notIncluded: [
-        'API Integration',
         'Hỗ trợ 24/7',
-        'Phân tích nâng cao'
       ]
     },
     {
-      name: 'Chuyên Nghiệp',
-      price: '999.000',
+      name: 'Rabota Pro',
+      price: '159.000',
+      originalPrice: '399.000',
       period: '/tháng',
-      description: 'Dành cho doanh nghiệp vừa',
+      description: 'Nâng cao hiệu quả tuyển dụng cho doanh nghiệp',
       popular: true,
       features: [
-        'Đăng không giới hạn tin',
-        'Xem 200 hồ sơ ứng viên',
+        'Tất cả tính năng Basic',
+        'Đăng 10 tin tuyển dụng/tháng',
         'Hỗ trợ 24/7',
-        'Thống kê chuyên sâu',
-        'Tùy chỉnh thương hiệu',
-        'API Integration',
-        'Công cụ đánh giá ứng viên',
       ],
       notIncluded: [
-        'White-label solution',
+        'Tư vấn riêng'
       ]
     },
     {
-      name: 'Doanh Nghiệp',
-      price: '1.999.000',
+      name: 'Rabota Premium',
+      price: '199.000',
+      originalPrice: '499.000',
       period: '/tháng',
-      description: 'Dành cho tập đoàn lớn',
+      description: 'Giải pháp tuyển dụng cao cấp dành cho doanh nghiệp',
       features: [
-        'Tất cả tính năng Chuyên Nghiệp',
-        'White-label solution',
-        'Tư vấn riêng',
-        'SLA cam kết',
-        'Tùy chỉnh theo yêu cầu',
-        'Đào tạo nhân sự',
-        'Báo cáo tùy chỉnh',
+        'Tất cả tính năng Pro',
+        'Đăng không giới hạn tin',
+        'Hỗ trợ ưu tiên 24/7',
+        'Độc quyền hiển thị banner quảng cáo ưu tiên'
       ],
     }
   ];
+
+  const calculateDiscount = (original, sale) => {
+    const originalPrice = parseInt(original.replace(/\D/g, ''));
+    const salePrice = parseInt(sale.replace(/\D/g, ''));
+    return Math.round((1 - salePrice / originalPrice) * 100);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -117,14 +115,25 @@ const ProPage = () => {
                 </div>
               )}
 
+              <div className="absolute top-4 right-4">
+                <div className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm font-medium">
+                  -{calculateDiscount(plan.originalPrice, plan.price)}%
+                </div>
+              </div>
+
               <div className="text-center">
                 <h3 className="text-xl font-semibold text-gray-900">{plan.name}</h3>
                 <p className="mt-2 text-gray-500">{plan.description}</p>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold text-gray-900">
-                    {plan.price}đ
+                <div className="mt-4 flex flex-col items-center">
+                  <span className="text-lg text-gray-500 line-through">
+                    {plan.originalPrice}đ
                   </span>
-                  <span className="text-gray-500">{plan.period}</span>
+                  <div className="flex items-baseline">
+                    <span className="text-4xl font-bold text-gray-900">
+                      {plan.price}đ
+                    </span>
+                    <span className="text-gray-500 ml-1">{plan.period}</span>
+                  </div>
                 </div>
               </div>
 
