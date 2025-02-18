@@ -32,6 +32,8 @@ const ResumePage = () => {
   const [companies, setCompanies] = useState({});
   const [jobs, setJobs] = useState({});
   const [users, setUsers] = useState({});
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedResume, setSelectedResume] = useState(null);
   const [searchValues, setSearchValues] = useState({
     email: '',
     username: '',
@@ -194,6 +196,11 @@ const ResumePage = () => {
     }
   };
 
+  const handleViewDetail = (record) => {
+    setSelectedResume(record);
+    setDetailModalVisible(true);
+  };
+
   const columns = [
     {
       title: "STT",
@@ -218,14 +225,14 @@ const ResumePage = () => {
       key: "username",
       render: (_, record) => (
         <div className="font-medium text-gray-800">
-          {users[record.userId] ? users[record.userId].split('@')[0] : ''}
+          {users[record.userId] ? users[record.userId].split('@')[0] : 'N/A'}
         </div>
       ),
     },
     {
-      title: "Hồ sơ", 
+      title: "Hồ sơ",
       key: "resume",
-      align: "center", 
+      align: "center",
       render: (_, record) => (
         <Space size="middle">
           <Tooltip title="Xem hồ sơ">
@@ -323,6 +330,14 @@ const ResumePage = () => {
       align: "center",
       render: (_, record) => (
         <Space size="middle">
+          <Tooltip title="Xem chi tiết">
+            <Button
+              type="text"
+              icon={<EyeOutlined />}
+              className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+              onClick={() => handleViewDetail(record)}
+            />
+          </Tooltip>
           <Tooltip title="Chỉnh sửa">
             <Button
               type="text"
@@ -388,18 +403,18 @@ const ResumePage = () => {
 
   return (
     <Layout className="min-h-screen flex flex-row">
-    <div
-      className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
-        } flex-shrink-0`}
-    >
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-    </div>
+      <div
+        className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+          } flex-shrink-0`}
+      >
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      </div>
 
-    <div className="flex-1">
-      {/* Nội dung chính */}
-      <Layout>
-        <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-        <Content className="m-6">
+      <div className="flex-1">
+        {/* Nội dung chính */}
+        <Layout>
+          <Header collapsed={collapsed} setCollapsed={setCollapsed} />
+          <Content className="m-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

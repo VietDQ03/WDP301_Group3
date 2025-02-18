@@ -70,7 +70,7 @@ const Header = () => {
       {
         key: 'profile',
         icon: <User size={16} />,
-        label: 'Profile',
+        label: 'Thông tin cá nhân',
         onClick: () => {
           navigate('/profile');
         }

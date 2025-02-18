@@ -1,10 +1,12 @@
 import React from 'react';
-import { Form, Input, Select, InputNumber, DatePicker, Switch, Modal } from 'antd';
+import { Form, Input, Select, InputNumber, DatePicker, Switch, Modal, Button } from 'antd';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { MapPin, Users, Briefcase, Building2, BanknoteIcon, Power, Code, Calendar, FileText, } from 'lucide-react';
 import dayjs from 'dayjs';
 import './AddEditJobModal.style.css';
+import CustomButton from '../../../components/Other/CustomButton';
+import { formats, modules } from '../../../config/reactQuillConfig'; 
 
 const { Option } = Select;
 
@@ -65,25 +67,6 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
         return current.isBefore(startDate, 'day');
     };
 
-    const formats = [
-        'header',
-        'bold', 'italic', 'underline',
-        'list', 'bullet',
-        'color',
-        'background', 
-    ];
-
-    const modules = {
-        toolbar: [
-            [{ 'header': [1, 2, false] }],
-            ['bold', 'italic', 'underline'],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-            [{ 'color': [] }],
-            [{ 'background': [] }],
-            ['clean']
-        ]
-    };
-
     return (
         <Modal
             title={renderLabel(
@@ -93,15 +76,38 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
             open={isOpen}
             onCancel={onClose}
             onOk={handleSubmit}
-            width={830}
+            width={900}
+            style={{ top: 40 }}
             className="custom-modal"
             okText={mode === 'add' ? 'Thêm mới' : 'Cập nhật'}
             cancelText="Hủy"
-            bodyStyle={{ 
+            closeIcon={null}
+            bodyStyle={{
                 padding: '24px',
-                maxHeight: 'calc(100vh - 270px)', 
+                maxHeight: 'calc(100vh - 230px)',
                 overflow: 'auto',
-            }}            
+            }}
+            footer={[
+                <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', gap: '10px', alignItems: 'center' }}>
+                    <Button
+                        onClick={onClose}
+                        size="large"
+                        className="px-6 py-2 flex items-center justify-center bg-white hover:bg-gray-50 border border-gray-300"
+                        style={{ height: '45px' }}
+                    >
+                        Huỷ
+                    </Button>
+
+                    <CustomButton
+                        key="submit"
+                        htmlType="submit"
+                        onClick={handleSubmit}
+                        style={{ height: '45px' }} 
+                    >
+                        {mode === 'add' ? 'Thêm mới' : 'Cập nhật'}
+                    </CustomButton>
+                </div>
+            ]}
         >
             <Form
                 form={form}
