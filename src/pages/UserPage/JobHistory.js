@@ -29,7 +29,7 @@ const JobHistory = () => {
     return (
         <>
             <Header />
-            <div className="container mx-auto px-6 py-12 flex flex-col items-center" style={{height: '61vh'}}>
+            <div className="container mx-auto px-6 py-12 flex flex-col items-center" style={{minHeight: '61vh'}}>
                 <div className="max-w-4xl w-full bg-white shadow-lg rounded-lg p-6">
                     <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">
                         Lịch Sử Ứng Tuyển
