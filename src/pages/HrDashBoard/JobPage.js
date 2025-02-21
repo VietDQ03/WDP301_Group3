@@ -10,6 +10,7 @@ import { debounce } from 'lodash';
 import AddEditModal from './Modal/AddEditJobModal';
 import ViewJobModal from './Modal/ViewJobModal';
 import DeleteConfirmModal from '../../components/Other/DeleteConfirmModal';
+import { useSelector } from "react-redux";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -33,7 +34,9 @@ const JobPage = () => {
     pageSize: 10,
     total: 0
   });
+  const { user } = useSelector((state) => state.auth);
 
+  console.log(user);
 
   const debouncedSearch = useCallback(
     debounce((params) => {
@@ -42,51 +45,56 @@ const JobPage = () => {
     []
   );
 
-  const fetchJobs = async (params = {}) => {
-    setLoading(true);
-    try {
-      const response = await jobApi.getAll({
-        current: params.current || 1,
-        pageSize: params.pageSize || 10,
-        name: params.name,
-        level: params.level,
-        location: params.location,
-        sort: params.sort, // Thêm tham số sort
-      });
+ const fetchJobs = async (params = {}) => {
+  setLoading(true);
+  try {
+    const response = await jobApi.findByCompany(user?.company._id, {
+      current: params.current || 1,
+      pageSize: params.pageSize || 10,
+      name: params.name,
+      location: params.location,
+      level: params.level,
+      skills: params.skills,
+      sort: params.sort
+    });
 
-      const { result, meta } = response.data;
+    // Kiểm tra cấu trúc response và log ra để debug
+    console.log('API Response:', response);
 
-      const currentPage = meta.current || params.current || 1;
-      const pageSize = meta.pageSize || params.pageSize || 10;
+    // Lấy data từ response theo đúng cấu trúc
+    const { result, meta } = response.data.data;
 
-      const formattedJobs = result.map((job, index) => ({
-        key: job._id,
-        stt: ((currentPage - 1) * pageSize) + index + 1,
-        name: job.name,
-        company: job.company.name,
-        location: job.location,
-        salary: new Intl.NumberFormat('vi-VN').format(job.salary) + ' đ',
-        level: job.level,
-        quantity: job.quantity,
-        status: job.isActive ? "ACTIVE" : "INACTIVE",
-        createdAt: new Date(job.createdAt).toLocaleString(),
-        updatedAt: new Date(job.updatedAt).toLocaleString(),
-      }));
+    const currentPage = meta.current || params.current || 1;
+    const pageSize = meta.pageSize || params.pageSize || 10;
 
-      setJobs(formattedJobs);
-      setPagination({
-        ...pagination,
-        total: meta.total || 0,
-        current: currentPage,
-        pageSize: pageSize,
-      });
-    } catch (error) {
-      console.error("Error fetching jobs:", error);
-      message.error("Có lỗi xảy ra khi tải danh sách công việc!");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const formattedJobs = result.map((job, index) => ({
+      key: job._id,
+      stt: ((currentPage - 1) * pageSize) + index + 1,
+      name: job.name,
+      company: job.company.name,
+      location: job.location,
+      salary: new Intl.NumberFormat('vi-VN').format(job.salary) + ' đ',
+      level: job.level,
+      quantity: job.quantity,
+      status: job.isActive ? "ACTIVE" : "INACTIVE",
+      createdAt: new Date(job.createdAt).toLocaleString(),
+      updatedAt: new Date(job.updatedAt).toLocaleString(),
+    }));
+
+    setJobs(formattedJobs);
+    setPagination({
+      ...pagination,
+      total: meta.total,
+      current: currentPage,
+      pageSize: pageSize,
+    });
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    message.error("Có lỗi xảy ra khi tải danh sách công việc!");
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchJobs();
@@ -131,17 +139,6 @@ const JobPage = () => {
       key: "name",
       render: (text) => (
         <div className="font-medium text-gray-800">{text}</div>
-      ),
-      onHeaderCell: () => ({
-        style: { textAlign: 'left' }
-      })
-    },
-    {
-      title: "Công Ty",
-      dataIndex: "company",
-      key: "company",
-      render: (text) => (
-        <div className="font-medium text-gray-700">{text}</div>
       ),
       onHeaderCell: () => ({
         style: { textAlign: 'left' }

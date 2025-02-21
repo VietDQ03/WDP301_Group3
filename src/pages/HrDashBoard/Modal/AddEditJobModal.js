@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Form, Input, Select, InputNumber, DatePicker, Switch, Modal, Button } from 'antd';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -12,6 +13,7 @@ const { Option } = Select;
 
 const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
     const [form] = Form.useForm();
+    const { user } = useSelector((state) => state.auth);
 
     React.useEffect(() => {
         if (jobData && mode === 'edit') {
@@ -37,10 +39,12 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
         try {
             const values = await form.validateFields();
             const submissionData = {
-                ...values,
-                skills: values.skills.split(',').map(skill => skill.trim().toUpperCase()),
-                startDate: values.startDate?.toDate(),
-                endDate: values.endDate?.toDate(),
+                ...formData,
+                skills: formData.skills.split(',').map(skill => skill.trim().toUpperCase()),
+                company: { 
+                    _id: user?.company?._id,
+                    name: user?.company?.name,
+                }
             };
             onSubmit(submissionData);
         } catch (error) {
