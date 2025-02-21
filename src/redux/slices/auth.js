@@ -67,7 +67,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       localStorage.removeItem("access_token");
-      window.location.href = '/';
+      // window.location.href = '/';
     },
   },
   extraReducers: (builder) => {

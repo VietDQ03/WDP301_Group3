@@ -11,6 +11,7 @@ import AddEditModal from './Modal/AddEditJobModal';
 import ViewJobModal from './Modal/ViewJobModal';
 import DeleteConfirmModal from '../../components/Other/DeleteConfirmModal';
 import { useSelector } from "react-redux";
+import { companyApi } from "../../api/AdminPageAPI/companyApi";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -27,6 +28,7 @@ const JobPage = () => {
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [selectedJob, setSelectedJob] = useState(null);
+  const [companyData, setCompanyData] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [pagination, setPagination] = useState({
@@ -36,8 +38,6 @@ const JobPage = () => {
   });
   const { user } = useSelector((state) => state.auth);
 
-  console.log(user);
-
   const debouncedSearch = useCallback(
     debounce((params) => {
       fetchJobs(params);
@@ -45,60 +45,75 @@ const JobPage = () => {
     []
   );
 
- const fetchJobs = async (params = {}) => {
-  setLoading(true);
-  try {
-    const response = await jobApi.findByCompany(user?.company._id, {
-      current: params.current || 1,
-      pageSize: params.pageSize || 10,
-      name: params.name,
-      location: params.location,
-      level: params.level,
-      skills: params.skills,
-      sort: params.sort
-    });
+  const fetchJobs = async (params = {}) => {
+    setLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await jobApi.findByCompany(user?.company?._id, {
+        current: params.current || pagination.current,
+        pageSize: params.pageSize || pagination.pageSize,
+        name: params.name,
+        location: params.location,
+        level: params.level,
+        skills: params.skills,
+        isActive: params.isActive,
+        sort: params.sort,
+        search: params.search,
+        company: params.company,
+        salary: params.salary
+      });
 
-    // Kiểm tra cấu trúc response và log ra để debug
-    console.log('API Response:', response);
+      const { result, meta } = response.data.data;
 
-    // Lấy data từ response theo đúng cấu trúc
-    const { result, meta } = response.data.data;
+      const formattedJobs = result.map((job, index) => ({
+        key: job._id,
+        stt: ((meta.current - 1) * meta.pageSize) + index + 1,
+        name: job.name,
+        company: job.company.name,
+        location: job.location,
+        salary: new Intl.NumberFormat('vi-VN').format(job.salary) + ' đ',
+        level: job.level,
+        quantity: job.quantity,
+        status: job.isActive ? "ACTIVE" : "INACTIVE",
+        createdAt: new Date(job.createdAt).toLocaleString(),
+        updatedAt: new Date(job.updatedAt).toLocaleString(),
+      }));
 
-    const currentPage = meta.current || params.current || 1;
-    const pageSize = meta.pageSize || params.pageSize || 10;
-
-    const formattedJobs = result.map((job, index) => ({
-      key: job._id,
-      stt: ((currentPage - 1) * pageSize) + index + 1,
-      name: job.name,
-      company: job.company.name,
-      location: job.location,
-      salary: new Intl.NumberFormat('vi-VN').format(job.salary) + ' đ',
-      level: job.level,
-      quantity: job.quantity,
-      status: job.isActive ? "ACTIVE" : "INACTIVE",
-      createdAt: new Date(job.createdAt).toLocaleString(),
-      updatedAt: new Date(job.updatedAt).toLocaleString(),
-    }));
-
-    setJobs(formattedJobs);
-    setPagination({
-      ...pagination,
-      total: meta.total,
-      current: currentPage,
-      pageSize: pageSize,
-    });
-  } catch (error) {
-    console.error("Error fetching jobs:", error);
-    message.error("Có lỗi xảy ra khi tải danh sách công việc!");
-  } finally {
-    setLoading(false);
-  }
-};
+      setJobs(formattedJobs);
+      setPagination({
+        ...pagination,
+        total: meta.total,
+        current: meta.current,
+        pageSize: meta.pageSize,
+      });
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      message.error("Có lỗi xảy ra khi tải danh sách công việc!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchJobs();
-  }, []);
+    const init = async () => {
+      setLoading(true);
+      try {
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        if (user?.company?._id) {
+          const response = await companyApi.findOne(user.company._id);
+          setCompanyData(response);
+        }
+
+        await fetchJobs();
+      } catch (error) {
+        console.error("Error initializing data:", error);
+        message.error("Có lỗi xảy ra khi tải dữ liệu");
+      }
+    };
+
+    init();
+  }, [user?.company?._id]);
 
   const handleDelete = (id) => {
     setDeleteTargetId(id);
@@ -137,6 +152,7 @@ const JobPage = () => {
       title: "Tên Công Việc",
       dataIndex: "name",
       key: "name",
+      width: 470,
       render: (text) => (
         <div className="font-medium text-gray-800">{text}</div>
       ),
@@ -186,15 +202,29 @@ const JobPage = () => {
       align: "center"
     },
     {
-      title: "Cấp Bậc",
+      title: "Thời gian làm việc",
       dataIndex: "level",
       key: "level",
       align: "center",
-      render: (level) => (
-        <Tag color="blue" className="px-3 py-1">
-          {level}
-        </Tag>
-      )
+      render: (level) => {
+        const levelMap = {
+          'FULLTIME': 'Toàn thời gian',
+          'PARTTIME': 'Bán thời gian',
+          'OTHER': 'Khác'
+        };
+
+        const colorMap = {
+          'FULLTIME': 'blue',
+          'PARTTIME': 'green',
+          'OTHER': 'orange'
+        };
+
+        return (
+          <Tag color={colorMap[level]} className="px-3 py-1">
+            {levelMap[level] || level}
+          </Tag>
+        );
+      }
     },
     {
       title: "Số Lượng",
@@ -256,13 +286,15 @@ const JobPage = () => {
   ];
 
   const handleTableChange = (newPagination, filters, sorter) => {
+    // Log để debug
+    console.log("Table change:", { newPagination, filters, sorter });
+
     const params = {
       ...searchParams,
       current: newPagination.current,
       pageSize: newPagination.pageSize,
     };
 
-    // Xử lý sort
     if (sorter.field && sorter.order) {
       params.sort = `${sorter.field}:${sorter.order === 'ascend' ? 'asc' : 'desc'}`;
     }
@@ -325,15 +357,14 @@ const JobPage = () => {
 
   const handleEdit = async (record) => {
     try {
-      console.log(record)
       const response = await jobApi.getOne(record.key);
       const jobDetail = response;
 
       const formattedJobDetail = {
         _id: jobDetail._id,
         name: jobDetail.name,
-        skills: jobDetail.skills, // Thêm skills vào đây
-        company: jobDetail.company,
+        skills: jobDetail.skills,
+        company: jobDetail.company, // Giữ nguyên toàn bộ company object
         location: jobDetail.location,
         salary: jobDetail.salary,
         quantity: jobDetail.quantity,
@@ -342,7 +373,7 @@ const JobPage = () => {
         startDate: jobDetail.startDate,
         endDate: jobDetail.endDate,
         isActive: jobDetail.isActive,
-        key: record.key // Thêm key để có thể update
+        key: record.key
       };
 
       setModalMode('edit');
@@ -362,17 +393,27 @@ const JobPage = () => {
 
   const handleSubmit = async (formData) => {
     try {
+      const submissionData = {
+        ...formData,
+        company: {
+          _id: companyData._id,
+          name: companyData.name,
+          logo: companyData.logo,
+        }
+      };
+
       if (modalMode === 'add') {
-        await jobApi.create(formData);
+        await jobApi.create(submissionData);
         message.success('Thêm công việc thành công');
       } else if (modalMode === 'edit') {
-        await jobApi.update(selectedJob.key, formData);
+        await jobApi.update(selectedJob._id, submissionData);
         message.success('Cập nhật công việc thành công');
       }
       setIsAddEditModalOpen(false);
       fetchJobs(pagination);
     } catch (error) {
-      message.error('Có lỗi xảy ra');
+      console.error('Error submitting job:', error);
+      message.error('Có lỗi xảy ra: ' + (error.response?.data?.message || 'Vui lòng thử lại'));
     }
   };
 
@@ -438,20 +479,28 @@ const JobPage = () => {
                   form={form}
                   layout="vertical"
                   className="space-y-4"
-                  onValuesChange={(_, allValues) => {
-                    setSearchParams(allValues);
-                    debouncedSearch({
+                  onValuesChange={(changedValues, allValues) => {
+
+                    const searchParams = {
                       ...allValues,
-                      current: 1
-                    });
+                      current: 1,
+                      // Chỉ gửi các giá trị có ý nghĩa
+                      name: allValues.name?.trim() || undefined,
+                      location: allValues.location || undefined,
+                      level: allValues.level || undefined,
+                      isActive: allValues.status
+                    };
+
+                    delete searchParams.status;
+
+                    setSearchParams(searchParams);
+                    debouncedSearch(searchParams);
                   }}
                 >
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <Form.Item
                       name="name"
-                      label={
-                        <span className="text-gray-700 font-medium">Tên Công Việc</span>
-                      }
+                      label={<span className="text-gray-700 font-medium">Tên Công Việc</span>}
                     >
                       <Input
                         prefix={<SearchOutlined className="text-gray-400" />}
@@ -462,28 +511,22 @@ const JobPage = () => {
 
                     <Form.Item
                       name="level"
-                      label={
-                        <span className="text-gray-700 font-medium">Cấp Bậc</span>
-                      }
+                      label={<span className="text-gray-700 font-medium">Thời gian làm việc</span>}
                     >
                       <Select
-                        placeholder="Chọn cấp bậc"
+                        placeholder="Chọn thời gian làm việc"
                         className="h-11 rounded-lg"
                         allowClear
                       >
-                        <Option value="Fresher">Fresher</Option>
-                        <Option value="Junior">Junior</Option>
-                        <Option value="Middle">Middle</Option>
-                        <Option value="Senior">Senior</Option>
-                        <Option value="Leader">Leader</Option>
+                        <Option value="FULLTIME">Toàn thời gian</Option>
+                        <Option value="PARTTIME">Bán thời gian</Option>
+                        <Option value="OTHER">Khác</Option>
                       </Select>
                     </Form.Item>
 
                     <Form.Item
                       name="location"
-                      label={
-                        <span className="text-gray-700 font-medium">Địa Điểm</span>
-                      }
+                      label={<span className="text-gray-700 font-medium">Địa Điểm</span>}
                     >
                       <Select
                         placeholder="Chọn địa điểm"
@@ -497,27 +540,19 @@ const JobPage = () => {
                       </Select>
                     </Form.Item>
 
-                    <div className="flex items-center h-full">
-                      <Form.Item className="mb-0 w-full">
-                        <Space size="middle" className="flex  w-full">
-                          {/* <CustomButton
-                          htmlType="submit"
-                          icon={<SearchOutlined />}
-                        >
-                          Tìm kiếm
-                        </CustomButton> */}
-                          <Button
-                            onClick={onReset}
-                            size="large"
-                            className="px-6 py-2 mt-1 flex items-center justify-center bg-white hover:bg-gray-50 border border-gray-300"
-                            style={{ height: '45px' }}
-                            icon={<ReloadOutlined />}
-                          >
-                            Đặt lại
-                          </Button>
-                        </Space>
-                      </Form.Item>
-                    </div>
+                    <Form.Item
+                      name="status"
+                      label={<span className="text-gray-700 font-medium">Trạng Thái</span>}
+                    >
+                      <Select
+                        placeholder="Chọn trạng thái"
+                        className="h-11 rounded-lg"
+                        allowClear
+                      >
+                        <Option value={true}>Đang tuyển</Option>
+                        <Option value={false}>Ngưng tuyển</Option>
+                      </Select>
+                    </Form.Item>
                   </div>
                 </Form>
               </motion.div>
