@@ -7,7 +7,7 @@ import { MapPin, Users, Briefcase, Building2, BanknoteIcon, Power, Code, Calenda
 import dayjs from 'dayjs';
 import './AddEditJobModal.style.css';
 import CustomButton from '../../../components/Other/CustomButton';
-import { formats, modules } from '../../../config/reactQuillConfig'; 
+import { formats, modules } from '../../../config/reactQuillConfig';
 
 const { Option } = Select;
 
@@ -38,15 +38,23 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
     const handleSubmit = async () => {
         try {
             const values = await form.validateFields();
+    
+            // Format lại dữ liệu trước khi gửi
             const submissionData = {
-                ...formData,
-                skills: formData.skills.split(',').map(skill => skill.trim().toUpperCase()),
-                company: { 
-                    _id: user?.company?._id,
-                    name: user?.company?.name,
-                }
+                name: values.name,
+                skills: values.skills.split(',').map(skill => skill.trim().toUpperCase()),
+                salary: values.salary,
+                quantity: values.quantity,
+                level: values.level,
+                description: values.description,
+                startDate: values.startDate?.toISOString(),
+                endDate: values.endDate?.toISOString(),
+                isActive: values.isActive,
+                location: values.location
             };
-            onSubmit(submissionData);
+    
+            await onSubmit(submissionData);
+            form.resetFields();
         } catch (error) {
             console.error('Validation failed:', error);
         }
@@ -106,7 +114,7 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                         key="submit"
                         htmlType="submit"
                         onClick={handleSubmit}
-                        style={{ height: '45px' }} 
+                        style={{ height: '45px' }}
                     >
                         {mode === 'add' ? 'Thêm mới' : 'Cập nhật'}
                     </CustomButton>
