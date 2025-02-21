@@ -237,7 +237,7 @@ const ResumePage = () => {
         <Space size="middle">
           <Tooltip title="Xem hồ sơ">
             <a
-              href={`${process.env.REACT_APP_API_URL}/images/resume/${record?.url}`}
+              href={`${process.env.REACT_APP_BASE_URL}/images/resume/${record?.url}`}
               target="_blank"
               className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
             >

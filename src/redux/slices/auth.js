@@ -112,10 +112,14 @@ const authSlice = createSlice({
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user;
-        state.role = action.payload.user?.role;
-        state.isAuthenticated = true;
-        state.error = null;
+        // Kiểm tra và lấy data từ response
+        const userData = action.payload.data?.user || action.payload.data;
+        if (userData) {
+          state.user = userData;
+          state.role = userData.role;
+          state.isAuthenticated = true;
+          state.error = null;
+        }
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isLoading = false;
