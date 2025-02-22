@@ -18,6 +18,7 @@ import {
 import { motion } from 'framer-motion';
 import CustomButton from '../../components/Other/CustomButton';
 import { debounce } from "lodash";
+import { useSelector } from "react-redux";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -39,31 +40,55 @@ const ResumePage = () => {
     username: '',
     status: ''
   });
+
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   });
 
+  const { user } = useSelector((state) => state.auth);
+
   const fetchResumes = async (params = {}) => {
     setLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
 
+      // Xây dựng query params
       const queryParams = {
         current: params.current || pagination.current,
         pageSize: params.pageSize || pagination.pageSize,
-        ...searchValues,
-        ...params
+        ...(params.status && { status: params.status }),
+        ...(params.email && { email: params.email }),
+        ...(params.username && { username: params.username })
       };
 
-      // Lấy danh sách hồ sơ
-      const resumeResponse = await resumeApi.getAll(queryParams);
+      // Chỉ thêm các params search khi có giá trị
+      if (params.email?.trim()) {
+        queryParams.email = params.email.trim();
+      }
 
-      if (resumeResponse?.data) {
-        const formattedResumes = resumeResponse.data.result.map((resume, index) => ({
+      if (params.username?.trim()) {
+        queryParams.username = params.username.trim();
+      }
+
+      if (params.status && params.status !== '') {
+        queryParams.status = params.status;
+      }
+
+      console.log('Fetching with params:', queryParams);
+
+      const response = await resumeApi.findByCompany(
+        user.company._id,
+        queryParams
+      );
+
+      const resumeData = response?.data?.data;
+
+      if (resumeData?.result) {
+        const formattedResumes = resumeData.result.map((resume, index) => ({
           key: resume._id,
-          stt: index + 1 + ((resumeResponse.data.meta.current - 1) * resumeResponse.data.meta.pageSize),
+          stt: index + 1 + ((resumeData.meta.current - 1) * resumeData.meta.pageSize),
           id: resume._id,
           email: resume.email,
           url: resume.url,
@@ -76,50 +101,16 @@ const ResumePage = () => {
           updatedAt: new Date(resume.updatedAt).toLocaleString(),
         }));
 
-        // Tạo mảng các promise để fetch thông tin
-        const uniqueUserIds = [...new Set(formattedResumes.map(resume => resume.userId))];
-        const uniqueCompanyIds = [...new Set(formattedResumes.map(resume => resume.companyId))];
-        const uniqueJobIds = [...new Set(formattedResumes.map(resume => resume.jobId))];
-
-        // Fetch tất cả dữ liệu cùng một lúc
-        const [userResponses, companyResponses, jobResponses] = await Promise.all([
-          Promise.all(uniqueUserIds.map(id => id ? userApi.getOne(id).catch(() => ({ data: null })) : null)),
-          Promise.all(uniqueCompanyIds.map(id => id ? companyApi.findOne(id).catch(() => ({ data: null })) : null)),
-          Promise.all(uniqueJobIds.map(id => id ? jobApi.getOne(id).catch(() => ({ data: null })) : null))
-        ]);
-
-        // Cập nhật state một lần duy nhất
-        const newUsers = {};
-        const newCompanies = {};
-        const newJobs = {};
-
-        userResponses.forEach((response, index) => {
-          if (response?.data) {
-            newUsers[uniqueUserIds[index]] = response.data.email;
-          }
-        });
-
-        companyResponses.forEach((response, index) => {
-          if (response) {
-            newCompanies[uniqueCompanyIds[index]] = response.name;
-          }
-        });
-
-        jobResponses.forEach((response, index) => {
-          if (response) {
-            newJobs[uniqueJobIds[index]] = response.name;
-          }
-        });
-
-        setUsers(newUsers);
-        setCompanies(newCompanies);
-        setJobs(newJobs);
         setResumes(formattedResumes);
         setPagination({
-          current: resumeResponse.data.meta.current,
-          pageSize: resumeResponse.data.meta.pageSize,
-          total: resumeResponse.data.meta.total,
+          current: resumeData.meta.current,
+          pageSize: resumeData.meta.pageSize,
+          total: resumeData.meta.total,
         });
+
+        // Fetch related data
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await fetchRelatedData(formattedResumes);
       }
     } catch (error) {
       console.error("Error fetching resumes:", error);
@@ -129,15 +120,49 @@ const ResumePage = () => {
     }
   };
 
+  const fetchRelatedData = async (formattedResumes) => {
+    const uniqueUserIds = [...new Set(formattedResumes.map(resume => resume.userId))];
+    const uniqueJobIds = [...new Set(formattedResumes.map(resume => resume.jobId))];
+
+    try {
+      const [userResponses, jobResponses] = await Promise.all([
+        Promise.all(uniqueUserIds.map(id => userApi.getOne(id))),
+        Promise.all(uniqueJobIds.map(id => jobApi.getOne(id)))
+      ]);
+
+      const newUsers = {};
+      userResponses.forEach((response, index) => {
+        if (response?.data) {
+          newUsers[uniqueUserIds[index]] = response.data.email;
+        }
+      });
+
+      const newJobs = {};
+      jobResponses.forEach((response, index) => {
+        if (response?.data?.data) {
+          newJobs[uniqueJobIds[index]] = response.data.data.name;
+        }
+      });
+
+      setUsers(newUsers);
+      setJobs(newJobs);
+    } catch (error) {
+      console.error("Error fetching related data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchResumes();
+  }, []);
+
   const debouncedSearch = useCallback(
-    debounce((values) => {
+    debounce((searchParams) => {
       fetchResumes({
-        ...values,
-        current: 1,
-        pageSize: pagination.pageSize
+        ...searchParams,
+        current: 1 // Reset về trang 1 khi search
       });
     }, 500),
-    [pagination.pageSize]
+    []
   );
 
   const handleInputChange = (field, value) => {
@@ -146,16 +171,21 @@ const ResumePage = () => {
       [field]: value
     };
     setSearchValues(newSearchValues);
-    debouncedSearch(newSearchValues);
+
+    // Gọi debounced search với giá trị mới
+    debouncedSearch({
+      ...newSearchValues,
+      pageSize: pagination.pageSize
+    });
   };
 
-  useEffect(() => {
-    fetchResumes();
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, []);
-
+  const handlePaginationChange = (page, pageSize) => {
+    fetchResumes({
+      ...searchValues,  // Thêm điều kiện search hiện tại
+      current: page,
+      pageSize: pageSize
+    });
+  };
   const handleDelete = (id) => {
     confirm({
       title: 'Xác nhận xóa',
@@ -312,13 +342,13 @@ const ResumePage = () => {
           onChange={(newStatus) => handleUpdateStatus(record.id, newStatus)}
         >
           <Option value="PENDING">
-            <span className="text-orange-500">Đang chờ</span>
+            <span className="text-yellow-500">Đang chờ</span>
           </Option>
           <Option value="APPROVED">
             <span className="text-green-500">Đã duyệt</span>
           </Option>
           <Option value="REJECTED">
-            <span className="text-red-500">Từ chối</span>
+            <span className="text-rose-500">Từ chối</span>
           </Option>
         </Select>
       ),
@@ -338,14 +368,14 @@ const ResumePage = () => {
               onClick={() => handleViewDetail(record)}
             />
           </Tooltip>
-          <Tooltip title="Chỉnh sửa">
+          {/* <Tooltip title="Chỉnh sửa">
             <Button
               type="text"
               icon={<EditOutlined />}
               className="text-green-500 hover:text-green-600 hover:bg-green-50"
               onClick={() => console.log('Edit resume:', record)}
             />
-          </Tooltip>
+          </Tooltip> */}
           {/* <Tooltip title="Xóa">
             <Button
               type="text"
@@ -378,26 +408,28 @@ const ResumePage = () => {
     });
   };
 
-  const onReset = () => {
-    form.resetFields();
-    const newSearchValues = {
+  const handleReset = () => {
+    setSearchValues({
       email: '',
       username: '',
       status: ''
-    };
-    setSearchValues(newSearchValues);
+    });
+
+    // Reset form
+    form.resetFields();
+
+    // Fetch lại data với params mặc định
     fetchResumes({
       current: 1,
-      pageSize: pagination.pageSize,
-      ...newSearchValues
+      pageSize: pagination.pageSize
     });
   };
 
   const handleRefresh = () => {
     fetchResumes({
+      ...searchValues,
       current: pagination.current,
-      pageSize: pagination.pageSize,
-      ...searchValues
+      pageSize: pagination.pageSize
     });
   };
 
@@ -456,6 +488,7 @@ const ResumePage = () => {
                       className="h-11 rounded-lg"
                       value={searchValues.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
+                      allowClear
                     />
                   </div>
 
@@ -467,6 +500,7 @@ const ResumePage = () => {
                       className="h-11 rounded-lg"
                       value={searchValues.username}
                       onChange={(e) => handleInputChange('username', e.target.value)}
+                      allowClear
                     />
                   </div>
 
@@ -477,23 +511,23 @@ const ResumePage = () => {
                       className="h-11 w-full"
                       value={searchValues.status}
                       onChange={(value) => handleInputChange('status', value)}
+                      allowClear
                     >
-                      <Option value="">Tất cả</Option>
                       <Option value="PENDING">
-                        <span className="text-orange-500">Đang chờ</span>
+                        <span className="text-yellow-500">Đang chờ</span>
                       </Option>
                       <Option value="APPROVED">
                         <span className="text-green-500">Đã duyệt</span>
                       </Option>
                       <Option value="REJECTED">
-                        <span className="text-red-500">Từ chối</span>
+                        <span className="text-rose-500">Từ chối</span>
                       </Option>
                     </Select>
                   </div>
 
-                  <div className="flex items-end">
+                  <div className="flex items-end gap-2">
                     <Button
-                      onClick={onReset}
+                      onClick={handleReset}
                       size="large"
                       className="h-11 px-6 flex items-center"
                       icon={<ReloadOutlined />}
@@ -557,6 +591,11 @@ const ResumePage = () => {
                     className="shadow-sm rounded-lg overflow-hidden"
                     loading={loading}
                     rowClassName="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onRow={(record) => ({
+                      onClick: () => {
+                        console.log("Clicked row:", record);
+                      },
+                    })}
                   />
                 </div>
                 <div
@@ -571,10 +610,7 @@ const ResumePage = () => {
                     {...pagination}
                     showSizeChanger
                     onChange={(page, pageSize) => {
-                      fetchResumes({
-                        current: page,
-                        pageSize: pageSize
-                      });
+                      handlePaginationChange(page, pageSize);
                     }}
                   />
                 </div>
