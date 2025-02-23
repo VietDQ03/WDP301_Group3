@@ -7,6 +7,7 @@ import CompanyDetail from '../components/UserPage/CompanyDetail.js'
 import JobHistory from '../pages/UserPage/JobHistory.js';
 import Profile from '../pages/UserPage/Profile.js';
 import NotFound from '../pages/Other/NotFound.js'
+import Introduce from '../pages/UserPage/Introduce.js';
 
 const USER_ROUTES = [
   {
@@ -36,6 +37,10 @@ const USER_ROUTES = [
   {
     path: "/register",
     element: < RegisterPage/>,
+  },
+  {
+    path: '/introduce',
+    element: < Introduce/>,
   },
   {
     path: '/404',

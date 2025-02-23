@@ -5,6 +5,7 @@ import { Dropdown } from 'antd';
 import { LogOut, User, Home, FileText, PlusCircle, Mail, LayoutDashboard } from 'lucide-react';
 import { logout } from "../../redux/slices/auth";
 import LoginModal from "./LoginModal";
+import { useLocation } from "react-router-dom";
 
 const NavItem = ({ Icon, text, path, onClick }) => {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const location = useLocation();
 
   const navItems = [
     {
@@ -59,11 +61,6 @@ const Header = () => {
       onClick: () => {
         if (!isAuthenticated) {
           setModalMessage("");
-          setIsModalOpen(true);
-        } else if (user?.role?.name === "HR_ROLE") {
-          navigate('/dashboard/job');
-        } else if (user?.role?.name === "NORMAL_USER") {
-          setModalMessage("Bạn không có quyền đăng tuyển công việc. Vui lòng sử dụng tài khoản HR để có thể đăng tuyển.");
           setIsModalOpen(true);
         } else {
           setModalMessage("");
