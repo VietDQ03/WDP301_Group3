@@ -6,7 +6,7 @@ const Footer = () => {
     <footer>
       <div className="footer-content">
         <div className="footer-section">
-          <h3>RABOTA</h3>
+          <h3>RabotaWork</h3>
           <p>Nền tảng tìm việc part-time hàng đầu cho sinh viên và người đi làm</p>
         </div>
         <div className="footer-section">

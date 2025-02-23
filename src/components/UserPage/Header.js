@@ -57,18 +57,9 @@ const Header = () => {
     {
       icon: PlusCircle,
       text: "Đăng Tuyển",
-      path: "/introduce",
       onClick: () => {
-        if (!isAuthenticated) {
-          setModalMessage("");
-          setIsModalOpen(true);
-        } else {
-          if (location.pathname !== "/introduce") {
-            setModalMessage("");
-            setIsModalOpen(true);
-            navigate("/introduce");
-          }
-        }
+        navigate('/introduce');
+        window.location.reload();
       }
     }
   ];
@@ -133,7 +124,7 @@ const Header = () => {
             }}
           >
             <img src="/logo.png" alt="Rabota Logo" className="h-10 w-auto" />
-            <h1 className="text-2xl font-bold">RABOTA</h1>
+            <h1 className="text-2xl font-bold">RABOTAWORK</h1>
           </div>
 
           <nav>
