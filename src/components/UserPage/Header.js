@@ -63,8 +63,11 @@ const Header = () => {
           setModalMessage("");
           setIsModalOpen(true);
         } else {
-          setModalMessage("");
-          setIsModalOpen(true);
+          if (location.pathname !== "/introduce") {
+            setModalMessage("");
+            setIsModalOpen(true);
+            navigate("/introduce");
+          }
         }
       }
     }

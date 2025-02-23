@@ -1,6 +1,6 @@
 import React from 'react';
-import { Layout, Avatar, Dropdown } from 'antd';
-import { UserOutlined, HomeOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
+import { Layout, Avatar, Dropdown, Button } from 'antd';
+import { UserOutlined, HomeOutlined, MenuFoldOutlined, MenuUnfoldOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { LogOut } from 'lucide-react';
@@ -15,6 +15,10 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
 
   const handleLogout = () => {
     dispatch(logout());
+  };
+
+  const handleCreateCompany = () => {
+    navigate('/create-company'); // Điều hướng đến trang tạo công ty
   };
 
   const menuItems = {
@@ -48,9 +52,20 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
     </button>
   );
 
+  const CreateCompanyButton = () => (
+    <Button 
+      type="primary" 
+      icon={<PlusOutlined />} 
+      className="bg-white text-blue-600 font-medium hover:bg-gray-100 transition-all"
+      onClick={handleCreateCompany}
+    >
+      Tạo công ty
+    </Button>
+  );
+
   const UserDropdown = () => (
     <Dropdown
-      menu={menuItems}  // Truyền trực tiếp menuItems object
+      menu={menuItems}  
       placement="bottomRight"
       arrow
       trigger={['hover']}
@@ -76,7 +91,10 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
       }}
     >
-      <CollapseButton />
+      <div className="flex items-center gap-4">
+        <CollapseButton />
+        <CreateCompanyButton />
+      </div>
       <UserDropdown />
     </Header>
   );
