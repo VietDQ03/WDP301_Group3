@@ -25,12 +25,12 @@ const CompanyCard = ({ showPagination = true }) => {
                 current: params.current || pagination.current,
                 pageSize: params.pageSize || pagination.pageSize,
             };
-    
+
             if (params.name?.trim()) searchParams.name = params.name.trim();
             if (params.address?.trim()) searchParams.address = params.address.trim();
-    
+
             const response = await companyApi.getAll(searchParams);
-    
+
             if (response?.data) {
                 const { result, meta } = response.data;
                 const dataWithKeys = result.map((item, index) => ({
@@ -38,7 +38,7 @@ const CompanyCard = ({ showPagination = true }) => {
                     key: item._id,
                     stt: index + 1 + ((meta.current - 1) * meta.pageSize)
                 }));
-                
+
                 setCompanies(dataWithKeys);
                 setPagination({
                     current: meta.current,
@@ -67,14 +67,14 @@ const CompanyCard = ({ showPagination = true }) => {
     const handleOnchangePage = (currentPage, newPageSize) => {
         setCurrent(currentPage);
         setPageSize(newPageSize);
-        
+
         fetchCompanies({ current: currentPage, pageSize: newPageSize });
     };
 
     const handleViewDetailCompany = (item) => {
         navigate(`/companies/${item._id}`);
     };
-    
+
     useEffect(() => {
         fetchCompanies({ current, pageSize });
     }, [current, pageSize]);
@@ -96,8 +96,14 @@ const CompanyCard = ({ showPagination = true }) => {
                                 <div className="flex flex-col items-center p-2">
                                     <img
                                         alt="company logo"
-                                        src={`${process.env.REACT_APP_BASE_URL}/images/company/${item?.logo}`}
+                                        src={item?.logo
+                                            ? `${process.env.REACT_APP_BASE_URL}/images/company/${item.logo}`
+                                            : '/logo.png'
+                                        }
                                         className="w-20 h-20 object-cover rounded-md"
+                                        onError={(e) => {
+                                            e.target.src = '/logo.png';
+                                        }}
                                     />
                                     <div className="text-lg font-semibold mt-2">{item.name}</div>
                                 </div>

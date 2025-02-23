@@ -2,8 +2,8 @@ import HomePage from '../pages/UserPage/UserHome.js';
 import { Navigate } from 'react-router';
 import LoginPage from '../pages/Auth/login.js';
 import RegisterPage from '../pages/Auth/register.js';
-import JobDetail from '../pages/UserPage/JobDetail.js'
-import CompanyDetail from '../pages/UserPage/CompanyDetail.js'
+import JobDetail from '../components/UserPage/JobDetail.js'
+import CompanyDetail from '../components/UserPage/CompanyDetail.js'
 import JobHistory from '../pages/UserPage/JobHistory.js';
 import Profile from '../pages/UserPage/Profile.js';
 import NotFound from '../pages/Other/NotFound.js'

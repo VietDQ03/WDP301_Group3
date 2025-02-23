@@ -1,7 +1,7 @@
 import { Result } from "antd";
 import { Link } from "react-router-dom";
-import Header from "../../components/UserP/Header";
-import Footer from "../../components/UserP/Footer";
+import Header from "../../components/UserPage/Header";
+import Footer from "../../components/UserPage/Footer";
 import CustomButton from "../../components/Other/CustomButton";
 
 const NotFound = () => {

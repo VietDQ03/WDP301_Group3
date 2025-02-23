@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import "./UserHome.css";
-import JobCard from "../../components/UserP/JobCard";
-import CompanyCard from "../../components/UserP/CompanyCard";
-import Header from "../../components/UserP/Header";
-import Footer from "../../components/UserP/Footer";
+import JobCard from "../../components/UserPage/JobCard";
+import CompanyCard from "../../components/UserPage/CompanyCard";
+import Header from "../../components/UserPage/Header";
+import Footer from "../../components/UserPage/Footer";
 import { Input,  Form } from "antd";
 import CustomButton from "../../components/Other/CustomButton";
 

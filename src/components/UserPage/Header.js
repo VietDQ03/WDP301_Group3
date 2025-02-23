@@ -45,7 +45,14 @@ const Header = () => {
   const location = useLocation();
 
   const navItems = [
-    { icon: Home, text: "Trang Chủ", path: "/" },
+    {
+      icon: Home,
+      text: "Trang Chủ",
+      onClick: () => {
+        navigate('/');
+        window.location.reload();
+      }
+    },
     { icon: FileText, text: "Tạo CV", path: "#" },
     {
       icon: PlusCircle,
@@ -56,11 +63,8 @@ const Header = () => {
           setModalMessage("");
           setIsModalOpen(true);
         } else {
-          if (location.pathname !== "/introduce") {
-            setModalMessage("");
-            setIsModalOpen(true);
-            navigate("/introduce");
-          }
+          setModalMessage("");
+          setIsModalOpen(true);
         }
       }
     }

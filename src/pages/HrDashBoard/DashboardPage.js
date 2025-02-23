@@ -10,67 +10,136 @@ import {
 } from 'lucide-react';
 import Sidebar from '../../components/HrDashBoard/Sidebar';
 import Header from '../../components/HrDashBoard/Header';
-import { companyApi } from "../../api/AdminPageAPI/companyApi";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
 import { resumeApi } from "../../api/AdminPageAPI/resumeAPI";
+import { useSelector } from 'react-redux';
 
 const { Content } = Layout;
 
 const DashboardPage = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [dataCompanies, setDataCompanies] = useState([]);
   const [dataJobs, setDataJobs] = useState([]);
   const [dataResumes, setDataResumes] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const { user } = useSelector((state) => state.auth);
+
+
   const fetchData = async () => {
+    if (!user?.company?._id) return;
+
     setLoading(true);
     try {
-      const [companiesResponse, jobsResponse, resumeResponse] = await Promise.all([
-        companyApi.getAll({}),
-        jobApi.getAll({}),
-        resumeApi.getAll({})
+      const defaultParams = {
+        current: 1,
+        pageSize: 1000
+      };
+
+      const [jobsResponse, resumeResponse] = await Promise.all([
+        jobApi.findByCompany(user.company._id, defaultParams),
+        resumeApi.findByCompany(user.company._id, defaultParams)
       ]);
 
-      setDataCompanies(companiesResponse?.data || []);
       setDataJobs(jobsResponse?.data || []);
       setDataResumes(resumeResponse?.data || []);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching data:', error);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user?.company?._id) {
+      fetchData();
+    }
+  }, [user]);
+
+  console.log(dataResumes?.data?.result)
+
+  const getRecentApplications = () => {
+    if (!dataResumes?.data?.result) return 0;
+
+    const now = new Date();
+    const last24Hours = new Date(now - 24 * 60 * 60 * 1000); // 24h trước
+
+    const recentApplications = dataResumes.data.result.filter(resume => {
+      const createdDate = new Date(resume.createdAt);
+      return createdDate >= last24Hours;
+    });
+
+    return recentApplications.length;
+  };
+
+  const getRecentJobs = () => {
+    if (!dataJobs?.data?.result) return 0;
+    
+    const now = new Date();
+    const last24Hours = new Date(now - 24 * 60 * 60 * 1000);
+
+    const recentJobs = dataJobs.data.result.filter(job => {
+      const createdDate = new Date(job.createdAt);
+      return createdDate >= last24Hours;
+    });
+
+    return recentJobs.length;
+  };
+
+  // Tính phần trăm thay đổi
+  const calculateChange = (data, field = 'createdAt') => {
+    if (!data) return { change: '0%', isIncrease: true };
+    
+    const now = new Date();
+    const last24Hours = new Date(now - 24 * 60 * 60 * 1000);
+    const previous24Hours = new Date(now - 48 * 60 * 60 * 1000);
+
+    const recentItems = data.filter(item => {
+      const date = new Date(item[field]);
+      return date >= last24Hours;
+    }).length;
+
+    const previousItems = data.filter(item => {
+      const date = new Date(item[field]);
+      return date >= previous24Hours && date < last24Hours;
+    }).length;
+
+    if (previousItems === 0 && recentItems === 0) {
+      return { change: '0%', isIncrease: true };
+    }
+    
+    if (previousItems === 0 && recentItems > 0) {
+      return { change: 'mới', isIncrease: true };
+    }
+
+    const changePercent = ((recentItems - previousItems) / previousItems) * 100;
+    return {
+      change: `${Math.abs(changePercent.toFixed(0))}%`,
+      isIncrease: changePercent >= 0
+    };
+  };
+
+  const getApplicationChange = () => {
+    return calculateChange(dataResumes?.data?.result);
+  };
+
+  const getJobsChange = () => {
+    return calculateChange(dataJobs?.data?.result);
+  };
 
   const recentActivity = [
     {
       icon: <FileText className="w-5 h-5" />,
       title: 'Đơn Ứng Tuyển Mới',
-      value: `${dataResumes?.meta?.total || 0} hôm nay`,
-      change: '+20%',
-      isIncrease: true,
+      value: `${getRecentApplications()} đơn mới`,
+      ...getApplicationChange(),
       description: 'so với hôm qua',
       color: 'bg-blue-500'
     },
     {
-      icon: <Calendar className="w-5 h-5" />,
-      title: 'Phỏng Vấn Đang Diễn Ra',
-      value: '23 đã lên lịch',
-      change: '+5',
-      isIncrease: true,
-      description: 'chờ xác nhận',
-      color: 'bg-purple-500'
-    },
-    {
       icon: <Briefcase className="w-5 h-5" />,
       title: 'Tin Tuyển Dụng',
-      value: `${dataJobs?.meta?.total || 0} tin mới`,
-      change: '3',
-      isIncrease: true,
-      description: 'vị trí cấp bách',
+      value: `${getRecentJobs()} tin mới`,
+      ...getJobsChange(),
+      description: 'so với hôm qua',
       color: 'bg-green-500'
     }
   ];
@@ -79,31 +148,31 @@ const DashboardPage = () => {
     {
       icon: <FileText />,
       title: 'Tổng Số Ứng Tuyển',
-      value: dataResumes?.meta?.total || 0,
+      value: dataResumes?.data?.meta?.total || 0,
       color: 'bg-blue-500'
     },
     {
       icon: <Briefcase />,
       title: 'Tổng số Công Việc',
-      value: dataJobs?.meta?.total || 0,
+      value: dataJobs?.data?.meta?.total || 0,
       color: 'bg-green-500'
     },
   ];
 
   return (
     <Layout className="min-h-screen flex flex-row">
-    <div
-      className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
-        } flex-shrink-0`}
-    >
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-    </div>
+      <div
+        className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+          } flex-shrink-0`}
+      >
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      </div>
 
-    <div className="flex-1">
-      {/* Nội dung chính */}
-      <Layout>
-        <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-        <Content className="m-6">
+      <div className="flex-1">
+        {/* Nội dung chính */}
+        <Layout>
+          <Header collapsed={collapsed} setCollapsed={setCollapsed} />
+          <Content className="m-6">
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -132,7 +201,7 @@ const DashboardPage = () => {
                     </motion.div>
                   ))}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {recentActivity.map((activity, index) => (
                     <motion.div
                       key={index}

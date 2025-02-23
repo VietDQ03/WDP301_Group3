@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Spin, message, Card } from "antd";
 import { companyApi } from "../../api/AdminPageAPI/companyApi";
 import { EnvironmentOutlined } from "@ant-design/icons";
-import Header from "../../components/UserP/Header";
-import Footer from "../../components/UserP/Footer";
+import Header from "./Header";
+import Footer from "./Footer";
 
 const CompanyDetail = () => {
     const { id } = useParams();
@@ -49,9 +49,15 @@ const CompanyDetail = () => {
                     {/* Logo + Tên công ty */}
                     <div className="flex flex-col items-center">
                         <img
-                            src={`${process.env.REACT_APP_BASE_URL}/images/company/${company?.logo}`}
-                            alt={company.name}
+                            src={company?.logo
+                                ? `${process.env.REACT_APP_BASE_URL}/images/company/${company.logo}`
+                                : '/logo.png'
+                            }
+                            alt={company?.name || "Company Logo"}
                             className="w-32 h-32 object-cover rounded-full shadow-md"
+                            onError={(e) => {
+                                e.target.src = '/logo.png';
+                            }}
                         />
                         <h2 className="text-2xl font-semibold mt-4 text-gray-800">{company.name}</h2>
                     </div>
