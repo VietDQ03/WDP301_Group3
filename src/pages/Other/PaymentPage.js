@@ -10,7 +10,7 @@ const PaymentPage = () => {
     const navigate = useNavigate();
     const selectedPlan = location.state || {
         planName: 'Cơ Bản',
-        planPrice: '499.000',
+        planPrice: '99.000',
         planPeriod: '/tháng',
         planFeatures: []
     };
@@ -132,10 +132,22 @@ const PaymentPage = () => {
                                 <div className="bg-gradient-to-r from-amber-50 to-amber-100 p-6 rounded-xl border border-amber-200">
                                     <div className="flex items-start space-x-3">
                                         <AlertCircle className="h-6 w-6 text-amber-500 mt-0.5 flex-shrink-0" />
-                                        <div>
-                                            <p className="font-semibold text-amber-900 mb-2">Nội dung chuyển khoản:</p>
-                                            <div className="bg-white px-4 py-2 rounded-lg border border-amber-200 font-medium text-gray-700">
-                                                {`TÊN TK + ${selectedPlan.planName} + EMAIL`}
+                                        <div className="space-y-3 flex-1">
+                                            <div>
+                                                <p className="font-semibold text-amber-900 mb-2">Nội dung chuyển khoản:</p>
+                                                <div className="bg-white px-4 py-2 rounded-lg border border-amber-200 font-medium text-gray-700">
+                                                    {`TÊN TK_${selectedPlan.planName}_EMAIL`}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <p className="text-amber-800 mb-2">Ví dụ:</p>
+                                                <div className="bg-white/60 px-4 py-2 rounded-lg border border-amber-200/60">
+                                                    <p className="text-gray-600 font-medium">{`Rabota_${selectedPlan.planName}_rabotasp25@gmail.com`}</p>
+                                                </div>
+                                                <p className="text-sm text-amber-700 mt-2 italic">
+                                                    * Vui lòng ghi đúng nội dung chuyển khoản để được kích hoạt tài khoản nhanh chóng
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -171,10 +183,10 @@ const PaymentPage = () => {
                                         className="w-full"
                                         icon={isCompleted ? <CheckCircle2 className="mr-2 h-6 w-6" /> : null}
                                         style={{
-                                            width: '100%', 
+                                            width: '100%',
                                             paddingLeft: '1.5rem',
                                             paddingRight: '1.5rem',
-                                            fontSize: '1rem', 
+                                            fontSize: '1rem',
                                             ...(isCompleted && {
                                                 backgroundColor: '#22c55e',
                                                 borderColor: '#22c55e',

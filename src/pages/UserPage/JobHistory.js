@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { getAppliedJobs } from "../../api/UserApi/UserApi";
 import { Link } from "react-router-dom";
-import Header from "../../components/UserP/Header";
-import Footer from "../../components/UserP/Footer";
+import Header from "../../components/UserPage/Header";
+import Footer from "../../components/UserPage/Footer";
 
 const JobHistory = () => {
     const { isAuthenticated } = useSelector((state) => state.auth);

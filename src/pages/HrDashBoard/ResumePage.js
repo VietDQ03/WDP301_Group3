@@ -2,43 +2,28 @@ import React, { useCallback, useEffect, useState } from "react";
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import { resumeApi } from "../../api/AdminPageAPI/resumeAPI";
-import { companyApi } from "../../api/AdminPageAPI/companyApi";
-import { jobApi } from "../../api/AdminPageAPI/jobAPI";
-import { userApi } from "../../api/AdminPageAPI/userAPI";
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Modal, message, Pagination } from "antd";
-import {
-  PlusOutlined,
-  ReloadOutlined,
-  EditOutlined,
-  ExclamationCircleOutlined,
-  MailOutlined,
-  EyeOutlined,
-  UserOutlined
-} from "@ant-design/icons";
+import { Table, Input, Button, Space, Typography, Tooltip, Layout, Select, message, Pagination } from "antd";
+import { ReloadOutlined, MailOutlined, EyeOutlined, UserOutlined } from "@ant-design/icons";
 import { motion } from 'framer-motion';
-import CustomButton from '../../components/Other/CustomButton';
 import { debounce } from "lodash";
 import { useSelector } from "react-redux";
+import { Briefcase } from 'lucide-react';
+import ViewResumeModal from './Modal/ViewResumeModal';
 
 const { Content } = Layout;
 const { Title } = Typography;
 const { Option } = Select;
-const { confirm } = Modal;
 
 const ResumePage = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [resumes, setResumes] = useState([]);
-  const [companies, setCompanies] = useState({});
-  const [jobs, setJobs] = useState({});
-  const [users, setUsers] = useState({});
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedResume, setSelectedResume] = useState(null);
   const [searchValues, setSearchValues] = useState({
     email: '',
     username: '',
-    status: ''
+    status: undefined
   });
 
   const [pagination, setPagination] = useState({
@@ -54,7 +39,6 @@ const ResumePage = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Xây dựng query params
       const queryParams = {
         current: params.current || pagination.current,
         pageSize: params.pageSize || pagination.pageSize,
@@ -63,7 +47,6 @@ const ResumePage = () => {
         ...(params.username && { username: params.username })
       };
 
-      // Chỉ thêm các params search khi có giá trị
       if (params.email?.trim()) {
         queryParams.email = params.email.trim();
       }
@@ -107,47 +90,12 @@ const ResumePage = () => {
           pageSize: resumeData.meta.pageSize,
           total: resumeData.meta.total,
         });
-
-        // Fetch related data
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await fetchRelatedData(formattedResumes);
       }
     } catch (error) {
       console.error("Error fetching resumes:", error);
       message.error('Không thể tải danh sách hồ sơ ứng tuyển');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchRelatedData = async (formattedResumes) => {
-    const uniqueUserIds = [...new Set(formattedResumes.map(resume => resume.userId))];
-    const uniqueJobIds = [...new Set(formattedResumes.map(resume => resume.jobId))];
-
-    try {
-      const [userResponses, jobResponses] = await Promise.all([
-        Promise.all(uniqueUserIds.map(id => userApi.getOne(id))),
-        Promise.all(uniqueJobIds.map(id => jobApi.getOne(id)))
-      ]);
-
-      const newUsers = {};
-      userResponses.forEach((response, index) => {
-        if (response?.data) {
-          newUsers[uniqueUserIds[index]] = response.data.email;
-        }
-      });
-
-      const newJobs = {};
-      jobResponses.forEach((response, index) => {
-        if (response?.data?.data) {
-          newJobs[uniqueJobIds[index]] = response.data.data.name;
-        }
-      });
-
-      setUsers(newUsers);
-      setJobs(newJobs);
-    } catch (error) {
-      console.error("Error fetching related data:", error);
     }
   };
 
@@ -159,7 +107,7 @@ const ResumePage = () => {
     debounce((searchParams) => {
       fetchResumes({
         ...searchParams,
-        current: 1 // Reset về trang 1 khi search
+        current: 1
       });
     }, 500),
     []
@@ -172,7 +120,6 @@ const ResumePage = () => {
     };
     setSearchValues(newSearchValues);
 
-    // Gọi debounced search với giá trị mới
     debouncedSearch({
       ...newSearchValues,
       pageSize: pagination.pageSize
@@ -181,32 +128,9 @@ const ResumePage = () => {
 
   const handlePaginationChange = (page, pageSize) => {
     fetchResumes({
-      ...searchValues,  // Thêm điều kiện search hiện tại
+      ...searchValues,
       current: page,
       pageSize: pageSize
-    });
-  };
-  const handleDelete = (id) => {
-    confirm({
-      title: 'Xác nhận xóa',
-      icon: <ExclamationCircleOutlined className="text-red-500" />,
-      content: 'Bạn có chắc chắn muốn xóa hồ sơ này? Hành động này không thể hoàn tác.',
-      okText: 'Xóa',
-      okType: 'danger',
-      cancelText: 'Hủy',
-      okButtonProps: {
-        className: 'bg-red-500 hover:bg-red-600',
-      },
-      onOk: async () => {
-        try {
-          await resumeApi.delete(id);
-          message.success('Xóa hồ sơ thành công');
-          fetchResumes(pagination);
-        } catch (error) {
-          message.error('Không thể xóa hồ sơ');
-          console.error('Error:', error);
-        }
-      },
     });
   };
 
@@ -214,11 +138,10 @@ const ResumePage = () => {
     try {
       await resumeApi.updateStatus(id, newStatus);
       message.success('Cập nhật trạng thái thành công');
-      // Gọi fetchResumes với đầy đủ các tham số hiện tại
       fetchResumes({
         current: pagination.current,
         pageSize: pagination.pageSize,
-        ...searchValues // Thêm các điều kiện tìm kiếm hiện tại
+        ...searchValues
       });
     } catch (error) {
       message.error('Không thể cập nhật trạng thái');
@@ -226,9 +149,9 @@ const ResumePage = () => {
     }
   };
 
-  const handleViewDetail = (record) => {
+  const handleViewDetails = (record) => {
     setSelectedResume(record);
-    setDetailModalVisible(true);
+    setIsModalOpen(true);
   };
 
   const columns = [
@@ -252,10 +175,11 @@ const ResumePage = () => {
     {
       title: "Tên Ứng Viên",
       align: "center",
+      dataIndex: "username",
       key: "username",
       render: (_, record) => (
         <div className="font-medium text-gray-800">
-          {users[record.userId] ? users[record.userId].split('@')[0] : 'N/A'}
+          N/A
         </div>
       ),
     },
@@ -269,11 +193,12 @@ const ResumePage = () => {
             <a
               href={`${process.env.REACT_APP_BASE_URL}/images/resume/${record?.url}`}
               target="_blank"
-              className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+              className="inline-block"
             >
               <Button
-                type="text"
+                type="primary"
                 icon={<EyeOutlined />}
+                className="bg-blue-500 hover:bg-blue-600 text-white border-none"
               >
                 Xem hồ sơ
               </Button>
@@ -282,51 +207,14 @@ const ResumePage = () => {
         </Space>
       ),
     },
-    // {
-    //   title: "Công ty",
-    //   align: "center",
-    //   dataIndex: "companyId",
-    //   render: (companyId) => (
-    //     <div className="flex items-center justify-center text-gray-600">
-    //       <svg
-    //         className="w-4 h-4 mr-2"
-    //         fill="none"
-    //         stroke="currentColor"
-    //         viewBox="0 0 24 24"
-    //         xmlns="http://www.w3.org/2000/svg"
-    //       >
-    //         <path
-    //           strokeLinecap="round"
-    //           strokeLinejoin="round"
-    //           strokeWidth={2}
-    //           d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-    //         />
-    //       </svg>
-    //       {companies[companyId] || ''}
-    //     </div>
-    //   ),
-    // },
     {
       title: "Công Việc",
       align: "center",
-      dataIndex: "jobId",
-      render: (jobId) => (
+      dataIndex: "jobName",
+      render: () => (
         <div className="flex items-center justify-center text-gray-600">
-          <svg
-            className="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-            />
-          </svg>
-          {jobs[jobId] || 'N/A'}
+          <Briefcase className="w-4 h-4 mr-2" />
+          N/A
         </div>
       ),
     },
@@ -365,60 +253,21 @@ const ResumePage = () => {
               type="text"
               icon={<EyeOutlined />}
               className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-              onClick={() => handleViewDetail(record)}
+              onClick={() => handleViewDetails(record)}
             />
           </Tooltip>
-          {/* <Tooltip title="Chỉnh sửa">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              className="text-green-500 hover:text-green-600 hover:bg-green-50"
-              onClick={() => console.log('Edit resume:', record)}
-            />
-          </Tooltip> */}
-          {/* <Tooltip title="Xóa">
-            <Button
-              type="text"
-              icon={<DeleteOutlined />}
-              className="text-red-500 hover:text-red-600 hover:bg-red-50"
-              onClick={() => handleDelete(record.key)}
-            />
-          </Tooltip> */}
         </Space>
       ),
     }
   ];
 
-  const handleTableChange = (newPagination, filters, sorter) => {
-    fetchResumes({
-      ...newPagination,
-      sortField: sorter.field,
-      sortOrder: sorter.order,
-      ...filters,
-      ...searchValues
-    });
-  };
-
-  const onFinish = (values) => {
-    setSearchValues(values);
-    fetchResumes({
-      ...values,
-      current: 1,
-      pageSize: pagination.pageSize
-    });
-  };
-
   const handleReset = () => {
     setSearchValues({
       email: '',
       username: '',
-      status: ''
+      status: undefined
     });
 
-    // Reset form
-    form.resetFields();
-
-    // Fetch lại data với params mặc định
     fetchResumes({
       current: 1,
       pageSize: pagination.pageSize
@@ -443,7 +292,6 @@ const ResumePage = () => {
       </div>
 
       <div className="flex-1">
-        {/* Nội dung chính */}
         <Layout>
           <Header collapsed={collapsed} setCollapsed={setCollapsed} />
           <Content className="m-6">
@@ -452,7 +300,6 @@ const ResumePage = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              {/* Page Header */}
               <div className="mb-6">
                 <motion.h1
                   className="text-2xl font-bold text-gray-800"
@@ -472,7 +319,6 @@ const ResumePage = () => {
                 </motion.p>
               </div>
 
-              {/* Search Section */}
               <motion.div
                 className="bg-white p-6 shadow-sm rounded-xl mb-6 border border-gray-100"
                 initial={{ opacity: 0, y: 20 }}
@@ -538,7 +384,6 @@ const ResumePage = () => {
                 </div>
               </motion.div>
 
-              {/* List Section */}
               <motion.div
                 className="bg-white p-6 shadow-sm rounded-xl border border-gray-100 relative min-h-[600px]"
                 initial={{ opacity: 0 }}
@@ -554,32 +399,15 @@ const ResumePage = () => {
                   </div>
                   <Space size="middle">
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <CustomButton
-                        htmlType="submit"
-                        icon={<PlusOutlined />}
-                      >
-                        Thêm hồ sơ mới
-                      </CustomButton>
-                    </motion.div>
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Tooltip title="Làm mới dữ liệu">
                         <Button
                           icon={<ReloadOutlined />}
                           onClick={handleRefresh}
                           size="large"
                           className="h-11 hover:bg-gray-50 hover:border-gray-300"
-                        />
+                        >Làm mới</Button>
                       </Tooltip>
                     </motion.div>
-                    {/* <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Tooltip title="Cài đặt hiển thị">
-                      <Button
-                        icon={<SettingOutlined />}
-                        size="large"
-                        className="h-11 hover:bg-gray-50 hover:border-gray-300"
-                      />
-                    </Tooltip>
-                  </motion.div> */}
                   </Space>
                 </div>
 
@@ -616,9 +444,15 @@ const ResumePage = () => {
                 </div>
               </motion.div>
             </motion.div>
-          </Content >
+          </Content>
         </Layout>
       </div>
+
+      <ViewResumeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        resumeData={selectedResume}
+      />
     </Layout>
   );
 };

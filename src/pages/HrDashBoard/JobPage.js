@@ -364,7 +364,7 @@ const JobPage = () => {
         _id: jobDetail._id,
         name: jobDetail.name,
         skills: jobDetail.skills,
-        company: jobDetail.company, // Giữ nguyên toàn bộ company object
+        company: jobDetail.company, 
         location: jobDetail.location,
         salary: jobDetail.salary,
         quantity: jobDetail.quantity,
@@ -438,7 +438,6 @@ const JobPage = () => {
       </div>
 
       <div className="flex-1">
-        {/* Nội dung chính */}
         <Layout>
           <Header collapsed={collapsed} setCollapsed={setCollapsed} />
           <Content className="m-6">
@@ -480,11 +479,9 @@ const JobPage = () => {
                   layout="vertical"
                   className="space-y-4"
                   onValuesChange={(changedValues, allValues) => {
-
                     const searchParams = {
                       ...allValues,
                       current: 1,
-                      // Chỉ gửi các giá trị có ý nghĩa
                       name: allValues.name?.trim() || undefined,
                       location: allValues.location || undefined,
                       level: allValues.level || undefined,
@@ -497,62 +494,73 @@ const JobPage = () => {
                     debouncedSearch(searchParams);
                   }}
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <Form.Item
-                      name="name"
-                      label={<span className="text-gray-700 font-medium">Tên Công Việc</span>}
-                    >
-                      <Input
-                        prefix={<SearchOutlined className="text-gray-400" />}
-                        placeholder="Nhập tên công việc cần tìm"
-                        className="h-11 rounded-lg"
-                      />
-                    </Form.Item>
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    <div>
+                      <label className="text-gray-700 font-medium mb-2 block">Tên Công Việc</label>
+                      <Form.Item name="name" className="mb-0">
+                        <Input
+                          prefix={<SearchOutlined className="text-gray-400" />}
+                          placeholder="Nhập tên công việc cần tìm"
+                          className="h-11 rounded-lg"
+                        />
+                      </Form.Item>
+                    </div>
 
-                    <Form.Item
-                      name="level"
-                      label={<span className="text-gray-700 font-medium">Thời gian làm việc</span>}
-                    >
-                      <Select
-                        placeholder="Chọn thời gian làm việc"
-                        className="h-11 rounded-lg"
-                        allowClear
-                      >
-                        <Option value="FULLTIME">Toàn thời gian</Option>
-                        <Option value="PARTTIME">Bán thời gian</Option>
-                        <Option value="OTHER">Khác</Option>
-                      </Select>
-                    </Form.Item>
+                    <div>
+                      <label className="text-gray-700 font-medium mb-2 block">Thời gian làm việc</label>
+                      <Form.Item name="level" className="mb-0">
+                        <Select
+                          placeholder="Chọn thời gian làm việc"
+                          className="h-11 w-full"
+                          allowClear
+                        >
+                          <Option value="FULLTIME">Toàn thời gian</Option>
+                          <Option value="PARTTIME">Bán thời gian</Option>
+                          <Option value="OTHER">Khác</Option>
+                        </Select>
+                      </Form.Item>
+                    </div>
 
-                    <Form.Item
-                      name="location"
-                      label={<span className="text-gray-700 font-medium">Địa Điểm</span>}
-                    >
-                      <Select
-                        placeholder="Chọn địa điểm"
-                        className="h-11 rounded-lg"
-                        allowClear
-                      >
-                        <Option value="HANOI">Hà Nội</Option>
-                        <Option value="HOCHIMINH">Hồ Chí Minh</Option>
-                        <Option value="DANANG">Đà Nẵng</Option>
-                        <Option value="OTHER">Khác</Option>
-                      </Select>
-                    </Form.Item>
+                    <div>
+                      <label className="text-gray-700 font-medium mb-2 block">Địa Điểm</label>
+                      <Form.Item name="location" className="mb-0">
+                        <Select
+                          placeholder="Chọn địa điểm"
+                          className="h-11 w-full"
+                          allowClear
+                        >
+                          <Option value="HANOI">Hà Nội</Option>
+                          <Option value="HOCHIMINH">Hồ Chí Minh</Option>
+                          <Option value="DANANG">Đà Nẵng</Option>
+                          <Option value="OTHER">Khác</Option>
+                        </Select>
+                      </Form.Item>
+                    </div>
 
-                    <Form.Item
-                      name="status"
-                      label={<span className="text-gray-700 font-medium">Trạng Thái</span>}
-                    >
-                      <Select
-                        placeholder="Chọn trạng thái"
-                        className="h-11 rounded-lg"
-                        allowClear
+                    <div>
+                      <label className="text-gray-700 font-medium mb-2 block">Trạng Thái</label>
+                      <Form.Item name="status" className="mb-0">
+                        <Select
+                          placeholder="Chọn trạng thái"
+                          className="h-11 w-full"
+                          allowClear
+                        >
+                          <Option value={true}>Đang tuyển</Option>
+                          <Option value={false}>Ngưng tuyển</Option>
+                        </Select>
+                      </Form.Item>
+                    </div>
+
+                    <div className="flex items-end gap-2">
+                      <Button
+                        onClick={onReset}
+                        size="large"
+                        className="h-11 px-6 flex items-center"
+                        icon={<ReloadOutlined />}
                       >
-                        <Option value={true}>Đang tuyển</Option>
-                        <Option value={false}>Ngưng tuyển</Option>
-                      </Select>
-                    </Form.Item>
+                        Đặt lại
+                      </Button>
+                    </div>
                   </div>
                 </Form>
               </motion.div>
@@ -589,18 +597,9 @@ const JobPage = () => {
                           onClick={handleRefresh}
                           size="large"
                           className="h-11 hover:bg-gray-50 hover:border-gray-300"
-                        />
+                        >Làm mới</Button>
                       </Tooltip>
                     </motion.div>
-                    {/* <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Tooltip title="Cài đặt hiển thị">
-                      <Button
-                        icon={<SettingOutlined />}
-                        size="large"
-                        className="h-11 hover:bg-gray-50 hover:border-gray-300"
-                      />
-                    </Tooltip>
-                  </motion.div> */}
                   </Space>
                 </div>
 

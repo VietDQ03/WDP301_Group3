@@ -43,7 +43,14 @@ const Header = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navItems = [
-    { icon: Home, text: "Trang Chủ", path: "/" },
+    {
+      icon: Home,
+      text: "Trang Chủ",
+      onClick: () => {
+        navigate('/');
+        window.location.reload();
+      }
+    },
     { icon: FileText, text: "Tạo CV", path: "#" },
     {
       icon: PlusCircle,
@@ -59,7 +66,7 @@ const Header = () => {
           setModalMessage("Bạn không có quyền đăng tuyển công việc. Vui lòng sử dụng tài khoản HR để có thể đăng tuyển.");
           setIsModalOpen(true);
         } else {
-          setModalMessage(""); 
+          setModalMessage("");
           setIsModalOpen(true);
         }
       }

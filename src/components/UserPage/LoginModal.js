@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Dialog } from '@headlessui/react';
 import { FileWarning, LogIn } from 'lucide-react';
-import CustomButton from '../../components/Other/CustomButton';
+import CustomButton from '../Other/CustomButton';
 
 const LoginModal = ({ isModalOpen, setIsModalOpen, modalMessage }) => {
     const { isAuthenticated } = useSelector((state) => state.auth);

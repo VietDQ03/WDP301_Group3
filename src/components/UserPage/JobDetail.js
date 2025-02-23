@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { message, Spin } from "antd";
-import ApplyModal from "../../components/UserP/ModalApply";
+import ApplyModal from "./ModalApply";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
-import Header from "../../components/UserP/Header";
-import Footer from "../../components/UserP/Footer";
-import CustomButton from "../../components/Other/CustomButton";
+import Header from "./Header";
+import Footer from "./Footer";
+import CustomButton from "../Other/CustomButton";
 import { DollarSign, MapPin } from "lucide-react";
 
 
@@ -86,8 +86,14 @@ const JobDetail = () => {
                     <div className="p-6 bg-white shadow-md rounded-xl border border-gray-200 flex flex-col items-center text-center">
                         <img
                             className="w-24 h-24 rounded-full border border-gray-300 object-cover"
-                            src={`${process.env.REACT_APP_BASE_URL}/images/company/${job.company?.logo}`}
+                            src={job.company?.logo
+                                ? `${process.env.REACT_APP_BASE_URL}/images/company/${job.company.logo}`
+                                : '/logo.png'
+                            }
                             alt="Company Logo"
+                            onError={(e) => {
+                                e.target.src = '/logo.png';
+                            }}
                         />
                         <h3 className="text-lg font-semibold text-gray-800 mt-4">{job.company?.name}</h3>
                         <p className="text-gray-500">Công ty uy tín - Môi trường làm việc năng động</p>

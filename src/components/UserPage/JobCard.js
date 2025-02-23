@@ -97,8 +97,14 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
                   <div className="flex-shrink-0">
                     <img
                       alt="company logo"
-                      src={`${process.env.REACT_APP_BASE_URL}/images/company/${item?.company?.logo}`}
+                      src={item?.company?.logo
+                        ? `${process.env.REACT_APP_BASE_URL}/images/company/${item.company.logo}`
+                        : '/logo.png'
+                      }
                       className="w-16 h-16 object-cover rounded-md"
+                      onError={(e) => {
+                        e.target.src = '/logo.png'; // Fallback nếu load ảnh bị lỗi
+                      }}
                     />
                   </div>
                   <div className="flex-grow">
