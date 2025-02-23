@@ -57,7 +57,7 @@ const Header = () => {
     {
       icon: PlusCircle,
       text: "Đăng Tuyển",
-      path: "#",
+      path: "/introduce",
       onClick: () => {
         if (!isAuthenticated) {
           setModalMessage("");
