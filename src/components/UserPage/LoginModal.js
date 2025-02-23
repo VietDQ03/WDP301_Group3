@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Dialog } from '@headlessui/react';
-import { FileWarning, LogIn } from 'lucide-react';
+import { Facebook, FileWarning, LogIn } from 'lucide-react';
 import CustomButton from '../Other/CustomButton';
 
-const LoginModal = ({ isModalOpen, setIsModalOpen, modalMessage }) => {
-    const { isAuthenticated } = useSelector((state) => state.auth);
+const LoginModal = ({ isModalOpen, setIsModalOpen }) => {
+    const { isAuthenticated, user } = useSelector((state) => state.auth);
     const navigate = useNavigate();
 
     const handleModalContent = () => {
@@ -39,7 +39,7 @@ const LoginModal = ({ isModalOpen, setIsModalOpen, modalMessage }) => {
                     </div>
                 </div>
             );
-        } else if (modalMessage) {
+        } else if (user?.role?.name !== "HR_ROLE") {
             // Trường hợp NORMAL_USER hoặc các thông báo khác
             return (
                 <div className="py-6 px-4">
@@ -50,8 +50,24 @@ const LoginModal = ({ isModalOpen, setIsModalOpen, modalMessage }) => {
                                 Thông báo
                             </h3>
                             <p className="text-sm text-gray-700 mt-2">
-                                {modalMessage}
+                                Bạn không có quyền đăng tuyển công việc. Vui lòng sử dụng tài khoản HR để có thể đăng tuyển.
                             </p>
+                            <div className="mt-4 space-y-3">
+                                <p className="text-sm text-red-600">
+                                    Liên hệ với chúng tôi để được hỗ trợ:
+                                </p>
+                                <div className="flex flex-col items-center space-y-2"> 
+                                    <a
+                                        href="https://www.facebook.com/profile.php?id=61551537480234&mibextid=wwXIfr&rdid=IJvbMvKBsJvBuO6V&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F12H8M3Uo3Eh%2F%3Fmibextid%3DwwXIfr#"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors" 
+                                    >
+                                        <Facebook className="w-5 h-5 mr-2" />
+                                        Facebook: Rabota
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div className="mt-6">

@@ -167,8 +167,8 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                             rules={[{ required: true, message: 'Vui lòng chọn thời gian!' }]}
                         >
                             <Select placeholder="Chọn thời gian">
-                                <Option value="PARTTIME">Bán thời gian</Option>
                                 <Option value="FULLTIME">Toàn thời gian</Option>
+                                <Option value="PARTTIME">Bán thời gian</Option>
                                 <Option value="OTHER">Khác</Option>
                             </Select>
                         </Form.Item>

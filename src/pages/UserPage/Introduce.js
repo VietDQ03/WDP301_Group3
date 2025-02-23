@@ -18,7 +18,6 @@ const Introduce = () => {
         if (user?.role?.name === "HR_ROLE") {
             navigate("/dashboard/job");
         } else {
-            setModalMessage("Bạn không có quyền đăng tuyển công việc. Vui lòng sử dụng tài khoản HR để có thể đăng tuyển.");
             setShowModal(true);
         }
     };
