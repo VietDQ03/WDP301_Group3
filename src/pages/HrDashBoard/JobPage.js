@@ -12,6 +12,7 @@ import ViewJobModal from './Modal/ViewJobModal';
 import DeleteConfirmModal from '../../components/Other/DeleteConfirmModal';
 import { useSelector } from "react-redux";
 import { companyApi } from "../../api/AdminPageAPI/companyApi";
+import AlertComponent from '../../components/Other/AlertComponent';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -31,6 +32,8 @@ const JobPage = () => {
   const [companyData, setCompanyData] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState({ type: 'error', message: '' });
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -286,8 +289,6 @@ const JobPage = () => {
   ];
 
   const handleTableChange = (newPagination, filters, sorter) => {
-    // Log để debug
-    console.log("Table change:", { newPagination, filters, sorter });
 
     const params = {
       ...searchParams,
@@ -364,7 +365,7 @@ const JobPage = () => {
         _id: jobDetail._id,
         name: jobDetail.name,
         skills: jobDetail.skills,
-        company: jobDetail.company, 
+        company: jobDetail.company,
         location: jobDetail.location,
         salary: jobDetail.salary,
         quantity: jobDetail.quantity,
@@ -391,6 +392,14 @@ const JobPage = () => {
     setIsAddEditModalOpen(true);
   };
 
+  const showAlert = (type, message) => {
+    setAlertMessage({ type, message });
+    setIsAlertVisible(true);
+    setTimeout(() => {
+      setIsAlertVisible(false);
+    }, 5000);
+  };
+
   const handleSubmit = async (formData) => {
     try {
       const submissionData = {
@@ -404,16 +413,19 @@ const JobPage = () => {
 
       if (modalMode === 'add') {
         await jobApi.create(submissionData);
-        message.success('Thêm công việc thành công');
+        setIsAddEditModalOpen(false);
+        showAlert('success', 'Thêm công việc thành công');
       } else if (modalMode === 'edit') {
         await jobApi.update(selectedJob._id, submissionData);
-        message.success('Cập nhật công việc thành công');
+        setIsAddEditModalOpen(false);
+        showAlert('success', 'Cập nhật công việc thành công');
       }
-      setIsAddEditModalOpen(false);
       fetchJobs(pagination);
+
     } catch (error) {
       console.error('Error submitting job:', error);
-      message.error('Có lỗi xảy ra: ' + (error.response?.data?.message || 'Vui lòng thử lại'));
+      setIsAddEditModalOpen(false);
+      showAlert('error', error?.message || 'Vui lòng thử lại');
     }
   };
 
@@ -637,6 +649,13 @@ const JobPage = () => {
               </motion.div>
             </motion.div>
           </Content >
+
+          <AlertComponent
+            isVisible={isAlertVisible}
+            setIsVisible={setIsAlertVisible}
+            type={alertMessage.type}
+            message={alertMessage.message}
+          />
 
           <DeleteConfirmModal
             isOpen={isDeleteModalOpen}
