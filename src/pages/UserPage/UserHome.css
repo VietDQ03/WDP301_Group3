@@ -148,7 +148,7 @@ nav a:hover {
     border-color: var(--primary-color);
     outline: none;
 }
-
+/* 
 button {
     background-color: var(--primary-color);
     color: white;
@@ -166,7 +166,7 @@ button {
 button:hover {
     background-color: var(--secondary-color);
     transform: translateY(-2px);
-}
+} */
 
 /* Job Listings */
 .job-listings {

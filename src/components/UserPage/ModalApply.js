@@ -115,7 +115,7 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
                                             </label>
                                         </div>
                                         <p className="mt-1 text-xs text-gray-500">
-                                            Hỗ trợ *.doc, *.docx, *.pdf, và &lt; 5MB
+                                            Hỗ trợ *.doc, *.docx, *.pdf, và &lt; 1MB
                                         </p>
                                     </div>
                                 </div>
