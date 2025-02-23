@@ -77,11 +77,12 @@ const ResumePage = () => {
           url: resume.url,
           status: resume.status,
           companyId: resume.companyId,
-          jobId: resume.jobId,
+          userName: resume.userName,
+          jobName: resume.jobName, 
           createdBy: resume.createdBy,
-          userId: resume.userId,
           createdAt: new Date(resume.createdAt).toLocaleString(),
           updatedAt: new Date(resume.updatedAt).toLocaleString(),
+          history: resume.history || []
         }));
 
         setResumes(formattedResumes);
@@ -175,11 +176,12 @@ const ResumePage = () => {
     {
       title: "Tên Ứng Viên",
       align: "center",
-      dataIndex: "username",
-      key: "username",
-      render: (_, record) => (
-        <div className="font-medium text-gray-800">
-          N/A
+      dataIndex: "userName",
+      key: "userName",
+      render: (userName) => (
+        <div className="flex items-center justify-center font-medium text-gray-800">
+          <UserOutlined className="mr-2" />
+          {userName || 'N/A'}
         </div>
       ),
     },
@@ -211,10 +213,11 @@ const ResumePage = () => {
       title: "Công Việc",
       align: "center",
       dataIndex: "jobName",
-      render: () => (
+      key: "jobName",
+      render: (jobName) => (
         <div className="flex items-center justify-center text-gray-600">
           <Briefcase className="w-4 h-4 mr-2" />
-          N/A
+          {jobName || 'N/A'}
         </div>
       ),
     },
