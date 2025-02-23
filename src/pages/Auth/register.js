@@ -35,23 +35,31 @@ function RegisterPage() {
       alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
       return false;
     }
-
+  
     if (formData.password !== formData.confirmPassword) {
       alert("Mật khẩu và xác nhận mật khẩu không khớp!");
       return false;
     }
-
+  
     if (formData.password.length < 6) {
       alert("Mật khẩu phải có ít nhất 6 ký tự!");
       return false;
     }
-
+  
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       alert("Email không hợp lệ!");
       return false;
     }
-
+  
+    const uppercaseRegex = /[A-Z]/; // Kiểm tra chữ in hoa
+    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/; // Kiểm tra ký tự đặc biệt
+  
+    if (!uppercaseRegex.test(formData.password) || !specialCharRegex.test(formData.password)) {
+      alert("Mật khẩu phải chứa ít nhất một chữ cái in hoa và một ký tự đặc biệt!");
+      return false;
+    }
+  
     return true;
   };
 
