@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
-import Header from "../../components/UserP/Header";
-import Footer from "../../components/UserP/Footer";
+import Header from "../../components/UserPage/Header";
+import Footer from "../../components/UserPage/Footer";
 import CustomButton from "../../components/Other/CustomButton";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { ClockCircleOutlined, CrownOutlined, CustomerServiceOutlined, AppstoreOutlined } from "@ant-design/icons";
-import LoginModal from "../../components/UserP/LoginModal";
+import LoginModal from "../../components/UserPage/LoginModal";
 
 const Introduce = () => {
     const { user } = useSelector((state) => state.auth);
