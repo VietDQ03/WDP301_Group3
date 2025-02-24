@@ -53,7 +53,7 @@ const Header = () => {
         window.location.reload();
       }
     },
-    { icon: FileText, text: "Tạo CV", path: "#" },
+    // { icon: FileText, text: "Tạo CV", path: "#" },
     {
       icon: PlusCircle,
       text: "Đăng Tuyển",
@@ -68,14 +68,14 @@ const Header = () => {
 
   const getDropdownItems = () => {
     const baseItems = [
-      {
-        key: 'profile',
-        icon: <User size={16} />,
-        label: 'Thông tin cá nhân',
-        onClick: () => {
-          navigate('/profile');
-        }
-      },
+      // {
+      //   key: 'profile',
+      //   icon: <User size={16} />,
+      //   label: 'Thông tin cá nhân',
+      //   onClick: () => {
+      //     navigate('/profile');
+      //   }
+      // },
       {
         key: 'logout',
         icon: <LogOut size={16} />,
