@@ -75,12 +75,12 @@ function LoginPage() {
                 htmlFor="username"
                 className="block text-sm font-medium text-gray-600"
               >
-                Tài khoản
+                Email
               </label>
               <input
                 id="username"
                 type="text"
-                placeholder="Tên đăng nhập"
+                placeholder="Nhập email của bạn"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

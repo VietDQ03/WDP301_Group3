@@ -53,22 +53,13 @@ const Header = () => {
         window.location.reload();
       }
     },
-    { icon: FileText, text: "Tạo CV", path: "#" },
+    // { icon: FileText, text: "Tạo CV", path: "#" },
     {
       icon: PlusCircle,
       text: "Đăng Tuyển",
-      path: "/introduce",
       onClick: () => {
-        if (!isAuthenticated) {
-          setModalMessage("");
-          setIsModalOpen(true);
-        } else {
-          if (location.pathname !== "/introduce") {
-            setModalMessage("");
-            setIsModalOpen(true);
-            navigate("/introduce");
-          }
-        }
+        navigate('/introduce');
+        window.location.reload();
       }
     }
   ];
@@ -77,14 +68,14 @@ const Header = () => {
 
   const getDropdownItems = () => {
     const baseItems = [
-      {
-        key: 'profile',
-        icon: <User size={16} />,
-        label: 'Thông tin cá nhân',
-        onClick: () => {
-          navigate('/profile');
-        }
-      },
+      // {
+      //   key: 'profile',
+      //   icon: <User size={16} />,
+      //   label: 'Thông tin cá nhân',
+      //   onClick: () => {
+      //     navigate('/profile');
+      //   }
+      // },
       {
         key: 'logout',
         icon: <LogOut size={16} />,
@@ -133,7 +124,7 @@ const Header = () => {
             }}
           >
             <img src="/logo.png" alt="Rabota Logo" className="h-10 w-auto" />
-            <h1 className="text-2xl font-bold">RABOTA</h1>
+            <h1 className="text-2xl font-bold">RABOTAWORK</h1>
           </div>
 
           <nav>

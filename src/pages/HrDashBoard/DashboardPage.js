@@ -86,7 +86,7 @@ const DashboardPage = () => {
 
   // Tính phần trăm thay đổi
   const calculateChange = (data, field = 'createdAt') => {
-    if (!data) return { change: '0%', isIncrease: true };
+    if (!data) return { change: 0, isIncrease: true };
     
     const now = new Date();
     const last24Hours = new Date(now - 24 * 60 * 60 * 1000);
@@ -102,18 +102,10 @@ const DashboardPage = () => {
       return date >= previous24Hours && date < last24Hours;
     }).length;
 
-    if (previousItems === 0 && recentItems === 0) {
-      return { change: '0%', isIncrease: true };
-    }
-    
-    if (previousItems === 0 && recentItems > 0) {
-      return { change: 'mới', isIncrease: true };
-    }
-
-    const changePercent = ((recentItems - previousItems) / previousItems) * 100;
+    const difference = recentItems - previousItems;
     return {
-      change: `${Math.abs(changePercent.toFixed(0))}%`,
-      isIncrease: changePercent >= 0
+      change: difference,
+      isIncrease: difference >= 0
     };
   };
 

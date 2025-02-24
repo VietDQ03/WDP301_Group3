@@ -5,7 +5,7 @@ import { resumeApi } from "../../api/AdminPageAPI/resumeAPI";
 import { Table, Input, Button, Space, Typography, Tooltip, Layout, Select, message, Pagination } from "antd";
 import { ReloadOutlined, MailOutlined, EyeOutlined, UserOutlined } from "@ant-design/icons";
 import { motion } from 'framer-motion';
-import { debounce } from "lodash";
+import { debounce, max } from "lodash";
 import { useSelector } from "react-redux";
 import { Briefcase } from 'lucide-react';
 import ViewResumeModal from './Modal/ViewResumeModal';
@@ -77,11 +77,12 @@ const ResumePage = () => {
           url: resume.url,
           status: resume.status,
           companyId: resume.companyId,
-          jobId: resume.jobId,
+          userName: resume.userName,
+          jobName: resume.jobName,
           createdBy: resume.createdBy,
-          userId: resume.userId,
           createdAt: new Date(resume.createdAt).toLocaleString(),
           updatedAt: new Date(resume.updatedAt).toLocaleString(),
+          history: resume.history || []
         }));
 
         setResumes(formattedResumes);
@@ -175,11 +176,12 @@ const ResumePage = () => {
     {
       title: "Tên Ứng Viên",
       align: "center",
-      dataIndex: "username",
-      key: "username",
-      render: (_, record) => (
-        <div className="font-medium text-gray-800">
-          N/A
+      dataIndex: "userName",
+      key: "userName",
+      render: (userName) => (
+        <div className="flex items-center justify-center font-medium text-gray-800">
+          <UserOutlined className="mr-2" />
+          {userName || 'N/A'}
         </div>
       ),
     },
@@ -193,15 +195,9 @@ const ResumePage = () => {
             <a
               href={`${process.env.REACT_APP_BASE_URL}/images/resume/${record?.url}`}
               target="_blank"
-              className="inline-block"
+              className="text-gray-600 hover:text-blue-500 transition-colors duration-200"
             >
-              <Button
-                type="primary"
-                icon={<EyeOutlined />}
-                className="bg-blue-500 hover:bg-blue-600 text-white border-none"
-              >
-                Xem hồ sơ
-              </Button>
+              <EyeOutlined className="text-xl" />
             </a>
           </Tooltip>
         </Space>
@@ -211,10 +207,12 @@ const ResumePage = () => {
       title: "Công Việc",
       align: "center",
       dataIndex: "jobName",
-      render: () => (
+      key: "jobName",
+      width: 250,
+      render: (jobName) => (
         <div className="flex items-center justify-center text-gray-600">
           <Briefcase className="w-4 h-4 mr-2" />
-          N/A
+          {jobName || 'N/A'}
         </div>
       ),
     },

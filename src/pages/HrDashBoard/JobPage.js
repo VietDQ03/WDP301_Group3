@@ -6,7 +6,7 @@ import CustomButton from '../../components/Other/CustomButton';
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, message, Pagination } from "antd";
 import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EnvironmentOutlined, DollarOutlined, TeamOutlined, EyeOutlined } from "@ant-design/icons";
 import { motion } from 'framer-motion';
-import { debounce } from 'lodash';
+import { debounce, max } from 'lodash';
 import AddEditModal from './Modal/AddEditJobModal';
 import ViewJobModal from './Modal/ViewJobModal';
 import DeleteConfirmModal from '../../components/Other/DeleteConfirmModal';
@@ -155,7 +155,7 @@ const JobPage = () => {
       title: "Tên Công Việc",
       dataIndex: "name",
       key: "name",
-      width: 470,
+      maxWidth: 320,
       render: (text) => (
         <div className="font-medium text-gray-800">{text}</div>
       ),

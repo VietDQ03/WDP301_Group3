@@ -1,8 +1,13 @@
 import axios from "../../config/axiosCustom";
 
 
-export const callCreateResume = (url, companyId, jobId) => {
-    return axios.post('/resumes', { url, companyId, jobId });
+export const callCreateResume = (url, companyId, jobId, description) => {
+    return axios.post('/resumes', { 
+        url, 
+        companyId, 
+        jobId,
+        Description: description 
+    });
 };
 
 export const callUploadSingleFile = (file, folderType) => {
