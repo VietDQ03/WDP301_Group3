@@ -64,8 +64,6 @@ const Header = () => {
     }
   ];
 
-
-
   const getDropdownItems = () => {
     const baseItems = [
       // {
