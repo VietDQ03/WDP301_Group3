@@ -4,7 +4,7 @@ export const userApi = {
   getAll: (params) => {
     return axios.get('/users', { 
       params: {
-        current: params.current || 1,  // sửa page thành current cho đúng với BE
+        current: params.current || 1, 
         pageSize: params.pageSize || 10
       }
     });

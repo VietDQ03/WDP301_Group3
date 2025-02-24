@@ -6,7 +6,7 @@ export const callCreateResume = (url, companyId, jobId, description) => {
         url, 
         companyId, 
         jobId,
-        Description: description 
+        description 
     });
 };
 
