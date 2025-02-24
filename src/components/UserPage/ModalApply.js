@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Dialog } from '@headlessui/react';
@@ -12,6 +12,49 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
     const [coverLetter, setCoverLetter] = useState("");
     const [urlCV, setUrlCV] = useState("");
     const navigate = useNavigate();
+
+    // Reset form when modal closes
+    useEffect(() => {
+        if (!isModalOpen) {
+            setCoverLetter("");
+            setUrlCV("");
+            if (jobDetail?._id) {
+                localStorage.removeItem(`apply_form_${jobDetail._id}`);
+            }
+        }
+    }, [isModalOpen, jobDetail]);
+
+    // Load saved form data when modal opens
+    useEffect(() => {
+        if (isModalOpen && isAuthenticated && jobDetail?._id) {
+            const savedData = localStorage.getItem(`apply_form_${jobDetail._id}`);
+            if (savedData) {
+                const { coverLetter: savedCoverLetter, urlCV: savedUrlCV } = JSON.parse(savedData);
+                setCoverLetter(savedCoverLetter || "");
+                setUrlCV(savedUrlCV || "");
+            }
+        }
+    }, [isModalOpen, isAuthenticated, jobDetail]);
+
+    // Save form data when it changes
+    useEffect(() => {
+        if (isModalOpen && isAuthenticated && jobDetail?._id) {
+            const formData = {
+                coverLetter,
+                urlCV
+            };
+            localStorage.setItem(`apply_form_${jobDetail._id}`, JSON.stringify(formData));
+        }
+    }, [coverLetter, urlCV, isModalOpen, isAuthenticated, jobDetail]);
+
+    const handleClose = () => {
+        setCoverLetter("");
+        setUrlCV("");
+        if (jobDetail?._id) {
+            localStorage.removeItem(`apply_form_${jobDetail._id}`);
+        }
+        setIsModalOpen(false);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -27,7 +70,7 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
         }
 
         if (!isAuthenticated) {
-            setIsModalOpen(false);
+            handleClose();
             navigate(`/login?callback=${window.location.href}`);
         } else {
             if (jobDetail) {
@@ -35,7 +78,7 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
                     const res = await callCreateResume(urlCV, jobDetail?.company?._id, jobDetail?._id, coverLetter);
                     if (res.data) {
                         alert("Ứng tuyển thành công!");
-                        setIsModalOpen(false);
+                        handleClose();
                     } else {
                         alert(res.message || 'Có lỗi xảy ra');
                     }
@@ -78,7 +121,7 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
     return (
         <Dialog
             open={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
+            onClose={handleClose}
             className="relative z-[999]"
         >
             <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[999]" aria-hidden="true" />
@@ -183,7 +226,7 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
                                     <div className="flex justify-end space-x-4">
                                         <button
                                             type="button"
-                                            onClick={() => setIsModalOpen(false)}
+                                            onClick={handleClose}
                                             className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-medium transition-colors"
                                         >
                                             Hủy
@@ -246,7 +289,10 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
                                             <CustomButton
                                                 htmlType="button"
                                                 icon={<LogIn className="mr-2 h-5 w-5" />}
-                                                onClick={() => navigate(`/login?callback=${window.location.href}`)}
+                                                onClick={() => {
+                                                    handleClose();
+                                                    navigate(`/login?callback=${window.location.href}`);
+                                                }}
                                                 className="w-full rounded-lg py-3 text-lg font-medium"
                                             >
                                                 Đăng Nhập Ngay
