@@ -32,3 +32,15 @@ export const callActivateAccount = (email, otp) => {
 export const getAppliedJobs = async () => {
     return axios.post('/resumes/by-user');
 };
+
+export const callCreateCompany = (name, address, description, logo, token) => {
+    return axios.post(
+      "/companies",
+      { name, address, description, logo },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  };
