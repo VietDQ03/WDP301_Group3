@@ -38,7 +38,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
           logo: job.company.logo
         },
         location: job.location,
-        salary: new Intl.NumberFormat("vi-VN").format(job.salary) + " đ",
+        salary: new Intl.NumberFormat("vi-VN").format(job.salary),
         level: job.level,
         quantity: job.quantity,
         status: job.isActive ? "ACTIVE" : "INACTIVE",
