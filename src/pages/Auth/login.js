@@ -17,7 +17,7 @@ function LoginPage() {
     try {
       const result = await dispatch(loginUser({ username, password })).unwrap();
       console.log("Login Result:", result);
-      
+
       // Kiểm tra data từ result
       if (result?.user?.role) {
         const roleName = result.user.role.name;
@@ -105,9 +105,16 @@ function LoginPage() {
               />
             </div>
 
+            <div className="flex justify-between items-center text-sm text-gray-600">
+              <span></span>
+              <a href="/forgot-password" className="text-blue-500 hover:underline">
+                Quên mật khẩu?
+              </a>
+            </div>
+
             {/* Submit Button */}
-            <CustomButton 
-              style={{ width: '100%' }} 
+            <CustomButton
+              style={{ width: '100%' }}
               onClick={handleLogin}
               disabled={isLoading}
             >

@@ -24,6 +24,7 @@ function RegisterPage() {
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [userEmail, setUserEmail] = useState(""); // Lưu email để xác thực OTP
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,36 +32,36 @@ function RegisterPage() {
   };
 
   const validateForm = () => {
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
-      return false;
-    }
+    let newErrors = {};
+  
+    if (!formData.name) newErrors.name = "Vui lòng nhập tên của bạn.";
+    if (!formData.email) newErrors.email = "Vui lòng nhập email.";
+    if (!formData.password) newErrors.password = "Vui lòng nhập mật khẩu.";
+    if (!formData.confirmPassword) newErrors.confirmPassword = "Vui lòng nhập lại mật khẩu.";
+    if (!formData.age) newErrors.age = "Vui lòng nhập tuổi của bạn.";
+    if (!formData.gender) newErrors.gender = "Vui lòng chọn giới tính.";
   
     if (formData.password !== formData.confirmPassword) {
-      alert("Mật khẩu và xác nhận mật khẩu không khớp!");
-      return false;
+      newErrors.confirmPassword = "Mật khẩu không khớp.";
     }
   
     if (formData.password.length < 6) {
-      alert("Mật khẩu phải có ít nhất 6 ký tự!");
-      return false;
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự.";
     }
   
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      alert("Email không hợp lệ!");
-      return false;
+      newErrors.email = "Email không hợp lệ.";
     }
   
-    const uppercaseRegex = /[A-Z]/; // Kiểm tra chữ in hoa
-    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/; // Kiểm tra ký tự đặc biệt
-  
+    const uppercaseRegex = /[A-Z]/;
+    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
     if (!uppercaseRegex.test(formData.password) || !specialCharRegex.test(formData.password)) {
-      alert("Mật khẩu phải chứa ít nhất một chữ cái in hoa và một ký tự đặc biệt!");
-      return false;
+      newErrors.password = "Mật khẩu phải chứa ít nhất một chữ cái in hoa và một ký tự đặc biệt.";
     }
   
-    return true;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleRegister = async () => {
@@ -143,6 +144,7 @@ function RegisterPage() {
                     onChange={handleChange}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
+                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 </div>
 
                 {/* Email Input */}
@@ -159,6 +161,7 @@ function RegisterPage() {
                     onChange={handleChange}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
+                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                 </div>
 
                 {/* Password Input */}
@@ -175,6 +178,7 @@ function RegisterPage() {
                     onChange={handleChange}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
+                    {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
                 </div>
 
                 {/* Confirm Password Input */}
@@ -191,6 +195,7 @@ function RegisterPage() {
                     onChange={handleChange}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
+                  {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
                 </div>
 
                 {/* Age Input */}
@@ -207,6 +212,7 @@ function RegisterPage() {
                     onChange={handleChange}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
+                  {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
                 </div>
 
                 {/* Gender Input */}
@@ -226,6 +232,7 @@ function RegisterPage() {
                     <option value="Female">Nữ</option>
                     <option value="Other">Khác</option>
                   </select>
+                  {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}
                 </div>
 
                 {/* Address Input */}
