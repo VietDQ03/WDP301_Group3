@@ -418,7 +418,6 @@ const ResumePage = () => {
                     rowClassName="hover:bg-gray-50 transition-colors cursor-pointer"
                     onRow={(record) => ({
                       onClick: () => {
-                        console.log("Clicked row:", record);
                       },
                     })}
                   />
