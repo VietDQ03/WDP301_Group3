@@ -64,11 +64,6 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
             return;
         }
 
-        if (!coverLetter.trim()) {
-            alert("Vui lòng viết thư ứng tuyển!");
-            return;
-        }
-
         if (!isAuthenticated) {
             handleClose();
             navigate(`/login?callback=${window.location.href}`);

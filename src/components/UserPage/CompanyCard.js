@@ -59,8 +59,6 @@ const CompanyCard = ({ showPagination = true }) => {
     }, []);
 
     useEffect(() => {
-        console.log("Pagination state:", pagination);
-        console.log("Updated companies:", companies);
 
     }, [pagination, companies]);
 
