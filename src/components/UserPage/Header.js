@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Dropdown } from 'antd';
@@ -22,6 +22,7 @@ const NavItem = ({ Icon, text, path, onClick }) => {
     }
   };
 
+
   return (
     <li>
       <Link
@@ -44,6 +45,12 @@ const Header = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+  const handleLogout = useCallback(() => {
+    dispatch(logout());
+    navigate('/', { replace: true });
+  }, [dispatch, navigate]);
+
 
   const navItems = [
     {
@@ -70,9 +77,7 @@ const Header = () => {
         key: 'logout',
         icon: <LogOut size={16} />,
         label: 'Đăng xuất',
-        onClick: () => {
-          dispatch(logout());
-        }
+        onClick: handleLogout
       }
     ];
 
@@ -167,9 +172,8 @@ const Header = () => {
 
           {/* Mobile Navigation */}
           <div
-            className={`${
-              isMobileMenuOpen ? 'block' : 'hidden'
-            } md:hidden mt-4 transition-all duration-300 ease-in-out`}
+            className={`${isMobileMenuOpen ? 'block' : 'hidden'
+              } md:hidden mt-4 transition-all duration-300 ease-in-out`}
           >
             <nav>
               <ul className="flex flex-col gap-2">
