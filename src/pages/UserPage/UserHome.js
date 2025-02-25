@@ -5,7 +5,6 @@ import CompanyCard from "../../components/UserPage/CompanyCard";
 import Header from "../../components/UserPage/Header";
 import Footer from "../../components/UserPage/Footer";
 import { Input, Form } from "antd";
-import CustomButton from "../../components/Other/CustomButton";
 import { Select } from "antd";
 
 const { Option } = Select;
@@ -14,30 +13,35 @@ const UserHome = () => {
   const [form] = Form.useForm();
   const [searchFilters, setSearchFilters] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [location, setLocation] = useState(undefined);
 
-  // Debounce effect for realtime search
   useEffect(() => {
     const timer = setTimeout(() => {
-      setSearchFilters({ name: searchTerm });
+      const newFilters = {};
+      
+      if (searchTerm) {
+        newFilters.name = searchTerm;
+      }
+      
+      if (location) {
+        newFilters.location = location;
+      }
+
+      setSearchFilters(newFilters);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  const onFinish = (values) => {
-    const updatedFilters = { ...values };
-  
-    if (values.location === "ALL") {
-      delete updatedFilters.location;
-    }
-  
-    setSearchFilters(updatedFilters);
-  };
+  }, [searchTerm, location]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
     form.setFieldsValue({ name: value });
+  };
+
+  const handleLocationChange = (value) => {
+    setLocation(value);
+    form.setFieldsValue({ location: value });
   };
 
   return (
@@ -53,7 +57,7 @@ const UserHome = () => {
             Khám phá hàng nghìn cơ hội việc làm từ các công ty hàng đầu
           </p>
 
-          <Form form={form} onFinish={onFinish} layout="vertical">
+          <Form form={form} layout="vertical">
             <div className="flex flex-col md:flex-row bg-white p-4 rounded-lg shadow-md gap-4">
               <Form.Item name="name" className="flex-grow m-0">
                 <Input
@@ -64,31 +68,26 @@ const UserHome = () => {
                 />
               </Form.Item>
 
-              <div>
-                      <Form.Item name="location" className="mb-0">
-                        <Select
-                          placeholder="Chọn địa điểm"
-                          className="h-11 w-full"
-                          allowClear
-                        >    
-                          <Option value="ALL">Tất cả</Option>
-                          <Option value="HANOI">Hà Nội</Option>
-                          <Option value="HOCHIMINH">Hồ Chí Minh</Option>
-                          <Option value="DANANG">Đà Nẵng</Option>
-                          <Option value="OTHER">Khác</Option>
-                        </Select>
-                      </Form.Item>
-                    </div>
-
-              <Form.Item className="m-0">
-                <CustomButton
-                  type="primary"
-                  htmlType="submit"
-                  className="h-12 px-6 rounded-lg bg-blue-500 hover:bg-blue-600 transition"
-                >
-                  Tìm kiếm
-                </CustomButton>
-              </Form.Item>
+              <div className="md:w-40">
+                <Form.Item name="location" className="mb-0">
+                  <Select
+                    placeholder="Chọn địa điểm"
+                    className="h-12 rounded-lg"
+                    allowClear
+                    onChange={handleLocationChange}
+                    value={location}
+                    style={{ 
+                      height: '48px',
+                      borderRadius: '0.5rem' // 8px border radius giống với rounded-lg
+                    }}
+                  >    
+                    <Option value="HANOI">Hà Nội</Option>
+                    <Option value="HOCHIMINH">Hồ Chí Minh</Option>
+                    <Option value="DANANG">Đà Nẵng</Option>
+                    <Option value="OTHER">Khác</Option>
+                  </Select>
+                </Form.Item>
+              </div>
             </div>
           </Form>
         </div>
