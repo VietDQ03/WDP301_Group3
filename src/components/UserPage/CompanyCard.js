@@ -8,44 +8,32 @@ const CompanyCard = ({ showPagination = true }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [current, setCurrent] = useState(1);
     const [pageSize, setPageSize] = useState(4);
-    const [total, setTotal] = useState(0);
-    const [companies, setCompanies] = useState([]);
-    const [pagination, setPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 0
-    });
+    const [allCompanies, setAllCompanies] = useState([]); // Lưu trữ tất cả companies
+    const [displayedCompanies, setDisplayedCompanies] = useState([]); // Companies được hiện thị theo trang
 
     const navigate = useNavigate();
 
-    const fetchCompanies = async (params = {}) => {
+    const fetchCompanies = async () => {
         setIsLoading(true);
         try {
-            const searchParams = {
-                current: params.current || pagination.current,
-                pageSize: params.pageSize || pagination.pageSize,
-            };
-
-            if (params.name?.trim()) searchParams.name = params.name.trim();
-            if (params.address?.trim()) searchParams.address = params.address.trim();
-
-            const response = await companyApi.getAll(searchParams);
+            const response = await companyApi.getAll({ pageSize: 1000 }); // Lấy số lượng lớn để đảm bảo lấy hết
 
             if (response?.data) {
-                const { result, meta } = response.data;
-                const dataWithKeys = result.map((item, index) => ({
-                    ...item,
-                    key: item._id,
-                    stt: index + 1 + ((meta.current - 1) * meta.pageSize)
-                }));
+                const { result } = response.data;
+                // Lọc các công ty active
+                const activeCompanies = result
+                    .filter(company => company.isActive)
+                    .map((item, index) => ({
+                        ...item,
+                        key: item._id,
+                        stt: index + 1
+                    }));
 
-                setCompanies(dataWithKeys);
-                setPagination({
-                    current: meta.current,
-                    pageSize: meta.pageSize,
-                    total: meta.total,
-                });
-                setTotal(meta.total);
+                setAllCompanies(activeCompanies);
+                
+                // Phân trang cho lần hiển thị đầu tiên
+                const firstPageCompanies = activeCompanies.slice(0, pageSize);
+                setDisplayedCompanies(firstPageCompanies);
             }
         } catch (error) {
             message.error('Không thể tải danh sách công ty');
@@ -55,27 +43,26 @@ const CompanyCard = ({ showPagination = true }) => {
     };
 
     useEffect(() => {
-        fetchCompanies({ current, pageSize });
+        fetchCompanies();
     }, []);
 
-    useEffect(() => {
-
-    }, [pagination, companies]);
-
+    // Xử lý phân trang
     const handleOnchangePage = (currentPage, newPageSize) => {
         setCurrent(currentPage);
         setPageSize(newPageSize);
-
-        fetchCompanies({ current: currentPage, pageSize: newPageSize });
+        
+        // Tính toán start và end index cho trang hiện tại
+        const startIndex = (currentPage - 1) * newPageSize;
+        const endIndex = startIndex + newPageSize;
+        
+        // Cập nhật companies được hiển thị
+        const newDisplayedCompanies = allCompanies.slice(startIndex, endIndex);
+        setDisplayedCompanies(newDisplayedCompanies);
     };
 
     const handleViewDetailCompany = (item) => {
         navigate(`/companies/${item._id}`);
     };
-
-    useEffect(() => {
-        fetchCompanies({ current, pageSize });
-    }, [current, pageSize]);
 
     return (
         <div className="p-8 bg-gray-100 rounded-lg shadow-md">
@@ -88,7 +75,7 @@ const CompanyCard = ({ showPagination = true }) => {
                         </div>
                     </Col>
 
-                    {companies?.map(item => (
+                    {displayedCompanies.map(item => (
                         <Col span={24} md={6} key={item._id}>
                             <Card size="small" hoverable onClick={() => handleViewDetailCompany(item)}>
                                 <div className="flex flex-col items-center p-2">
@@ -109,18 +96,18 @@ const CompanyCard = ({ showPagination = true }) => {
                         </Col>
                     ))}
 
-                    {!companies?.length && !isLoading && (
+                    {!displayedCompanies?.length && !isLoading && (
                         <div className="w-full flex justify-center items-center p-6">
                             <Empty description="Không có dữ liệu" />
                         </div>
                     )}
                 </Row>
 
-                {showPagination && (
+                {showPagination && allCompanies.length > 0 && (
                     <div className="mt-6 flex justify-center">
                         <Pagination
                             current={current}
-                            total={total}
+                            total={allCompanies.length}
                             pageSize={pageSize}
                             responsive
                             onChange={handleOnchangePage}
