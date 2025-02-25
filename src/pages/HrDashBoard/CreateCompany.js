@@ -1,97 +1,90 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Layout } from "antd";
-import {
-  PlusOutlined,
-  EnvironmentOutlined,
-  EditOutlined,
-  EyeOutlined,
-  UploadOutlined,
-} from "@ant-design/icons";
+import { Layout, Form, Input, Select, DatePicker, Modal } from "antd";
+import { Pencil, MapPin, Eye, Upload, Plus, FileText, Building2 } from 'lucide-react';
+import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import { callCreateCompany, callUploadSingleFile } from "../../api/UserApi/UserApi";
-import CustomButton from "../../components/Other/CustomButton";
-import { v4 as uuidv4 } from "uuid";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const { Content } = Layout;
+const { Option } = Select;
 
 const CreateCompanyForm = () => {
+  const [form] = Form.useForm();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
     description: "",
     logo: ""
   });
-
-  const [dataLogo, setDataLogo] = useState("");
   const [collapsed, setCollapsed] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
   };
+
+  const renderLabel = (icon, label) => (
+    <div className="flex items-center gap-2 text-gray-700">
+      {icon}
+      <span>{label}</span>
+    </div>
+  );
 
   const handleUploadFileLogo = async ({ target }) => {
     const file = target.files[0];
     if (!file) return;
-    console.log(file)
 
     try {
       const res = await callUploadSingleFile(file, "company");
-
-      console.log("🔹 API Response:", res);
-      console.log("🔹 API Response Data:", res.data);
-
       if (res.data && res.data.url) {
-        const newLogo = [
-          {
-            name: res.data.url,
-            uid: uuidv4(),
-            file: file,
-          },
-        ];
-        setDataLogo(newLogo);
+        setFormData(prev => ({
+          ...prev,
+          logo: res.data.url
+        }));
+        showToast("Logo uploaded successfully", "success");
       } else {
-        console.error("❌ Không tìm thấy URL ảnh trong response.");
+        showToast("Could not upload logo, please try again", "error");
       }
     } catch (error) {
-      console.error("❌ Lỗi khi upload:", error);
+      showToast("Error occurred while uploading logo", "error");
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("Logo:", dataLogo);
-
+  const handleSubmit = async () => {
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("address", formData.address);
-      formDataToSend.append("description", formData.description);
+      const values = await form.validateFields();
+      
+      if (!formData.logo) {
+        showToast("Please upload a company logo!", "error");
+        return;
+      }
 
+      const response = await callCreateCompany(
+        values.name.trim(),
+        values.address.trim(),
+        values.description.trim(),
+        formData.logo
+      );
 
-      formDataToSend.append("logo", dataLogo[0].name);
-
-
-      const response = await callCreateCompany(formDataToSend);
-      console.log("Company created:", response.data);
-      alert("Yêu cầu tạo công ty đã được gửi thành công vui lòng đợi xác minh");
-      navigate("/dashboard");
-
-      setFormData({ name: "", address: "", description: "", logo: "" });
+      if (response && response.data) {
+        showToast("Company creation request sent successfully!", "success");
+        setTimeout(() => navigate("/dashboard"), 2000);
+      }
     } catch (error) {
-      console.error("Lỗi khi tạo công ty:", error);
+      const errorMessage = error.response?.data?.message || "Error occurred while creating company";
+      showToast(errorMessage, "error");
     }
   };
 
   return (
     <Layout className="min-h-screen flex flex-row">
-      <div
-        className={`transition-all duration-300 ${collapsed ? "w-20" : "w-[255px]"
-          } flex-shrink-0`}
-      >
+      <div className={`transition-all duration-300 ${collapsed ? "w-20" : "w-[255px]"}`}>
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       </div>
 
@@ -99,83 +92,108 @@ const CreateCompanyForm = () => {
         <Layout>
           <Header collapsed={collapsed} setCollapsed={setCollapsed} />
           <Content className="m-6">
-            <div className="max-w-screen-2xl mx-auto">
-              <div className="max-w-lg mx-auto bg-white shadow-lg rounded-xl p-8">
+            <AnimatePresence>
+              {toast.show && (
+                <motion.div
+                  initial={{ opacity: 0, y: -50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -50 }}
+                  className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg ${
+                    toast.type === 'error' ? 'bg-red-500' : 'bg-green-500'
+                  } text-white flex items-center`}
+                >
+                  <span>{toast.message}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="max-w-screen-xl mx-auto">
+              <div className="bg-white shadow-lg rounded-xl p-8">
                 <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-                  Create Company
+                  {renderLabel(<Building2 className="w-8 h-8 text-blue-600" />, "Create New Company")}
                 </h1>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  {/* Input: Company Name */}
-                  <div className="relative">
-                    <EditOutlined className="absolute left-3 top-3 text-gray-500 text-lg" />
-                    <input
-                      type="text"
-                      name="name"
-                      placeholder="Company Name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Input: Address */}
-                  <div className="relative">
-                    <EnvironmentOutlined className="absolute left-3 top-3 text-gray-500 text-lg" />
-                    <input
-                      type="text"
-                      name="address"
-                      placeholder="Address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      className="w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Input: Description */}
-                  <div className="relative">
-                    <EyeOutlined className="absolute left-3 top-3 text-gray-500 text-lg" />
-                    <textarea
-                      name="description"
-                      placeholder="Description"
-                      value={formData.description}
-                      onChange={handleChange}
-                      className="w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none h-32 resize-none"
-                    ></textarea>
-                  </div>
-
-                  {/* Input: Upload Logo */}
-                  <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Tải lên logo công ty
-                    </label>
-                    <div className="relative">
-                      <UploadOutlined className="absolute left-3 top-3 text-gray-500 text-lg" />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleUploadFileLogo}
-                        className="w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      />
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Vui lòng tải lên logo của công ty (hỗ trợ file ảnh PNG, JPG).
-                    </p>
-                    {dataLogo.length > 0 && (
-                      <p className="text-green-600 mt-1">
-                        Logo đã được tải lên: {dataLogo[0].name}
-                      </p>
-                    )}
-                  </div>
-
-                  <CustomButton
-                    htmlType="submit"
-                    icon={<PlusOutlined />}
-                    className="w-full"
+                <Form
+                  form={form}
+                  layout="vertical"
+                  className="space-y-6"
+                  onFinish={handleSubmit}
+                >
+                  <Form.Item
+                    name="name"
+                    label={renderLabel(<Pencil className="w-5 h-5" />, "Company Name")}
+                    rules={[{ required: true, message: 'Please input company name!' }]}
                   >
-                    Create Company
-                  </CustomButton>
-                </form>
+                    <Input 
+                      placeholder="Enter company name"
+                      className="py-2"
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="address"
+                    label={renderLabel(<MapPin className="w-5 h-5" />, "Address")}
+                    rules={[{ required: true, message: 'Please input company address!' }]}
+                  >
+                    <Input 
+                      placeholder="Enter company address"
+                      className="py-2"
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="description"
+                    label={renderLabel(<FileText className="w-5 h-5" />, "Description")}
+                    rules={[{ required: true, message: 'Please input company description!' }]}
+                  >
+                    <ReactQuill
+                      theme="snow"
+                      className="h-64"
+                      placeholder="Enter detailed description about the company"
+                    />
+                  </Form.Item>
+
+                  <div className="space-y-2">
+                    <label className="block">
+                      {renderLabel(<Upload className="w-5 h-5" />, "Company Logo")}
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      <label className="cursor-pointer px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                        <Upload className="w-5 h-5" />
+                        <span>Upload Logo</span>
+                        <input
+                          type="file"
+                          onChange={handleUploadFileLogo}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                      </label>
+                      {formData.logo && (
+                        <span className="text-green-600">
+                          Logo uploaded successfully
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-4 mt-8">
+                    <button
+                      type="button"
+                      onClick={() => navigate("/dashboard")}
+                      className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                    >
+                      <Plus className="w-5 h-5" />
+                      Create Company
+                    </button>
+                  </div>
+                </Form>
               </div>
             </div>
           </Content>

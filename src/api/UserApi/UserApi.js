@@ -38,9 +38,12 @@ export const getAppliedJobs = async () => {
     return axios.post('/resumes/by-user');
 };
 
-export const callCreateCompany = (formDataToSend) => {
-    console.log("🔹 FormData gửi lên BE:");
-    for (let pair of formDataToSend.entries()) {
-      console.log(pair[0], pair[1]);
-    }    return axios.post("/companies", formDataToSend);
+// Trong file UserApi.js
+export const callCreateCompany = (name, address, description, logo) => {
+    return axios.post('/companies', { 
+        name,
+        address,
+        description,
+        logo
+    });
 };
