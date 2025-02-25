@@ -12,15 +12,20 @@ export const callCreateResume = (url, companyId, jobId, description) => {
 
 export const callUploadSingleFile = (file, folderType) => {
     const bodyFormData = new FormData();
-    bodyFormData.append('fileUpload', file);
+    bodyFormData.append("fileUpload", file);
+
+    console.log("🔹 Dữ liệu FormData trước khi gửi:");
+    for (let pair of bodyFormData.entries()) {
+        console.log(pair[0], pair[1]); // Kiểm tra dữ liệu trong FormData
+    }
 
     return axios({
-        method: 'post',
-        url: '/files/upload',
+        method: "post",
+        url: "/files/upload",
         data: bodyFormData,
         headers: {
             "Content-Type": "multipart/form-data",
-            "folder_type": folderType
+            "folder_type": folderType,
         },
     });
 };
@@ -33,14 +38,9 @@ export const getAppliedJobs = async () => {
     return axios.post('/resumes/by-user');
 };
 
-export const callCreateCompany = (name, address, description, logo, token) => {
-    return axios.post(
-      "/companies",
-      { name, address, description, logo },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-  };
+export const callCreateCompany = (formDataToSend) => {
+    console.log("🔹 FormData gửi lên BE:");
+    for (let pair of formDataToSend.entries()) {
+      console.log(pair[0], pair[1]);
+    }    return axios.post("/companies", formDataToSend);
+};
