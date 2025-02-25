@@ -6,6 +6,9 @@ import Header from "../../components/UserPage/Header";
 import Footer from "../../components/UserPage/Footer";
 import { Input, Form } from "antd";
 import CustomButton from "../../components/Other/CustomButton";
+import { Select } from "antd";
+
+const { Option } = Select;
 
 const UserHome = () => {
   const [form] = Form.useForm();
@@ -22,7 +25,13 @@ const UserHome = () => {
   }, [searchTerm]);
 
   const onFinish = (values) => {
-    setSearchFilters(values);
+    const updatedFilters = { ...values };
+  
+    if (values.location === "ALL") {
+      delete updatedFilters.location;
+    }
+  
+    setSearchFilters(updatedFilters);
   };
 
   const handleSearchChange = (e) => {
@@ -54,6 +63,22 @@ const UserHome = () => {
                   value={searchTerm}
                 />
               </Form.Item>
+
+              <div>
+                      <Form.Item name="location" className="mb-0">
+                        <Select
+                          placeholder="Chọn địa điểm"
+                          className="h-11 w-full"
+                          allowClear
+                        >    
+                          <Option value="ALL">Tất cả</Option>
+                          <Option value="HANOI">Hà Nội</Option>
+                          <Option value="HOCHIMINH">Hồ Chí Minh</Option>
+                          <Option value="DANANG">Đà Nẵng</Option>
+                          <Option value="OTHER">Khác</Option>
+                        </Select>
+                      </Form.Item>
+                    </div>
 
               <Form.Item className="m-0">
                 <CustomButton
