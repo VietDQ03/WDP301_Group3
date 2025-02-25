@@ -24,7 +24,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
       const response = await jobApi.getAll({
         page: params.current || 1,
         pageSize: params.pageSize || 10,
-        ...filters, // 🟢 Áp dụng bộ lọc vào API
+        ...filters, // 🟢 
         ...params,
       });
 
