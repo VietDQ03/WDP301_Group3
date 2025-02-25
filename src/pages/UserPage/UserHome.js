@@ -1,18 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./UserHome.css";
 import JobCard from "../../components/UserPage/JobCard";
 import CompanyCard from "../../components/UserPage/CompanyCard";
 import Header from "../../components/UserPage/Header";
 import Footer from "../../components/UserPage/Footer";
-import { Input,  Form } from "antd";
+import { Input, Form } from "antd";
 import CustomButton from "../../components/Other/CustomButton";
 
 const UserHome = () => {
   const [form] = Form.useForm();
   const [searchFilters, setSearchFilters] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Debounce effect for realtime search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchFilters({ name: searchTerm });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const onFinish = (values) => {
     setSearchFilters(values);
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    form.setFieldsValue({ name: value });
   };
 
   return (
@@ -34,6 +50,8 @@ const UserHome = () => {
                 <Input
                   placeholder="Nhập tên việc làm"
                   className="h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 transition"
+                  onChange={handleSearchChange}
+                  value={searchTerm}
                 />
               </Form.Item>
 

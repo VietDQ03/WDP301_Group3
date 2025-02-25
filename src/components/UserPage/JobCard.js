@@ -1,12 +1,12 @@
-import { jobApi } from "../../api/AdminPageAPI/jobAPI";
-import { LOCATION_LIST, getLocationName } from "../../config/ultil";
-import { EnvironmentOutlined, ThunderboltOutlined } from "@ant-design/icons";
-import { Card, Col, Empty, Pagination, Row, Spin, message } from "antd";
-import { useState, useEffect } from "react";
-import { isMobile } from "react-device-detect";
-import { Link, useNavigate } from "react-router-dom";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import React, { useState, useEffect } from 'react';
+import { Card, Col, Empty, Pagination, Row, Spin, message } from 'antd';
+import { EnvironmentOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { Link, useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { isMobile } from 'react-device-detect';
+import { jobApi } from '../../api/AdminPageAPI/jobAPI';
+import { getLocationName } from '../../config/ultil';
 
 dayjs.extend(relativeTime);
 
@@ -14,24 +14,25 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [current, setCurrent] = useState(1);
   const [pageSize, setPageSize] = useState(6);
-  const [total, setTotal] = useState(0);
-  const [jobs, setJobs] = useState([]);
+  const [allJobs, setAllJobs] = useState([]);
   const navigate = useNavigate();
 
-  const fetchJobs = async (params = {}) => {
+  const fetchAllJobs = async () => {
     try {
       setIsLoading(true);
       const response = await jobApi.getAll({
-        page: params.current || 1,
-        pageSize: params.pageSize || 10,
-        ...filters, // 🟢 Áp dụng bộ lọc vào API
-        ...params,
+        page: 1,
+        pageSize: 1000, // Fetch a large number to get all items
+        ...filters,
       });
 
-      const { result, meta } = response.data;
-      const formattedJobs = result.map((job, index) => ({
+      const { result } = response.data;
+      // Filter active jobs
+      const activeJobs = result.filter(job => job.isActive === true);
+      
+      const formattedJobs = activeJobs.map((job, index) => ({
         key: job._id,
-        stt: index + 1 + (meta.current - 1) * meta.pageSize,
+        stt: index + 1,
         name: job.name,
         company: {
           name: job.company.name,
@@ -46,10 +47,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
         updatedAt: new Date(job.updatedAt).toLocaleString(),
       }));
 
-      setJobs(formattedJobs);
-      setTotal(meta.total);
-      setCurrent(meta.current || 1);
-      setPageSize(meta.pageSize || 10);
+      setAllJobs(formattedJobs);
     } catch (error) {
       console.error("Error fetching jobs:", error);
       message.error("Có lỗi xảy ra khi tải danh sách công việc!");
@@ -59,28 +57,33 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
   };
 
   useEffect(() => {
-    fetchJobs({ current, pageSize });
-  }, [current, pageSize, filters]); // 🟢 Cập nhật dữ liệu khi filters thay đổi
+    fetchAllJobs();
+  }, [filters]);
+
+  // Get current jobs for pagination
+  const getCurrentJobs = () => {
+    const indexOfLastJob = current * pageSize;
+    const indexOfFirstJob = indexOfLastJob - pageSize;
+    return allJobs.slice(indexOfFirstJob, indexOfLastJob);
+  };
 
   const handleOnchangePage = (currentPage, newPageSize) => {
     setCurrent(currentPage);
     setPageSize(newPageSize);
-    fetchJobs({ current: currentPage, pageSize: newPageSize });
   };
 
   const handleViewDetailJob = (item) => {
     navigate(`/job/${item.key}`);
   };
 
+  const currentJobs = getCurrentJobs();
+
   return (
     <div className="p-4 bg-gray-100 rounded-lg shadow-md">
       <Spin spinning={isLoading} tip="Loading...">
         <Row gutter={[20, 20]}>
           <Col span={24}>
-            <div
-              className={`flex justify-between items-center ${isMobile ? "flex-col" : "flex-row"
-                }`}
-            >
+            <div className={`flex justify-between items-center ${isMobile ? "flex-col" : "flex-row"}`}>
               <span className="text-xl font-bold">Công Việc Mới Nhất</span>
               {!showPagination && (
                 <Link to="/job" className="text-blue-500 hover:underline">
@@ -90,7 +93,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
             </div>
           </Col>
 
-          {jobs?.map((item) => (
+          {currentJobs?.map((item) => (
             <Col span={24} md={12} key={item.key}>
               <Card size="small" hoverable onClick={() => handleViewDetailJob(item)}>
                 <div className="flex gap-4 p-2">
@@ -103,7 +106,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
                       }
                       className="w-16 h-16 object-cover rounded-md"
                       onError={(e) => {
-                        e.target.src = '/logo.png'; // Fallback nếu load ảnh bị lỗi
+                        e.target.src = '/logo.png';
                       }}
                     />
                   </div>
@@ -128,7 +131,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
             </Col>
           ))}
 
-          {!jobs?.length && !isLoading && (
+          {!currentJobs?.length && !isLoading && (
             <div className="w-full flex justify-center items-center p-6">
               <Empty description="Không có dữ liệu" />
             </div>
@@ -139,7 +142,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
           <div className="mt-6 flex justify-center">
             <Pagination
               current={current}
-              total={total}
+              total={allJobs.length}
               pageSize={pageSize}
               responsive
               onChange={handleOnchangePage}
