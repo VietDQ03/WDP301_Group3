@@ -25,7 +25,7 @@ export const callUploadSingleFile = (file, folderType) => {
         data: bodyFormData,
         headers: {
             "Content-Type": "multipart/form-data",
-            "folder_type": folderType,
+            "folder-type": folderType,
         },
     });
 };
