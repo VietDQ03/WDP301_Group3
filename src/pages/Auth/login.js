@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeftOutlined } from "@ant-design/icons"; 
 import { loginUser } from "../../redux/slices/auth";
 import CustomButton from "../../components/Other/CustomButton"
 
@@ -18,7 +19,6 @@ function LoginPage() {
       const result = await dispatch(loginUser({ username, password })).unwrap();
       console.log("Login Result:", result);
 
-      // Kiểm tra data từ result
       if (result?.user?.role) {
         const roleName = result.user.role.name;
         console.log("User Role:", roleName);
@@ -54,7 +54,15 @@ function LoginPage() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Left Section */}
-      <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-green-400 to-blue-500">
+      <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-green-400 to-blue-500 relative">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 flex items-center gap-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"
+        >
+          <ArrowLeftOutlined className="text-gray-700" />
+        </button>
+
         <img
           src="/login.png"
           alt="Login Illustration"
@@ -69,7 +77,6 @@ function LoginPage() {
             Đăng nhập
           </h1>
           <div className="space-y-4">
-            {/* Email Input */}
             <div>
               <label
                 htmlFor="username"
@@ -87,7 +94,6 @@ function LoginPage() {
               />
             </div>
 
-            {/* Password Input */}
             <div>
               <label
                 htmlFor="password"
@@ -112,16 +118,14 @@ function LoginPage() {
               </a>
             </div>
 
-            {/* Submit Button */}
             <CustomButton
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               onClick={handleLogin}
               disabled={isLoading}
             >
               {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
             </CustomButton>
 
-            {/* Error Message */}
             {errorMessage && (
               <p className="text-red-500 text-sm text-center">{errorMessage}</p>
             )}

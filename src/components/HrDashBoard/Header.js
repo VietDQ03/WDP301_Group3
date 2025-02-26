@@ -18,7 +18,11 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
   };
 
   const handleCreateCompany = () => {
-    navigate('/create-company'); // Điều hướng đến trang tạo công ty
+    navigate('/create-company');
+  };
+
+  const handleGoProfile = () => {
+    navigate('/profile');
   };
 
   const menuItems = {
@@ -28,6 +32,12 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
         icon: <HomeOutlined />,
         label: 'Trang chủ',
         onClick: () => navigate('/')
+      },
+      {
+        key: 'profile',
+        icon: <UserOutlined />,
+        label: 'Thông tin cá nhân',
+        onClick: handleGoProfile
       },
       {
         key: 'logout',

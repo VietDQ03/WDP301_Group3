@@ -3,11 +3,15 @@ import axios from "../config/axiosCustom";
 export const login = async (credentials) => {
   try {
     const response = await axios.post("/auth/login", credentials);
-    console.log("Login API Response:", response);
-    // API trả về response với cấu trúc {statusCode, message, data}
+
     if (response?.data) {
-      return response; // Trả về toàn bộ response để xử lý ở slice
+      console.log("Login API Response:", response.data.user?.isDeleted);
+      if (response.data.user?.isDeleted) {
+        throw new Error("Tài khoản của bạn đã bị vô hiệu hóa.");
+      }
+      return response;
     }
+    
     throw new Error("Invalid response format");
   } catch (error) {
     console.log("Login API Error:", error);
