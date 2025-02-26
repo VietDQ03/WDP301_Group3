@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 import { registerUser } from "../../redux/slices/auth";
 import { callActivateAccount } from "../../api/UserApi/UserApi";
 import CustomButton from "../../components/Other/CustomButton";
@@ -34,33 +35,33 @@ function RegisterPage() {
 
   const validateForm = () => {
     let newErrors = {};
-  
+
     if (!formData.name) newErrors.name = "Vui lòng nhập tên của bạn.";
     if (!formData.email) newErrors.email = "Vui lòng nhập email.";
     if (!formData.password) newErrors.password = "Vui lòng nhập mật khẩu.";
     if (!formData.confirmPassword) newErrors.confirmPassword = "Vui lòng nhập lại mật khẩu.";
     if (!formData.age) newErrors.age = "Vui lòng nhập tuổi của bạn.";
     if (!formData.gender) newErrors.gender = "Vui lòng chọn giới tính.";
-  
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Mật khẩu không khớp.";
     }
-  
+
     if (formData.password.length < 6) {
       newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự.";
     }
-  
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       newErrors.email = "Email không hợp lệ.";
     }
-  
+
     const uppercaseRegex = /[A-Z]/;
     const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
     if (!uppercaseRegex.test(formData.password) || !specialCharRegex.test(formData.password)) {
       newErrors.password = "Mật khẩu phải chứa ít nhất một chữ cái in hoa và một ký tự đặc biệt.";
     }
-  
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -115,7 +116,13 @@ function RegisterPage() {
       {!isOtpSent ? (
         <div className="flex min-h-screen bg-gray-50">
           <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-purple-400 to-pink-500">
-            <img
+            {/* Back Button */}
+            <button
+              onClick={() => navigate(-1)}
+              className="absolute top-4 left-4 flex items-center gap-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"
+            >
+              <ArrowLeftOutlined className="text-gray-700" />
+            </button>            <img
               src="/login.png"
               alt="Register Illustration"
               className="w-2/3 max-w-md rounded-lg shadow-lg"

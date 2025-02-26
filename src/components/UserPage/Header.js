@@ -74,11 +74,22 @@ const Header = () => {
   const getDropdownItems = () => {
     const baseItems = [
       {
+        key: 'profile',
+        icon: <User size={16} />,
+        label: 'Thông tin cá nhân',
+        onClick: () => {
+          navigate('/profile');
+        }
+      },
+      {
         key: 'logout',
         icon: <LogOut size={16} />,
         label: 'Đăng xuất',
-        onClick: handleLogout
-      }
+        onClick: () => {
+          dispatch(logout());
+        }
+      },
+      
     ];
 
     if (user?.role?.name === "SUPER_ADMIN") {
