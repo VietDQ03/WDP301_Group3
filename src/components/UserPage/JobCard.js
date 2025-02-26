@@ -22,7 +22,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
       setIsLoading(true);
       const response = await jobApi.getAll({
         page: 1,
-        pageSize: 1000, // Fetch a large number to get all items
+        pageSize: 1000,
         ...filters,
       });
 
@@ -57,10 +57,15 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
   };
 
   useEffect(() => {
-    fetchAllJobs();
-  }, [filters]);
+    fetchAllJobs(); // Initial fetch
 
-  // Get current jobs for pagination
+    const intervalId = setInterval(() => {
+      fetchAllJobs();
+    }, 120000); 
+
+    return () => clearInterval(intervalId);
+  }, [filters]); // Re-run when filters change
+
   const getCurrentJobs = () => {
     const indexOfLastJob = current * pageSize;
     const indexOfFirstJob = indexOfLastJob - pageSize;
@@ -79,7 +84,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
   const currentJobs = getCurrentJobs();
 
   return (
-    <div className="p-4 bg-gray-100 rounded-lg shadow-md">
+    <div className="p-4 bg-gray-100 ">
       <Spin spinning={isLoading} tip="Loading...">
         <Row gutter={[20, 20]}>
           <Col span={24}>
