@@ -65,7 +65,7 @@ const CompanyCard = ({ showPagination = true }) => {
     };
 
     return (
-        <div className="p-8 bg-gray-100 rounded-lg shadow-md">
+        <div className="p-8 bg-gray-100">
             <Spin spinning={isLoading} tip="Loading...">
                 <Row gutter={[20, 20]}>
                     <Col span={24}>
