@@ -3,7 +3,7 @@ import { Mail, Phone, Facebook } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="bg-[#3c4662] text-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Section 1 */}
@@ -48,7 +48,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-sm">
-            &copy; 2024 RABOTA. All Rights Reserved.
+            &copy; 2025 RABOTA. All Rights Reserved.
           </p>
         </div>
       </div>
