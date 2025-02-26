@@ -9,6 +9,7 @@ import Profile from '../pages/UserPage/Profile.js';
 import NotFound from '../pages/Other/NotFound.js'
 import Introduce from '../pages/UserPage/Introduce.js';
 import ChangePassword from '../pages/Other/ChangePassword.js';
+import ForgotPassword from '../pages/UserPage/ForgotPassword.js';
 
 const USER_ROUTES = [
   {
@@ -50,6 +51,10 @@ const USER_ROUTES = [
   {
     path: '/404',
     element: < NotFound/>,
+  },
+  {
+    path: '/forgot-password',
+    element: < ForgotPassword />,
   },
   {
     path: '*',

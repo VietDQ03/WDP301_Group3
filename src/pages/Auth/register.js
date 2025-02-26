@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { registerUser } from "../../redux/slices/auth";
 import { callActivateAccount } from "../../api/UserApi/UserApi";
-import CustomButton from "../../components/Other/CustomButton"
+import CustomButton from "../../components/Other/CustomButton";
+import OtpVerification from "../../components/Other/OtpVerification";
 
 function RegisterPage() {
   const dispatch = useDispatch();
@@ -24,7 +25,7 @@ function RegisterPage() {
 
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [userEmail, setUserEmail] = useState(""); // Lưu email để xác thực OTP
+  const [userEmail, setUserEmail] = useState("");
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
@@ -113,9 +114,7 @@ function RegisterPage() {
   return (
     <div className="bg-gray-50">
       {!isOtpSent ? (
-        // Form đăng ký
         <div className="flex min-h-screen bg-gray-50">
-          {/* Left Section */}
           <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-purple-400 to-pink-500">
             {/* Back Button */}
             <button
@@ -130,14 +129,12 @@ function RegisterPage() {
             />
           </div>
 
-          {/* Right Section */}
           <div className="flex-1 flex items-center justify-center p-6">
             <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
               <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
                 Đăng ký
               </h1>
               <div className="space-y-4">
-                {/* Name Input */}
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-600">
                     Tên của bạn
@@ -154,7 +151,6 @@ function RegisterPage() {
                   {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 </div>
 
-                {/* Email Input */}
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-600">
                     Email
@@ -171,7 +167,6 @@ function RegisterPage() {
                   {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                 </div>
 
-                {/* Password Input */}
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-600">
                     Mật khẩu
@@ -188,7 +183,6 @@ function RegisterPage() {
                   {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
                 </div>
 
-                {/* Confirm Password Input */}
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-600">
                     Xác nhận mật khẩu
@@ -205,7 +199,6 @@ function RegisterPage() {
                   {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
                 </div>
 
-                {/* Age Input */}
                 <div>
                   <label htmlFor="age" className="block text-sm font-medium text-gray-600">
                     Tuổi
@@ -222,7 +215,6 @@ function RegisterPage() {
                   {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
                 </div>
 
-                {/* Gender Input */}
                 <div>
                   <label htmlFor="gender" className="block text-sm font-medium text-gray-600">
                     Giới tính
@@ -242,7 +234,6 @@ function RegisterPage() {
                   {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}
                 </div>
 
-                {/* Address Input */}
                 <div>
                   <label htmlFor="address" className="block text-sm font-medium text-gray-600">
                     Địa chỉ
@@ -258,7 +249,6 @@ function RegisterPage() {
                   />
                 </div>
 
-                {/* Submit Button */}
                 <CustomButton
                   onClick={handleRegister}
                   style={{ width: '100%' }}
@@ -267,7 +257,6 @@ function RegisterPage() {
                   {isLoading ? "Đang xử lý..." : "Đăng ký"}
                 </CustomButton>
 
-                {/* Hiển thị lỗi */}
                 {error && (
                   <div className="mt-4 text-center text-red-500">
                     {error}
@@ -285,31 +274,13 @@ function RegisterPage() {
           </div>
         </div>
       ) : (
-        // Form nhập OTP
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
-            <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
-              Nhập mã OTP
-            </h1>
-            <p className="text-center text-gray-600 mb-4">
-              Vui lòng nhập mã OTP được gửi đến email <b>{userEmail}</b>
-            </p>
-            <input
-              type="text"
-              placeholder="Nhập OTP 6 số"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg text-center text-xl tracking-widest"
-            />
-            <CustomButton
-              onClick={handleVerifyOtp}
-              disabled={isVerifying}
-              className="w-full bg-purple-500 text-white py-2 rounded-lg mt-4 disabled:bg-purple-300"
-            >
-              {isVerifying ? "Đang xác thực..." : "Xác thực"}
-            </CustomButton>
-          </div>
-        </div>
+        <OtpVerification 
+          userEmail={userEmail}
+          otp={otp}
+          setOtp={setOtp}
+          handleVerifyOtp={handleVerifyOtp}
+          isVerifying={isVerifying}
+        />
       )}
     </div>
   );

@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Layout, Form, Input, Select, DatePicker, Modal } from "antd";
 import { Pencil, MapPin, Eye, Upload, Plus, FileText, Building2 } from 'lucide-react';
+import { PlusOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import { callCreateCompany, callUploadSingleFile } from "../../api/UserApi/UserApi";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import CustomButton from "../../components/Other/CustomButton";
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -21,13 +23,7 @@ const CreateCompanyForm = () => {
     logo: ""
   });
   const [collapsed, setCollapsed] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const navigate = useNavigate();
-
-  const showToast = (message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
-  };
 
   const renderLabel = (icon, label) => (
     <div className="flex items-center gap-2 text-gray-700">
@@ -47,21 +43,21 @@ const CreateCompanyForm = () => {
           ...prev,
           logo: res.data.url
         }));
-        showToast("Logo uploaded successfully", "success");
+        alert("Logo đã được tải lên thành công");
       } else {
-        showToast("Could not upload logo, please try again", "error");
+        alert("Không thể tải logo lên, vui lòng thử lại");
       }
     } catch (error) {
-      showToast("Error occurred while uploading logo", "error");
+      alert("Đã xảy ra lỗi khi tải logo lên");
     }
   };
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      
+
       if (!formData.logo) {
-        showToast("Please upload a company logo!", "error");
+        alert("Vui lòng tải lên logo công ty!");
         return;
       }
 
@@ -73,12 +69,12 @@ const CreateCompanyForm = () => {
       );
 
       if (response && response.data) {
-        showToast("Company creation request sent successfully!", "success");
-        setTimeout(() => navigate("/dashboard"), 2000);
+        alert("Yêu cầu tạo công ty đã được gửi thành công!");
+        navigate("/dashboard");
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Error occurred while creating company";
-      showToast(errorMessage, "error");
+      alert(errorMessage);
     }
   };
 
@@ -92,25 +88,10 @@ const CreateCompanyForm = () => {
         <Layout>
           <Header collapsed={collapsed} setCollapsed={setCollapsed} />
           <Content className="m-6">
-            <AnimatePresence>
-              {toast.show && (
-                <motion.div
-                  initial={{ opacity: 0, y: -50 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -50 }}
-                  className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg ${
-                    toast.type === 'error' ? 'bg-red-500' : 'bg-green-500'
-                  } text-white flex items-center`}
-                >
-                  <span>{toast.message}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             <div className="max-w-screen-xl mx-auto">
               <div className="bg-white shadow-lg rounded-xl p-8">
                 <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-                  {renderLabel(<Building2 className="w-8 h-8 text-blue-600" />, "Create New Company")}
+                  {renderLabel(<Building2 className="w-8 h-8 text-blue-600" />, "TẠO CÔNG TY MỚI")}
                 </h1>
 
                 <Form
@@ -121,57 +102,72 @@ const CreateCompanyForm = () => {
                 >
                   <Form.Item
                     name="name"
-                    label={renderLabel(<Pencil className="w-5 h-5" />, "Company Name")}
-                    rules={[{ required: true, message: 'Please input company name!' }]}
+                    label={renderLabel(<Pencil className="w-5 h-5" />, "Tên công ty")}
+                    rules={[{ required: true, message: 'Vui lòng nhập tên công ty!' }]}
                   >
-                    <Input 
-                      placeholder="Enter company name"
+                    <Input
+                      placeholder="Nhập tên công ty"
                       className="py-2"
                     />
                   </Form.Item>
 
                   <Form.Item
                     name="address"
-                    label={renderLabel(<MapPin className="w-5 h-5" />, "Address")}
-                    rules={[{ required: true, message: 'Please input company address!' }]}
+                    label={renderLabel(<MapPin className="w-5 h-5" />, "Địa chỉ công ty")}
+                    rules={[{ required: true, message: 'Vui lòng nhập địa chỉ công ty!' }]}
                   >
-                    <Input 
-                      placeholder="Enter company address"
+                    <Input
+                      placeholder="Nhập địa chi công ty"
                       className="py-2"
                     />
                   </Form.Item>
 
-                  <Form.Item
-                    name="description"
-                    label={renderLabel(<FileText className="w-5 h-5" />, "Description")}
-                    rules={[{ required: true, message: 'Please input company description!' }]}
-                  >
-                    <ReactQuill
-                      theme="snow"
-                      className="h-64"
-                      placeholder="Enter detailed description about the company"
-                    />
-                  </Form.Item>
+                  <div className="relative pb-10">
+                    <Form.Item
+                      name="description"
+                      label={renderLabel(<FileText className="w-5 h-5" />, "Mô tả công ty")}
+                      rules={[{
+                        required: true,
+                        message: 'Vui lòng nhập mô tả công ty!',
+                        style: {
+                          paddingBottom: '20px' // or any other value you prefer
+                        }
+                      }]}
+                    >
+                      <ReactQuill
+                        theme="snow"
+                        className="h-64"
+                        placeholder="Nhập mô tả về công ty của bạn"
+                      />
+                    </Form.Item>
+                  </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 ">
                     <label className="block">
-                      {renderLabel(<Upload className="w-5 h-5" />, "Company Logo")}
-                      <span className="text-red-500 ml-1">*</span>
+                      <div className="flex items-center">
+                        {renderLabel(<Upload className="w-5 h-5" />, "Logo công ty")}
+                        <span className="text-red-500 ml-1">*</span>
+                      </div>
                     </label>
                     <div className="flex items-center space-x-4">
-                      <label className="cursor-pointer px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                        <Upload className="w-5 h-5" />
-                        <span>Upload Logo</span>
-                        <input
-                          type="file"
-                          onChange={handleUploadFileLogo}
-                          accept="image/*"
-                          className="hidden"
-                        />
-                      </label>
+                      <div className="relative">
+                        <label className="cursor-pointer px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2 w-60 justify-center">
+                          <Upload className="w-5 h-5 flex-shrink-0" />
+                          <span className="truncate">
+                            {formData.logo ? formData.logo.split('-')[0] : "Tải Logo"}
+                          </span>
+                          <input
+                            type="file"
+                            onChange={handleUploadFileLogo}
+                            accept="image/*"
+                            className="absolute inset-0 w-0 h-0 opacity-0 cursor-pointer"
+                            style={{ display: 'block', visibility: 'hidden' }}
+                          />
+                        </label>
+                      </div>
                       {formData.logo && (
                         <span className="text-green-600">
-                          Logo uploaded successfully
+                          Tải logo thành công
                         </span>
                       )}
                     </div>
@@ -183,15 +179,15 @@ const CreateCompanyForm = () => {
                       onClick={() => navigate("/dashboard")}
                       className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                     >
-                      Cancel
+                      Huỷ
                     </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                    <CustomButton
+                      htmlType="submit"
+                      icon={<PlusOutlined />}
+                      className="rounded-lg"
                     >
-                      <Plus className="w-5 h-5" />
-                      Create Company
-                    </button>
+                      Tạo công ty
+                    </CustomButton>
                   </div>
                 </Form>
               </div>
