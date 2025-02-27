@@ -3,12 +3,14 @@ import { X } from 'lucide-react';
 import Header from '../../components/UserPage/Header';
 import Footer from '../../components/UserPage/Footer';
 
-// Import trực tiếp các ảnh
 import CV1 from '../../assets/CV/CV1.jpg';
-// Import các ảnh CV khác tương tự
-// import CV2 from '../../assets/CV/CV2.jpg';
-// import CV3 from '../../assets/CV/CV3.jpg';
-// ...
+import CV2 from '../../assets/CV/CV2.jpg';
+import CV3 from '../../assets/CV/CV3.jpg';
+import CV4 from '../../assets/CV/CV4.jpg';
+import CV5 from '../../assets/CV/CV5.jpg';
+import CV6 from '../../assets/CV/CV6.jpg';
+import CV7 from '../../assets/CV/CV7.jpg';
+import CV8 from '../../assets/CV/CV8.jpg';
 
 const CreateCV = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -23,44 +25,44 @@ const CreateCV = () => {
     {
       id: 2,
       title: 'CV Mẫu 2',
-      image: CV1,
-      canvaUrl: 'https://www.canva.com/templates/EAFlgpNIE60-white-simple-sales-representative-cv-resume/'
+      image: CV2,
+      canvaUrl: 'https://www.canva.com/templates/EAGQUnFrIZI-science-and-engineering-resume-in-white-black-simple-style/'
     },
     {
       id: 3,
       title: 'CV Mẫu 3',
-      image: CV1,
-      canvaUrl: 'https://www.canva.com/templates/EAFlgpNIE60-white-simple-sales-representative-cv-resume/'
+      image: CV3,
+      canvaUrl: 'https://www.canva.com/templates/EAGQgTF7iHw-marketing-and-sales-resume-in-grey-black-simple-style/'
     },
     {
       id: 4,
       title: 'CV Mẫu 4',
-      image: CV1,
-      canvaUrl: 'https://www.canva.com/templates/EAFlgpNIE60-white-simple-sales-representative-cv-resume/'
+      image: CV4,
+      canvaUrl: 'https://www.canva.com/fr_fr/modeles/EAF4v3vSWqE-beige-et-rose-simple-cv-professionnel-cv/'
     },
     {
       id: 5,
       title: 'CV Mẫu 5',
-      image: CV1,
-      canvaUrl: 'https://www.canva.com/templates/EAFlgpNIE60-white-simple-sales-representative-cv-resume/'
+      image: CV5,
+      canvaUrl: 'https://www.canva.com/templates/EAGQu2wxaAo-simple-professional-cv-resume/'
     },
     {
       id: 6,
       title: 'CV Mẫu 6',
-      image: CV1,
-      canvaUrl: 'https://www.canva.com/templates/EAFlgpNIE60-white-simple-sales-representative-cv-resume/'
+      image: CV6,
+      canvaUrl: 'https://www.canva.com/templates/EAGP2_4tAXM-professional-modern-cv-resume/'
     },
     {
       id: 7,
       title: 'CV Mẫu 7',
-      image: CV1,
-      canvaUrl: 'https://www.canva.com/templates/EAFlgpNIE60-white-simple-sales-representative-cv-resume/'
+      image: CV7,
+      canvaUrl: 'https://www.canva.com/templates/EAGQ7qQaVuE-simple-professional-cv-resume/'
     },
     {
       id: 8,
       title: 'CV Mẫu 8',
-      image: CV1,
-      canvaUrl: 'https://www.canva.com/templates/EAFlgpNIE60-white-simple-sales-representative-cv-resume/'
+      image: CV8,
+      canvaUrl: 'https://www.canva.com/templates/EAFuy_EwAJs-professional-minimalist-cv-resume/'
     },
   ];
 
