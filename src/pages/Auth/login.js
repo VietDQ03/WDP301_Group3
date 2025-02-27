@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeftOutlined } from "@ant-design/icons"; 
 import { loginUser } from "../../redux/slices/auth";
 import { sendOTP } from '../../api/authAPI';
 import { callActivateAccount } from '../../api/UserApi/UserApi';
@@ -252,7 +253,16 @@ function LoginPage() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-green-400 to-blue-500">
+      {/* Left Section */}
+      <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-green-400 to-blue-500 relative">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 flex items-center gap-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"
+        >
+          <ArrowLeftOutlined className="text-gray-700" />
+        </button>
+
         <img
           src="/login.png"
           alt="Login Illustration"
