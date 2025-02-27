@@ -83,7 +83,7 @@ const CreateCV = () => {
 
             <div className="mb-8">
               <p className="text-center text-gray-600 max-w-2xl mx-auto">
-                Chọn từ bộ sưu tập mẫu CV được thiết kế chuyên nghiệp của chúng tôi.
+                Chọn từ bộ sưu tập mẫu CV được thiết kế chuyên nghiệp của chúng tôi.<br />
                 Mỗi mẫu đều được tối ưu hóa để thu hút sự chú ý của nhà tuyển dụng.
               </p>
             </div>
