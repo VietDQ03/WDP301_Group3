@@ -10,6 +10,7 @@ import NotFound from '../pages/Other/NotFound.js'
 import Introduce from '../pages/UserPage/Introduce.js';
 import ChangePassword from '../pages/Other/ChangePassword.js';
 import ForgotPassword from '../pages/UserPage/ForgotPassword.js';
+import CreateCV from '../pages/Other/CreateCV.js';
 
 const USER_ROUTES = [
   {
@@ -47,6 +48,10 @@ const USER_ROUTES = [
   {
     path: '/introduce',
     element: < Introduce/>,
+  },
+  {
+    path: '/create-cv',
+    element: < CreateCV/>,
   },
   {
     path: '/404',

@@ -23,6 +23,22 @@ const ChangePassword = () => {
     const { user, isAuthenticated } = useSelector((state) => state.auth);
     const [loading, setLoading] = useState(false);
 
+    const validatePassword = (_, value) => {
+        if (!value) {
+            return Promise.reject();
+        }
+        if (value.length < 6) {
+            return Promise.reject("Mật khẩu phải có ít nhất 6 ký tự!");
+        }
+        if (!/[A-Z]/.test(value)) {
+            return Promise.reject("Mật khẩu phải có ít nhất 1 chữ cái in hoa!");
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
+            return Promise.reject("Mật khẩu phải có ít nhất 1 ký tự đặc biệt!");
+        }
+        return Promise.resolve();
+    };
+
     const onFinish = async (values) => {
         setLoading(true);
         try {
@@ -53,15 +69,26 @@ const ChangePassword = () => {
                                 name="oldPassword"
                                 rules={[{ required: true, message: "Vui lòng nhập mật khẩu cũ!" }]}
                             >
-                                <Input.Password prefix={<LockOutlined />} placeholder="Nhập mật khẩu cũ" />
+                                <Input.Password 
+                                    prefix={<LockOutlined />} 
+                                    placeholder="Nhập mật khẩu cũ"
+                                    size="large"  
+                                />
                             </Form.Item>
 
                             <Form.Item
                                 label="Mật khẩu mới"
                                 name="newPassword"
-                                rules={[{ required: true, message: "Vui lòng nhập mật khẩu mới!" }]}
+                                rules={[
+                                    { required: true, message: "Vui lòng nhập mật khẩu mới!" },
+                                    { validator: validatePassword }
+                                ]}
                             >
-                                <Input.Password prefix={<LockOutlined />} placeholder="Nhập mật khẩu mới" />
+                                <Input.Password  
+                                    prefix={<LockOutlined />} 
+                                    placeholder="Nhập mật khẩu mới"
+                                    size="large"
+                                />
                             </Form.Item>
 
                             <Form.Item
@@ -80,11 +107,15 @@ const ChangePassword = () => {
                                     }),
                                 ]}
                             >
-                                <Input.Password prefix={<LockOutlined />} placeholder="Xác nhận mật khẩu mới" />
+                                <Input.Password 
+                                    prefix={<LockOutlined />} 
+                                    placeholder="Xác nhận mật khẩu mới"
+                                    size="large"
+                                />
                             </Form.Item>
 
-                            <div className="flex justify-end mt-4">
-                                <CustomButton htmlType="submit" loading={loading}>
+                            <div className="flex justify-end mt-4 ">
+                                <CustomButton htmlType="submit" className={"w-full"} loading={loading}>
                                     Cập nhật
                                 </CustomButton>
                             </div>
