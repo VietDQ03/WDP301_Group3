@@ -2,7 +2,6 @@ import axios from "../../config/axiosCustom";
 
 export const permissionApi = {
     getAll: (params) => {
-        console.log("API Params:", params); // Kiểm tra params
         return axios.get('/permissions', { 
           params: {
             current: params.current || 1,
@@ -24,7 +23,6 @@ export const permissionApi = {
   },
 
   update: async (id, data) => {
-    console.log("Update Data:", data); // Kiểm tra data update
     return axios.patch(`/permissions/${id}`, data);
   },
 

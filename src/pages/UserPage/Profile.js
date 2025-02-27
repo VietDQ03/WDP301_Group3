@@ -73,7 +73,18 @@ const UserProfile = () => {
     }, [user?.company?._id]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+
+        // Thêm validation cho age
+        if (name === 'age') {
+            // Chỉ cho phép số không âm hoặc rỗng
+            if (value === '' || (parseInt(value) >= 0 && !value.includes('.'))) {
+                setFormData({ ...formData, [name]: value });
+            }
+            return;
+        }
+
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleChangePassword = () => {
@@ -252,6 +263,8 @@ const UserProfile = () => {
                                                 value={formData.age}
                                                 onChange={handleChange}
                                                 className="rounded-lg"
+                                                type="number"
+                                                min="0"
                                             />
                                         ) : (
                                             <p className="text-lg">
@@ -277,7 +290,7 @@ const UserProfile = () => {
                                             </select>
                                         ) : (
                                             <p className="text-lg">
-                                                 {displayGender(formData.gender)}
+                                                {displayGender(formData.gender)}
                                             </p>
                                         )}
                                     </div>

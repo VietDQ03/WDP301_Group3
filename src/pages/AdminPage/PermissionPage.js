@@ -166,7 +166,6 @@ const PermissionPage = () => {
   ];
 
   const handleTableChange = (newPagination, filters, sorter) => {
-    console.log("Table Change:", { newPagination, filters, sorter });
     fetchPermissions({
       ...newPagination,
       sortField: sorter.field,
@@ -176,7 +175,6 @@ const PermissionPage = () => {
   };
 
   const onFinish = (values) => {
-    console.log("Search Values:", values);
     fetchPermissions({
       ...values,
       current: 1

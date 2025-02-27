@@ -30,6 +30,16 @@ function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Thêm validation cho age
+    if (name === 'age') {
+      // Chỉ cho phép số không âm hoặc rỗng
+      if (value === '' || (parseInt(value) >= 0 && !value.includes('.'))) {
+        setFormData({ ...formData, [name]: value });
+      }
+      return;
+    }
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -118,11 +128,12 @@ function RegisterPage() {
           <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-purple-400 to-pink-500">
             {/* Back Button */}
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/login")}
               className="absolute top-4 left-4 flex items-center gap-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"
             >
               <ArrowLeftOutlined className="text-gray-700" />
-            </button>            <img
+            </button>            
+            <img
               src="/login.png"
               alt="Register Illustration"
               className="w-2/3 max-w-md rounded-lg shadow-lg"
@@ -207,6 +218,7 @@ function RegisterPage() {
                     id="age"
                     name="age"
                     type="number"
+                    min="0"
                     placeholder="Nhập tuổi của bạn"
                     value={formData.age}
                     onChange={handleChange}
@@ -274,7 +286,7 @@ function RegisterPage() {
           </div>
         </div>
       ) : (
-        <OtpVerification 
+        <OtpVerification
           userEmail={userEmail}
           otp={otp}
           setOtp={setOtp}
