@@ -94,18 +94,23 @@ const UserProfile = () => {
     const handleUpdate = async () => {
         setLoading(true);
         try {
-            const response = await axios.patch(`/users/${user._id}`, formData);
-
+            const dataToSubmit = {
+                ...formData,
+                age: formData.age === '' ? null : Number(formData.age)
+            };
+    
+            const response = await axios.patch(`/users/${user._id}`, dataToSubmit);
+    
             // Dispatch action để update user trong redux store
             dispatch(updateUser(response.data));
-
+    
             setFormData({
                 name: response.data.name || "",
                 age: response.data.age || "",
                 gender: response.data.gender || "",
                 address: response.data.address || "",
             });
-
+    
             notification.success({
                 message: 'Thành công',
                 description: 'Cập nhật thông tin thành công!',
