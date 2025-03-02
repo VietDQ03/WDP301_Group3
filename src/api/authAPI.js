@@ -5,7 +5,6 @@ export const login = async (credentials) => {
     const response = await axios.post("/auth/login", credentials);
 
     if (response?.data) {
-      console.log("Login API Response:", response.data.user?.isDeleted);
       if (response.data.user?.isDeleted) {
         throw new Error("Tài khoản của bạn đã bị vô hiệu hóa.");
       }
@@ -22,7 +21,6 @@ export const login = async (credentials) => {
 export const register = async (userData) => {
   try {
     const response = await axios.post("/auth/register", userData);
-    console.log("Register API Response:", response);
     if (response?.data) {
       return response;
     }
@@ -41,7 +39,6 @@ export const getUserProfile = (token) =>
 export const changePassword = async (data) => {
   try {
     const response = await axios.post("/auth/change-password", data);
-    console.log("Change Password API Response:", response);
     if (response?.data) {
       return response;
     }
@@ -55,7 +52,6 @@ export const changePassword = async (data) => {
 export const forgetPassword = async (data) => {
   try {
     const response = await axios.post("/auth/forget", data);
-    console.log("Forget Password API Response:", response);
     if (response?.data) {
       return response;
     }
@@ -78,7 +74,6 @@ export const sendOTP = async (email) => {
 export const sendJobNotifications = async () => {
   try {
     const response = await axios.get("/mail/SendJob");
-    console.log("Send Job Notifications API Response:", response);
     if (response?.data) {
       return response;
     }
@@ -92,7 +87,6 @@ export const sendJobNotifications = async () => {
 export const sendResumeResult = async (sendResultDto) => {
   try {
     const response = await axios.post("/mail/sendResult", sendResultDto);
-    console.log("Send Resume Result API Response:", response);
     if (response?.data) {
       return response;
     }
@@ -106,7 +100,6 @@ export const sendResumeResult = async (sendResultDto) => {
 export const checkOTP = async (email, otp) => {
   try {
     const response = await axios.post("/verification/checkOtp", { email, otp });
-    console.log("Check OTP API Response:", response);
     if (response?.data !== undefined) {
       return response.data;
     }

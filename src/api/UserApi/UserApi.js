@@ -14,11 +14,6 @@ export const callUploadSingleFile = (file, folderType) => {
     const bodyFormData = new FormData();
     bodyFormData.append("fileUpload", file);
 
-    console.log("🔹 Dữ liệu FormData trước khi gửi:");
-    for (let pair of bodyFormData.entries()) {
-        console.log(pair[0], pair[1]); // Kiểm tra dữ liệu trong FormData
-    }
-
     return axios({
         method: "post",
         url: "/files/upload",

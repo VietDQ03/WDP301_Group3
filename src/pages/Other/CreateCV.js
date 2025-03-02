@@ -83,7 +83,7 @@ const CreateCV = () => {
 
             <div className="mb-8">
               <p className="text-center text-gray-600 max-w-2xl mx-auto">
-                Chọn từ bộ sưu tập mẫu CV được thiết kế chuyên nghiệp của chúng tôi.
+                Chọn từ bộ sưu tập mẫu CV được thiết kế chuyên nghiệp của chúng tôi.<br />
                 Mỗi mẫu đều được tối ưu hóa để thu hút sự chú ý của nhà tuyển dụng.
               </p>
             </div>
@@ -132,21 +132,23 @@ const CreateCV = () => {
         <>
           <div className="fixed inset-0 bg-black/50 z-[9999]" onClick={() => setSelectedTemplate(null)} />
           <div className="fixed inset-0 flex items-center justify-center p-4 z-[9999] pointer-events-none">
-            <div className="relative bg-white rounded-xl w-full max-w-lg max-h-[90vh] shadow-2xl pointer-events-auto">
+            <div className="relative bg-white rounded-xl w-full max-w-lg overflow-hidden shadow-2xl pointer-events-auto">
               <button
                 onClick={() => setSelectedTemplate(null)}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors z-10"
               >
                 <X size={24} />
               </button>
               <div className="p-6">
                 <h2 className="text-2xl font-bold mb-4">{selectedTemplate.title}</h2>
                 <div className="flex justify-center">
-                  <img
-                    src={selectedTemplate.image}
-                    alt={selectedTemplate.title}
-                    className="max-w-[400px] h-auto object-contain rounded-lg"
-                  />
+                  <div className="relative w-full aspect-[3/4] overflow-hidden rounded-lg">
+                    <img
+                      src={selectedTemplate.image}
+                      alt={selectedTemplate.title}
+                      className="absolute inset-0 w-full h-full object-contain"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

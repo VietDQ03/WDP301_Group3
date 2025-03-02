@@ -107,10 +107,10 @@ const JobHistory = () => {
     }, [handleScroll]);
 
     const getStatusInfo = useMemo(() => (status) => ({
-        PENDING: { icon: <Clock className="w-5 h-5 text-orange-500" />, text: "đang chờ", color: "text-orange-500" },
-        APPROVED: { icon: <CheckCircle2 className="w-5 h-5 text-green-500" />, text: "phù hợp", color: "text-green-500" },
-        REJECTED: { icon: <XCircle className="w-5 h-5 text-red-500" />, text: "chưa phù hợp", color: "text-red-500" }
-    }[status] || { icon: <XCircle className="w-5 h-5 text-red-500" />, text: "chưa phù hợp", color: "text-red-500" }), []);
+        PENDING: { icon: <Clock className="w-5 h-5 text-orange-500" />, text: "Đang chờ", color: "text-orange-500" },
+        APPROVED: { icon: <CheckCircle2 className="w-5 h-5 text-green-500" />, text: "Phù hợp", color: "text-green-500" },
+        REJECTED: { icon: <XCircle className="w-5 h-5 text-red-500" />, text: "Chưa phù hợp", color: "text-red-500" }
+    }[status] || { icon: <XCircle className="w-5 h-5 text-red-500" />, text: "Chưa phù hợp", color: "text-red-500" }), []);
 
     const handleViewCV = (url) => {
         if (!url) return;
