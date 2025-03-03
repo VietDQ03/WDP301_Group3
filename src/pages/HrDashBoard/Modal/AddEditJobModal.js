@@ -38,7 +38,7 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
     const handleSubmit = async () => {
         try {
             const values = await form.validateFields();
-    
+
             // Format lại dữ liệu trước khi gửi
             const submissionData = {
                 name: values.name,
@@ -52,7 +52,7 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                 isActive: values.isActive,
                 location: values.location
             };
-    
+
             await onSubmit(submissionData);
             form.resetFields();
         } catch (error) {
@@ -216,6 +216,7 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                                 format="DD/MM/YYYY"
                                 disabledDate={disabledStartDate}
                                 placeholder="Chọn ngày bắt đầu"
+                                disabled={mode === 'edit'} 
                             />
                         </Form.Item>
 

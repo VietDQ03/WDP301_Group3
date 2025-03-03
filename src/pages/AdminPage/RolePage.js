@@ -112,7 +112,6 @@ const RolePage = () => {
 
   const handleEdit = (record) => {
     console.log("Edit record:", record);
-    // Implement edit functionality
   };
 
   const handleDelete = async (id) => {

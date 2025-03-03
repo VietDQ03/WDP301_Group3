@@ -54,8 +54,6 @@ const DashboardPage = () => {
     }
   }, [user]);
 
-  console.log(dataResumes?.data?.result)
-
   const getRecentApplications = () => {
     if (!dataResumes?.data?.result) return 0;
 

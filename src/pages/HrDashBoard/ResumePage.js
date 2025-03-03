@@ -59,8 +59,6 @@ const ResumePage = () => {
         queryParams.status = params.status;
       }
 
-      console.log('Fetching with params:', queryParams);
-
       const response = await resumeApi.findByCompany(
         user.company._id,
         queryParams
@@ -79,6 +77,7 @@ const ResumePage = () => {
           companyId: resume.companyId,
           userName: resume.userName,
           jobName: resume.jobName,
+          description: resume.description,
           createdBy: resume.createdBy,
           createdAt: new Date(resume.createdAt).toLocaleString(),
           updatedAt: new Date(resume.updatedAt).toLocaleString(),
@@ -419,7 +418,6 @@ const ResumePage = () => {
                     rowClassName="hover:bg-gray-50 transition-colors cursor-pointer"
                     onRow={(record) => ({
                       onClick: () => {
-                        console.log("Clicked row:", record);
                       },
                     })}
                   />

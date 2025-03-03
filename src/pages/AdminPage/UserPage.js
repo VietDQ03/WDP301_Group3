@@ -233,8 +233,8 @@ const UserPage = () => {
       key: "gender",
       align: "center",
       render: (gender) => (
-        <Tag color={gender === 'MALE' ? 'blue' : 'pink'}>
-          {gender === 'MALE' ? 'Nam' : 'Nữ'}
+        <Tag color={gender === 'Male' ? 'blue' : 'pink'}>
+          {gender === 'Male' ? 'Nam' : 'Nữ'}
         </Tag>
       ),
     },

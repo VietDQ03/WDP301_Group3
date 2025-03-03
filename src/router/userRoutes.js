@@ -8,6 +8,9 @@ import JobHistory from '../pages/UserPage/JobHistory.js';
 import Profile from '../pages/UserPage/Profile.js';
 import NotFound from '../pages/Other/NotFound.js'
 import Introduce from '../pages/UserPage/Introduce.js';
+import ChangePassword from '../pages/Other/ChangePassword.js';
+import ForgotPassword from '../pages/UserPage/ForgotPassword.js';
+import CreateCV from '../pages/Other/CreateCV.js';
 
 const USER_ROUTES = [
   {
@@ -17,6 +20,10 @@ const USER_ROUTES = [
   {
     path: '/profile',
     element: <Profile />,
+  },
+  {
+    path: '/change-password',
+    element: <ChangePassword />,
   },
   {
     path: '/jobhistory',
@@ -43,8 +50,16 @@ const USER_ROUTES = [
     element: < Introduce/>,
   },
   {
+    path: '/create-cv',
+    element: < CreateCV/>,
+  },
+  {
     path: '/404',
     element: < NotFound/>,
+  },
+  {
+    path: '/forgot-password',
+    element: < ForgotPassword />,
   },
   {
     path: '*',

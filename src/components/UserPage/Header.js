@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Dropdown } from 'antd';
-import { LogOut, User, Home, FileText, PlusCircle, Mail, LayoutDashboard } from 'lucide-react';
+import { LogOut, User, Home, FileText, PlusCircle, Mail, LayoutDashboard, Menu, X } from 'lucide-react';
 import { logout } from "../../redux/slices/auth";
 import LoginModal from "./LoginModal";
 import { useLocation } from "react-router-dom";
@@ -21,6 +21,7 @@ const NavItem = ({ Icon, text, path, onClick }) => {
       onClick();
     }
   };
+
 
   return (
     <li>
@@ -42,7 +43,14 @@ const Header = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+  const handleLogout = useCallback(() => {
+    dispatch(logout());
+    navigate('/', { replace: true });
+  }, [dispatch, navigate]);
+
 
   const navItems = [
     {
@@ -53,7 +61,14 @@ const Header = () => {
         window.location.reload();
       }
     },
-    { icon: FileText, text: "Tạo CV", path: "#" },
+    {
+      icon: PlusCircle,
+      text: "Tạo CV",
+      onClick: () => {
+        navigate('/create-cv');
+        window.location.reload();
+      }
+    },
     {
       icon: PlusCircle,
       text: "Đăng Tuyển",
@@ -63,8 +78,6 @@ const Header = () => {
       }
     }
   ];
-
-
 
   const getDropdownItems = () => {
     const baseItems = [
@@ -83,7 +96,8 @@ const Header = () => {
         onClick: () => {
           dispatch(logout());
         }
-      }
+      },
+      
     ];
 
     if (user?.role?.name === "SUPER_ADMIN") {
@@ -114,7 +128,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="bg-gray-900 text-white">
+     <header className="bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div
             className="flex items-center gap-4 cursor-pointer"
