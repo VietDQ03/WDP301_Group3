@@ -6,12 +6,15 @@ import { registerUser } from "../../redux/slices/auth";
 import { callActivateAccount } from "../../api/UserApi/UserApi";
 import CustomButton from "../../components/Other/CustomButton";
 import OtpVerification from "../../components/Other/OtpVerification";
+import { Eye, EyeOff } from "lucide-react";
 
 function RegisterPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(false);
   const { isLoading, error } = useSelector((state) => state.auth);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -30,16 +33,6 @@ function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Thêm validation cho age
-    if (name === 'age') {
-      // Chỉ cho phép số không âm hoặc rỗng
-      if (value === '' || (parseInt(value) >= 0 && !value.includes('.'))) {
-        setFormData({ ...formData, [name]: value });
-      }
-      return;
-    }
-
     setFormData({ ...formData, [name]: value });
   };
 
@@ -128,12 +121,11 @@ function RegisterPage() {
           <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-purple-400 to-pink-500">
             {/* Back Button */}
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate(-1)}
               className="absolute top-4 left-4 flex items-center gap-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"
             >
               <ArrowLeftOutlined className="text-gray-700" />
-            </button>            
-            <img
+            </button>            <img
               src="/login.png"
               alt="Register Illustration"
               className="w-2/3 max-w-md rounded-lg shadow-lg"
@@ -182,15 +174,24 @@ function RegisterPage() {
                   <label htmlFor="password" className="block text-sm font-medium text-gray-600">
                     Mật khẩu
                   </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Nhập mật khẩu"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
+                  <div className="relative">
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Nhập mật khẩu"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                   {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
                 </div>
 
@@ -198,15 +199,24 @@ function RegisterPage() {
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-600">
                     Xác nhận mật khẩu
                   </label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    placeholder="Nhập lại mật khẩu"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Nhập lại mật khẩu"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                   {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
                 </div>
 
@@ -218,7 +228,6 @@ function RegisterPage() {
                     id="age"
                     name="age"
                     type="number"
-                    min="0"
                     placeholder="Nhập tuổi của bạn"
                     value={formData.age}
                     onChange={handleChange}
@@ -286,7 +295,7 @@ function RegisterPage() {
           </div>
         </div>
       ) : (
-        <OtpVerification
+        <OtpVerification 
           userEmail={userEmail}
           otp={otp}
           setOtp={setOtp}
