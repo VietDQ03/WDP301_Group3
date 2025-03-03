@@ -63,14 +63,6 @@ const Header = () => {
     },
     {
       icon: PlusCircle,
-      text: "Tạo CV",
-      onClick: () => {
-        navigate('/create-cv');
-        window.location.reload();
-      }
-    },
-    {
-      icon: PlusCircle,
       text: "Đăng Tuyển",
       onClick: () => {
         navigate('/introduce');
@@ -128,54 +120,108 @@ const Header = () => {
 
   return (
     <>
-     <header className="bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div
-            className="flex items-center gap-4 cursor-pointer"
-            onClick={() => {
-              navigate('/');
-              window.location.reload();
-            }}
-          >
-            <img src="/logo.png" alt="Rabota Logo" className="h-10 w-auto" />
-            <h1 className="text-2xl font-bold">RABOTAWORKS</h1>
+      <header className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div
+              className="flex items-center gap-4 cursor-pointer"
+              onClick={() => {
+                navigate('/');
+                window.location.reload();
+              }}
+            >
+              <img src="/logo.png" alt="Rabota Logo" className="h-10 w-auto" />
+              <h1 className="text-2xl font-bold hidden sm:block">RABOTAWORKS</h1>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:block">
+              <ul className="flex items-center gap-2">
+                {navItems.map((item) => (
+                  <NavItem
+                    key={item.text}
+                    Icon={item.icon}
+                    text={item.text}
+                    path={item.path}
+                    onClick={item.onClick}
+                  />
+                ))}
+
+                {isAuthenticated ? (
+                  <li>
+                    <Dropdown
+                      menu={{ items: getDropdownItems() }}
+                      placement="bottomRight"
+                      trigger={['click']}
+                      overlayClassName="w-56"
+                    >
+                      <div className="flex items-center gap-4 cursor-pointer hover:bg-white/10 py-2 px-3 rounded-lg transition-colors">
+                        <span className="text-lg font-medium">
+                          Xin chào, {user?.name || "Admin"}
+                        </span>
+                        <div className="w-10 h-10 rounded-full bg-white/25 border-2 border-white/50 flex items-center justify-center">
+                          <User className="text-white" size={20} />
+                        </div>
+                      </div>
+                    </Dropdown>
+                  </li>
+                ) : (
+                  <NavItem Icon={User} text="Đăng nhập" path="/login" />
+                )}
+              </ul>
+            </nav>
+
+            {/* Mobile menu button */}
+            <button
+              className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
 
-          <nav>
-            <ul className="flex items-center gap-2">
-              {navItems.map((item) => (
-                <NavItem
-                  key={item.text}
-                  Icon={item.icon}
-                  text={item.text}
-                  path={item.path}
-                  onClick={item.onClick}
-                />
-              ))}
-
-              {isAuthenticated ? (
-                <li>
-                  <Dropdown
-                    menu={{ items: getDropdownItems() }}
-                    placement="bottomRight"
-                    trigger={['click']}
-                    overlayClassName="w-56"
-                  >
-                    <div className="flex items-center gap-4 cursor-pointer hover:bg-white/10 py-2 px-3 rounded-lg transition-colors">
+          {/* Mobile Navigation */}
+          <div
+            className={`${isMobileMenuOpen ? 'block' : 'hidden'
+              } md:hidden mt-4 transition-all duration-300 ease-in-out`}
+          >
+            <nav>
+              <ul className="flex flex-col gap-2">
+                {navItems.map((item) => (
+                  <NavItem
+                    key={item.text}
+                    Icon={item.icon}
+                    text={item.text}
+                    path={item.path}
+                    onClick={item.onClick}
+                  />
+                ))}
+                {isAuthenticated ? (
+                  <>
+                    <div className="py-2 px-3 border-t border-white/10">
                       <span className="text-lg font-medium">
                         Xin chào, {user?.name || "Admin"}
                       </span>
-                      <div className="w-10 h-10 rounded-full bg-white/25 border-2 border-white/50 flex items-center justify-center">
-                        <User className="text-white" size={20} />
-                      </div>
                     </div>
-                  </Dropdown>
-                </li>
-              ) : (
-                <NavItem Icon={User} text="Đăng nhập" path="/login" />
-              )}
-            </ul>
-          </nav>
+                    {getDropdownItems().map((item) => (
+                      <li key={item.key}>
+                        <button
+                          onClick={item.onClick}
+                          className="flex items-center gap-4 w-full cursor-pointer hover:bg-white/10 py-2 px-3 rounded-lg transition-colors"
+                        >
+                          {item.icon}
+                          <span className="text-lg font-medium">{item.label}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </>
+                ) : (
+                  <NavItem Icon={User} text="Đăng nhập" path="/login" />
+                )}
+              </ul>
+            </nav>
+          </div>
         </div>
       </header>
 
