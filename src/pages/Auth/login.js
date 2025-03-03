@@ -3,11 +3,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../redux/slices/auth";
 import CustomButton from "../../components/Other/CustomButton"
+import { Eye, EyeOff } from "lucide-react";
 
 function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -17,12 +19,12 @@ function LoginPage() {
     try {
       const result = await dispatch(loginUser({ username, password })).unwrap();
       console.log("Login Result:", result);
-      
+
       // Kiểm tra data từ result
       if (result?.user?.role) {
         const roleName = result.user.role.name;
         console.log("User Role:", roleName);
-  
+
         if (roleName === "SUPER_ADMIN") {
           navigate("/admin");
         } else if (roleName === "HR_ROLE") {
@@ -36,7 +38,7 @@ function LoginPage() {
       setErrorMessage(error?.message || "Đã có lỗi xảy ra");
     }
   };
-  
+
   // Vẫn giữ useEffect để handle trường hợp refresh page
   useEffect(() => {
     if (user?.role) {
@@ -95,19 +97,28 @@ function LoginPage() {
               >
                 Mật khẩu
               </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="Nhập mật khẩu của bạn"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Nhập mật khẩu của bạn"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
 
             {/* Submit Button */}
-            <CustomButton 
-              style={{ width: '100%' }} 
+            <CustomButton
+              style={{ width: '100%' }}
               onClick={handleLogin}
               disabled={isLoading}
             >

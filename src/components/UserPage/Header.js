@@ -124,7 +124,7 @@ const Header = () => {
             }}
           >
             <img src="/logo.png" alt="Rabota Logo" className="h-10 w-auto" />
-            <h1 className="text-2xl font-bold">RABOTAWORK</h1>
+            <h1 className="text-2xl font-bold">RABOTAWORKS</h1>
           </div>
 
           <nav>

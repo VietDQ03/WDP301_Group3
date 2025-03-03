@@ -4,12 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../redux/slices/auth";
 import { callActivateAccount } from "../../api/UserApi/UserApi";
 import CustomButton from "../../components/Other/CustomButton"
+import { Eye, EyeOff } from "lucide-react";
 
 function RegisterPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(false);
   const { isLoading, error } = useSelector((state) => state.auth);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -35,31 +38,31 @@ function RegisterPage() {
       alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
       return false;
     }
-  
+
     if (formData.password !== formData.confirmPassword) {
       alert("Mật khẩu và xác nhận mật khẩu không khớp!");
       return false;
     }
-  
+
     if (formData.password.length < 6) {
       alert("Mật khẩu phải có ít nhất 6 ký tự!");
       return false;
     }
-  
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       alert("Email không hợp lệ!");
       return false;
     }
-  
+
     const uppercaseRegex = /[A-Z]/; // Kiểm tra chữ in hoa
     const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/; // Kiểm tra ký tự đặc biệt
-  
+
     if (!uppercaseRegex.test(formData.password) || !specialCharRegex.test(formData.password)) {
       alert("Mật khẩu phải chứa ít nhất một chữ cái in hoa và một ký tự đặc biệt!");
       return false;
     }
-  
+
     return true;
   };
 
@@ -166,15 +169,24 @@ function RegisterPage() {
                   <label htmlFor="password" className="block text-sm font-medium text-gray-600">
                     Mật khẩu
                   </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Nhập mật khẩu"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
+                  <div className="relative">
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Nhập mật khẩu"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Confirm Password Input */}
@@ -182,15 +194,24 @@ function RegisterPage() {
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-600">
                     Xác nhận mật khẩu
                   </label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    placeholder="Nhập lại mật khẩu"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Nhập lại mật khẩu"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Age Input */}
