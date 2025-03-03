@@ -6,6 +6,7 @@ import { roleApi } from "../../api/AdminPageAPI/roleAPI";
 import EditUserModal from './Modal/EditUserModal';
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Tag, Modal } from "antd";
 import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, } from "@ant-design/icons";
+import './UserPage.css';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -34,6 +35,19 @@ const UserPage = () => {
     total: 0,
   });
 
+  // Effect để xử lý scroll khi mở/đóng modal
+  useEffect(() => {
+    if (editModalVisible) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [editModalVisible]);
+
   const fetchRoles = async (params = {}) => {
     setLoading(true);
     try {
@@ -48,7 +62,6 @@ const UserPage = () => {
         key: role._id,
       }));
 
-      // Tạo mapping object từ role._id sang role.name
       const roleMapping = {};
       transformedData.forEach(role => {
         roleMapping[role._id] = role.name;
@@ -88,8 +101,8 @@ const UserPage = () => {
           age: user.age,
           gender: user.gender,
           address: user.address,
-          role: user.role, // Giữ nguyên role ID
-          roleName: roleMap[user.role] || 'N/A', // Thêm roleName từ mapping
+          role: user.role,
+          roleName: roleMap[user.role] || 'N/A',
           createdAt: new Date(user.createdAt).toLocaleString(),
           updatedAt: new Date(user.updatedAt).toLocaleString(),
         }));
@@ -329,12 +342,10 @@ const UserPage = () => {
   };
 
   return (
-    <Layout className="min-h-screen">
+    <Layout>
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-
         <Content className="m-6">
           {/* Search Section */}
           <div className="bg-white p-4 shadow rounded-lg mb-6">
@@ -394,7 +405,6 @@ const UserPage = () => {
               onChange={handleTableChange}
               bordered
               size="middle"
-              className="overflow-x-auto"
               loading={loading}
             />
           </div>
