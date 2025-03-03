@@ -1,17 +1,18 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftOutlined } from "@ant-design/icons";
 import { registerUser } from "../../redux/slices/auth";
 import { callActivateAccount } from "../../api/UserApi/UserApi";
-import CustomButton from "../../components/Other/CustomButton";
-import OtpVerification from "../../components/Other/OtpVerification";
+import CustomButton from "../../components/Other/CustomButton"
+import { Eye, EyeOff } from "lucide-react";
 
 function RegisterPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(false);
   const { isLoading, error } = useSelector((state) => state.auth);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,55 +26,44 @@ function RegisterPage() {
 
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
-  const [errors, setErrors] = useState({});
+  const [userEmail, setUserEmail] = useState(""); // Lưu email để xác thực OTP
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Thêm validation cho age
-    if (name === 'age') {
-      // Chỉ cho phép số không âm hoặc rỗng
-      if (value === '' || (parseInt(value) >= 0 && !value.includes('.'))) {
-        setFormData({ ...formData, [name]: value });
-      }
-      return;
-    }
-
     setFormData({ ...formData, [name]: value });
   };
 
   const validateForm = () => {
-    let newErrors = {};
-
-    if (!formData.name) newErrors.name = "Vui lòng nhập tên của bạn.";
-    if (!formData.email) newErrors.email = "Vui lòng nhập email.";
-    if (!formData.password) newErrors.password = "Vui lòng nhập mật khẩu.";
-    if (!formData.confirmPassword) newErrors.confirmPassword = "Vui lòng nhập lại mật khẩu.";
-    if (!formData.age) newErrors.age = "Vui lòng nhập tuổi của bạn.";
-    if (!formData.gender) newErrors.gender = "Vui lòng chọn giới tính.";
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
+      return false;
+    }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Mật khẩu không khớp.";
+      alert("Mật khẩu và xác nhận mật khẩu không khớp!");
+      return false;
     }
 
     if (formData.password.length < 6) {
-      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự.";
+      alert("Mật khẩu phải có ít nhất 6 ký tự!");
+      return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Email không hợp lệ.";
+      alert("Email không hợp lệ!");
+      return false;
     }
 
-    const uppercaseRegex = /[A-Z]/;
-    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+    const uppercaseRegex = /[A-Z]/; // Kiểm tra chữ in hoa
+    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/; // Kiểm tra ký tự đặc biệt
+
     if (!uppercaseRegex.test(formData.password) || !specialCharRegex.test(formData.password)) {
-      newErrors.password = "Mật khẩu phải chứa ít nhất một chữ cái in hoa và một ký tự đặc biệt.";
+      alert("Mật khẩu phải chứa ít nhất một chữ cái in hoa và một ký tự đặc biệt!");
+      return false;
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return true;
   };
 
   const handleRegister = async () => {
@@ -124,15 +114,10 @@ function RegisterPage() {
   return (
     <div className="bg-gray-50">
       {!isOtpSent ? (
+        // Form đăng ký
         <div className="flex min-h-screen bg-gray-50">
+          {/* Left Section */}
           <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-purple-400 to-pink-500">
-            {/* Back Button */}
-            <button
-              onClick={() => navigate("/login")}
-              className="absolute top-4 left-4 flex items-center gap-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"
-            >
-              <ArrowLeftOutlined className="text-gray-700" />
-            </button>            
             <img
               src="/login.png"
               alt="Register Illustration"
@@ -140,12 +125,14 @@ function RegisterPage() {
             />
           </div>
 
+          {/* Right Section */}
           <div className="flex-1 flex items-center justify-center p-6">
             <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
               <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
                 Đăng ký
               </h1>
               <div className="space-y-4">
+                {/* Name Input */}
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-600">
                     Tên của bạn
@@ -159,9 +146,9 @@ function RegisterPage() {
                     onChange={handleChange}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
-                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 </div>
 
+                {/* Email Input */}
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-600">
                     Email
@@ -175,41 +162,59 @@ function RegisterPage() {
                     onChange={handleChange}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
-                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                 </div>
 
+                {/* Password Input */}
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-600">
                     Mật khẩu
                   </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Nhập mật khẩu"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                  <div className="relative">
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Nhập mật khẩu"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
 
+                {/* Confirm Password Input */}
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-600">
                     Xác nhận mật khẩu
                   </label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    placeholder="Nhập lại mật khẩu"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Nhập lại mật khẩu"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
 
+                {/* Age Input */}
                 <div>
                   <label htmlFor="age" className="block text-sm font-medium text-gray-600">
                     Tuổi
@@ -218,15 +223,14 @@ function RegisterPage() {
                     id="age"
                     name="age"
                     type="number"
-                    min="0"
                     placeholder="Nhập tuổi của bạn"
                     value={formData.age}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
-                  {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
                 </div>
 
+                {/* Gender Input */}
                 <div>
                   <label htmlFor="gender" className="block text-sm font-medium text-gray-600">
                     Giới tính
@@ -243,9 +247,9 @@ function RegisterPage() {
                     <option value="Female">Nữ</option>
                     <option value="Other">Khác</option>
                   </select>
-                  {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}
                 </div>
 
+                {/* Address Input */}
                 <div>
                   <label htmlFor="address" className="block text-sm font-medium text-gray-600">
                     Địa chỉ
@@ -261,6 +265,7 @@ function RegisterPage() {
                   />
                 </div>
 
+                {/* Submit Button */}
                 <CustomButton
                   onClick={handleRegister}
                   style={{ width: '100%' }}
@@ -269,6 +274,7 @@ function RegisterPage() {
                   {isLoading ? "Đang xử lý..." : "Đăng ký"}
                 </CustomButton>
 
+                {/* Hiển thị lỗi */}
                 {error && (
                   <div className="mt-4 text-center text-red-500">
                     {error}
@@ -286,13 +292,31 @@ function RegisterPage() {
           </div>
         </div>
       ) : (
-        <OtpVerification
-          userEmail={userEmail}
-          otp={otp}
-          setOtp={setOtp}
-          handleVerifyOtp={handleVerifyOtp}
-          isVerifying={isVerifying}
-        />
+        // Form nhập OTP
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
+            <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
+              Nhập mã OTP
+            </h1>
+            <p className="text-center text-gray-600 mb-4">
+              Vui lòng nhập mã OTP được gửi đến email <b>{userEmail}</b>
+            </p>
+            <input
+              type="text"
+              placeholder="Nhập OTP 6 số"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg text-center text-xl tracking-widest"
+            />
+            <CustomButton
+              onClick={handleVerifyOtp}
+              disabled={isVerifying}
+              className="w-full bg-purple-500 text-white py-2 rounded-lg mt-4 disabled:bg-purple-300"
+            >
+              {isVerifying ? "Đang xác thực..." : "Xác thực"}
+            </CustomButton>
+          </div>
+        </div>
       )}
     </div>
   );

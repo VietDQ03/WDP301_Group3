@@ -1,0 +1,25 @@
+.ant-layout {
+    height: 100vh;
+}
+
+.ant-modal-wrap {
+    overflow: hidden !important;
+}
+
+.ant-table-body::-webkit-scrollbar {
+    display: none;
+}
+
+.ant-table-body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.ant-layout-content::-webkit-scrollbar {
+    display: none;
+}
+
+.ant-layout-content {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

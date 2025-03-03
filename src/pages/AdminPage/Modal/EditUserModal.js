@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Space, Button, Spin } from 'antd';
 import {
     User,
     Mail,
@@ -8,10 +7,11 @@ import {
     Users,
     Building,
     Check,
+    X,
+    ChevronDown,
+    Search,
+    Loader
 } from 'lucide-react';
-import debounce from 'lodash/debounce';
-import { companyApi } from "../../../api/AdminPageAPI/companyApi";
-
 
 const EditUserModal = ({
     visible,
@@ -26,272 +26,299 @@ const EditUserModal = ({
 }) => {
     const [companies, setCompanies] = useState([]);
     const [companyLoading, setCompanyLoading] = useState(false);
-    const [companyPagination, setCompanyPagination] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 0
+    const [localSelectedRole, setLocalSelectedRole] = useState(editingUser?.role);
+    const [formData, setFormData] = useState({
+        name: editingUser?.name || '',
+        email: editingUser?.email || '',
+        age: editingUser?.age || '',
+        gender: editingUser?.gender || '',
+        address: editingUser?.address || '',
+        role: editingUser?.role || '',
+        company: editingUser?.company?._id || ''
     });
 
-    // Fetch companies với debounce search
+    useEffect(() => {
+        if (visible) {
+            setLocalSelectedRole(editingUser?.role);
+            setFormData({
+                name: editingUser?.name || '',
+                email: editingUser?.email || '',
+                age: editingUser?.age || '',
+                gender: editingUser?.gender || '',
+                address: editingUser?.address || '',
+                role: editingUser?.role || '',
+                company: editingUser?.company?._id || ''
+            });
+        }
+    }, [visible, editingUser]);
+
     const fetchCompanies = async (search = '') => {
         setCompanyLoading(true);
         try {
-            const response = await companyApi.getAll({
-                page: 1,
-                pageSize: 100, // Lấy nhiều hơn để search local
-                ...(search ? { search } : {}) // Chỉ thêm search param khi có giá trị
-            });
-
-            if (response?.data?.data) {
-                const { result } = response.data.data;
-                setCompanies(result.map(company => ({
-                    label: company.name,
-                    value: company._id,
-                    data: company // Lưu full data để submit
-                })));
-            }
+            const mockCompanies = [
+                { id: 1, name: "Company A" },
+                { id: 2, name: "Company B" }
+            ];
+            setCompanies(mockCompanies.map(company => ({
+                label: company.name,
+                value: company.id,
+                data: company
+            })));
         } catch (error) {
             console.error('Error fetching companies:', error);
         }
         setCompanyLoading(false);
     };
-    // Debounce search
-    const debouncedSearch = debounce((value) => {
-        fetchCompanies(value);
-    }, 500);
 
-    // Initial fetch
     useEffect(() => {
-        if (visible && selectedRole === '67566b60671f5436a0de69a5') {
+        if (visible && localSelectedRole === '67566b60671f5436a0de69a5') {
             fetchCompanies();
         }
-    }, [visible, selectedRole]);
+    }, [visible, localSelectedRole]);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const selectedCompany = companies.find(c => c.value.toString() === formData.company)?.data;
+        onFinish?.({
+            ...formData,
+            company: selectedCompany
+        });
+    };
+
+    const handleCancel = () => {
+        onCancel?.();
+        setFormData({
+            name: '',
+            email: '',
+            age: '',
+            gender: '',
+            address: '',
+            role: '',
+            company: ''
+        });
+        setLocalSelectedRole(editingUser?.role);
+    };
+
+    if (!visible) return null;
 
     return (
-        <Modal
-            title={
-                <div className="flex items-center space-x-3 px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 -mt-6 -mx-6 mb-6 rounded-t-lg">
-                    <Users className="w-7 h-7 text-white" />
-                    <span className="text-xl font-semibold text-white">Chỉnh sửa thông tin người dùng</span>
-                </div>
-            }
-            open={visible}
-            onCancel={() => {
-                onCancel();
-                form.resetFields();
-            }}
-            footer={null}
-            width={800}
-            className="custom-modal"
-            destroyOnClose
-            centered
-        >
-            <div className="px-2">
-                <Form
-                    form={form}
-                    initialValues={{
-                        ...editingUser,
-                        role: editingUser?.role,
-                        company: editingUser?.company?._id
-                    }}
-                    onFinish={(values) => {
-                        // Tìm company object từ selected ID
-                        const selectedCompany = companies.find(c => c.value === values.company)?.data;
-                        onFinish({
-                            ...values,
-                            company: selectedCompany
-                        });
-                    }}
-                    layout="vertical"
-                    className="space-y-5"
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div 
+                className="flex min-h-full items-center justify-center p-4 pt-20 text-center"
+                onClick={handleCancel}
+            >
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+                <div 
+                    className="relative w-full max-w-[700px] transform rounded-lg bg-white text-left shadow-xl transition-all"
+                    onClick={e => e.stopPropagation()}
                 >
-                    {/* Basic Information Section */}
-                    <div className="bg-gray-50 p-4 rounded-xl">
-                        <h3 className="text-gray-700 font-medium mb-4 flex items-center gap-2">
-                            <User className="w-5 h-5 text-blue-500" />
-                            Thông tin cơ bản
-                        </h3>
-                        <div className="grid grid-cols-2 gap-6">
-                            <Form.Item
-                                name="name"
-                                label={
-                                    <span className="text-gray-600 font-medium">Tên người dùng</span>
-                                }
-                                rules={[
-                                    { required: true, message: 'Name không được để trống' },
-                                    { whitespace: true, message: 'Name không được chỉ chứa khoảng trắng' }
-                                ]}
-                            >
-                                <Input
-                                    prefix={<User className="w-4 h-4 text-gray-400 mr-2" />}
-                                    placeholder="Nhập tên người dùng"
-                                    className="h-11 rounded-lg"
-                                />
-                            </Form.Item>
-
-                            <Form.Item
-                                name="email"
-                                label={
-                                    <span className="text-gray-600 font-medium">Email</span>
-                                }
-                                rules={[
-                                    { required: true, message: 'Email không được để trống' },
-                                    { type: 'email', message: 'Email không đúng định dạng' }
-                                ]}
-                            >
-                                <Input
-                                    prefix={<Mail className="w-4 h-4 text-gray-400 mr-2" />}
-                                    placeholder="Nhập email"
-                                    className="h-11 rounded-lg"
-                                />
-                            </Form.Item>
+                    <div className="w-full relative">
+                        <div className="flex items-center space-x-3 px-5 py-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-lg border-b border-blue-800">
+                            <Users className="w-6 h-6 text-white" />
+                            <div>
+                                <h3 className="text-lg font-semibold text-white m-0">
+                                    Chỉnh sửa thông tin người dùng
+                                </h3>
+                                <p className="text-blue-100 text-xs m-0 mt-1">
+                                    Cập nhật vai trò người dùng
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Personal Information Section */}
-                    <div className="bg-gray-50 p-4 rounded-xl">
-                        <h3 className="text-gray-700 font-medium mb-4 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-blue-500" />
-                            Thông tin cá nhân
-                        </h3>
-                        <div className="grid grid-cols-2 gap-6">
-                            <Form.Item
-                                name="age"
-                                label={
-                                    <span className="text-gray-600 font-medium">Tuổi</span>
-                                }
-                                rules={[{ required: true, message: 'Vui lòng nhập tuổi!' }]}
-                            >
-                                <InputNumber
-                                    min={1}
-                                    max={120}
-                                    placeholder="Nhập tuổi"
-                                    className="h-11 w-full rounded-lg"
-                                    prefix={<Calendar className="w-4 h-4 text-gray-400 mr-2" />}
-                                />
-                            </Form.Item>
+                    <div className="px-4 py-2">
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Basic Information Section */}
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <User className="w-4 h-4 text-blue-500" />
+                                    <h3 className="text-gray-800 font-semibold text-sm m-0">Thông tin cơ bản</h3>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-gray-700 font-medium text-sm mb-2">
+                                            Tên người dùng
+                                        </label>
+                                        <div className="relative">
+                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                            <input
+                                                type="text"
+                                                value={formData.name}
+                                                className="w-full h-10 pl-10 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 text-sm"
+                                                disabled
+                                            />
+                                        </div>
+                                    </div>
 
-                            <Form.Item
-                                name="gender"
-                                label={
-                                    <span className="text-gray-600 font-medium">Giới tính</span>
-                                }
-                                rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
-                            >
-                                <Select
-                                    className="h-11 rounded-lg"
-                                    placeholder="Chọn giới tính"
-                                    options={[
-                                        { value: 'MALE', label: 'Nam' },
-                                        { value: 'FEMALE', label: 'Nữ' }
-                                    ]}
-                                />
-                            </Form.Item>
-                        </div>
+                                    <div>
+                                        <label className="block text-gray-700 font-medium text-sm mb-2">
+                                            Email
+                                        </label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                            <input
+                                                type="email"
+                                                value={formData.email}
+                                                className="w-full h-10 pl-10 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 text-sm"
+                                                disabled
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <Form.Item
-                            name="address"
-                            label={
-                                <span className="text-gray-600 font-medium">Địa chỉ</span>
-                            }
-                            rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
-                        >
-                            <Input.TextArea
-                                rows={3}
-                                placeholder="Nhập địa chỉ"
-                                className="rounded-lg"
-                            />
-                        </Form.Item>
-                    </div>
+                            {/* Personal Information Section */}
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <FileText className="w-4 h-4 text-blue-500" />
+                                    <h3 className="text-gray-800 font-semibold text-sm m-0">Thông tin cá nhân</h3>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label className="block text-gray-700 font-medium text-sm mb-2">
+                                            Tuổi
+                                        </label>
+                                        <div className="relative">
+                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                            <input
+                                                type="number"
+                                                value={formData.age}
+                                                className="w-full h-10 pl-10 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 text-sm"
+                                                disabled
+                                            />
+                                        </div>
+                                    </div>
 
-                    {/* Role & Company Section */}
-                    <div className="bg-gray-50 p-4 rounded-xl">
-                        <h3 className="text-gray-700 font-medium mb-4 flex items-center gap-2">
-                            <Building className="w-5 h-5 text-blue-500" />
-                            Thông tin vai trò
-                        </h3>
-                        <div className="space-y-4">
-                            <Form.Item
-                                name="role"
-                                label={
-                                    <span className="text-gray-600 font-medium">Vai trò</span>
-                                }
-                                rules={[
-                                    { required: true, message: 'Vui lòng chọn vai trò!' },
-                                    { pattern: /^[0-9a-fA-F]{24}$/, message: 'Role có định dạng là mongo id' }
-                                ]}
-                            >
-                                <Select
-                                    placeholder="Chọn vai trò"
-                                    loading={formLoading}
-                                    showSearch
-                                    className="rounded-lg"
-                                    optionFilterProp="children"
-                                    filterOption={(input, option) =>
-                                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                                    }
-                                    options={roles.map(role => ({
-                                        value: role._id,
-                                        label: role.name
-                                    }))}
-                                    onChange={(value) => {
-                                        setSelectedRole(value);
-                                        if (value !== '67566b60671f5436a0de69a5') {
-                                            form.setFieldsValue({ company: undefined });
-                                        }
-                                    }}
-                                />
-                            </Form.Item>
+                                    <div>
+                                        <label className="block text-gray-700 font-medium text-sm mb-2">
+                                            Giới tính
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={formData.gender === 'MALE' ? 'Nam' : 'Nữ'}
+                                                className="w-full h-10 pl-4 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 text-sm"
+                                                disabled
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
 
-                            {selectedRole === '67566b60671f5436a0de69a5' && (
-                                <Form.Item
-                                    name="company"
-                                    label={
-                                        <span className="text-gray-600 font-medium">Công ty</span>
-                                    }
-                                    rules={[
-                                        { required: true, message: 'Vui lòng chọn công ty!' }
-                                    ]}
+                                <div>
+                                    <label className="block text-gray-700 font-medium text-sm mb-2">
+                                        Địa chỉ
+                                    </label>
+                                    <textarea
+                                        value={formData.address}
+                                        className="w-full rounded-lg border border-gray-200 bg-gray-50 text-gray-700 text-sm min-h-[60px] p-3"
+                                        disabled
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            {/* Role & Company Section */}
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Building className="w-4 h-4 text-blue-500" />
+                                    <h3 className="text-gray-800 font-semibold text-sm m-0">Thông tin vai trò</h3>
+                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-gray-700 font-medium text-sm mb-2">
+                                            Vai trò
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                name="role"
+                                                value={formData.role}
+                                                onChange={(e) => {
+                                                    handleInputChange(e);
+                                                    setLocalSelectedRole(e.target.value);
+                                                }}
+                                                required
+                                                className="w-full h-10 pl-4 pr-10 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none bg-white text-sm"
+                                            >
+                                                <option value="">Chọn vai trò người dùng</option>
+                                                {roles?.map(role => (
+                                                    <option key={role._id} value={role._id}>
+                                                        {role.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    {localSelectedRole === '67566b60671f5436a0de69a5' && (
+                                        <div>
+                                            <label className="block text-gray-700 font-medium text-sm mb-2">
+                                                Công ty
+                                            </label>
+                                            <div className="relative">
+                                                {companyLoading ? (
+                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                        <Loader className="w-4 h-4 text-gray-400 animate-spin" />
+                                                    </div>
+                                                ) : (
+                                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                )}
+                                                <select
+                                                    name="company"
+                                                    value={formData.company}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                    className="w-full h-10 pl-10 pr-10 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none bg-white text-sm"
+                                                >
+                                                    <option value="">Tìm kiếm và chọn công ty</option>
+                                                    {companies.map(company => (
+                                                        <option key={company.value} value={company.value}>
+                                                            {company.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={handleCancel}
+                                    className="h-10 px-6 rounded-lg text-gray-600 hover:text-gray-800 hover:border-gray-300 border-2 flex items-center gap-2 text-sm"
                                 >
-                                    <Select
-                                        showSearch
-                                        placeholder="Tìm kiếm và chọn công ty"
-                                        loading={companyLoading}
-                                        className="rounded-lg"
-                                        filterOption={false}
-                                        onSearch={debouncedSearch}
-                                        options={companies}
-                                        notFoundContent={companyLoading ? <Spin size="small" /> : null}
-                                    />
-                                </Form.Item>
-                            )}
-                        </div>
+                                    <X className="w-4 h-4" />
+                                    Hủy
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={formLoading}
+                                    className="h-10 px-6 rounded-lg bg-blue-500 hover:bg-blue-600 text-white border-none inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                >
+                                    {formLoading ? (
+                                        <Loader className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Check className="w-4 h-4" />
+                                    )}
+                                    Cập nhật
+                                </button>
+                            </div>
+                        </form>
                     </div>
-
-                    <Form.Item className="mb-0 flex justify-end pt-4">
-                        <Space size="middle">
-                            <Button
-                                onClick={() => {
-                                    onCancel();
-                                    form.resetFields();
-                                }}
-                                className="h-11 px-6 rounded-lg text-gray-600 hover:text-gray-800 hover:border-gray-300"
-                            >
-                                Hủy
-                            </Button>
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                className="h-11 px-6 rounded-lg bg-blue-500 hover:bg-blue-600 border-none flex items-center gap-2"
-                            >
-                                <Check className="w-5 h-5" />
-                                Cập nhật
-                            </Button>
-                        </Space>
-                    </Form.Item>
-                </Form>
+                </div>
             </div>
-        </Modal>
+        </div>
     );
 };
 
