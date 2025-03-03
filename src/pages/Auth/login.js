@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftOutlined } from "@ant-design/icons"; 
+import { ArrowLeftOutlined } from "@ant-design/icons";
 import { loginUser } from "../../redux/slices/auth";
 import { sendOTP } from '../../api/authAPI';
 import { callActivateAccount } from '../../api/UserApi/UserApi';
-import { RefreshCw, Check, X } from 'lucide-react';
+import { RefreshCw, Check, X, EyeOff, Eye } from 'lucide-react';
 import CustomButton from "../../components/Other/CustomButton";
 
 function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+
   const { isLoading } = useSelector((state) => state.auth);
 
   // Form States
@@ -193,17 +195,16 @@ function LoginPage() {
                     type="button"
                     onClick={handleResendOtp}
                     disabled={countdown > 0 || isResending || isVerifying}
-                    className={`flex items-center text-sm ${
-                      countdown > 0 || isResending || isVerifying
+                    className={`flex items-center text-sm ${countdown > 0 || isResending || isVerifying
                         ? 'text-gray-400 cursor-not-allowed'
                         : 'text-blue-600 hover:text-blue-500'
-                    } transition-colors duration-200`}
+                      } transition-colors duration-200`}
                   >
                     <RefreshCw className={`h-4 w-4 mr-1 ${isResending ? 'animate-spin' : ''}`} />
-                    {isResending 
-                      ? 'Đang gửi...' 
-                      : countdown > 0 
-                        ? `Gửi lại sau ${countdown}s` 
+                    {isResending
+                      ? 'Đang gửi...'
+                      : countdown > 0
+                        ? `Gửi lại sau ${countdown}s`
                         : 'Gửi lại mã'
                     }
                   </button>
@@ -296,15 +297,24 @@ function LoginPage() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-600">
                 Mật khẩu
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Nhập mật khẩu của bạn"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Nhập mật khẩu của bạn"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
               {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
             </div>
 
