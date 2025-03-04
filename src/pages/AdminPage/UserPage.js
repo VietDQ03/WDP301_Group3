@@ -114,7 +114,7 @@ const UserPage = () => {
               gender: user.gender,
               address: user.address,
               role: user.role,
-              roleName: userRole ? userRole.name : 'N/A', // Lấy tên role trực tiếp từ role object
+              roleName: userRole ? userRole.name : 'N/A', 
               isActived: user.isActived,
               premium: user.premium || 0,
               createdAt: new Date(user.createdAt).toLocaleString(),
@@ -141,7 +141,6 @@ const UserPage = () => {
     const initData = async () => {
       setLoading(true);
       try {
-        // Fetch roles và users song song
         const [rolesResponse, usersResponse] = await Promise.all([
           roleApi.getAll({
             current: rolePagination.current,
@@ -154,7 +153,6 @@ const UserPage = () => {
           })
         ]);
   
-        // Xử lý roles data
         const transformedRoles = rolesResponse.data.result.map(role => ({
           ...role,
           key: role._id,
@@ -172,7 +170,6 @@ const UserPage = () => {
           total: rolesResponse.data.meta.total,
         });
   
-        // Xử lý users data
         if (usersResponse?.data) {
           const formattedUsers = usersResponse.data.result
             .filter(user => !user.isDeleted)
@@ -224,8 +221,6 @@ const UserPage = () => {
       cancelText: 'Hủy',
       onOk: async () => {
         try {
-          // Implement your toggle status API call here
-          // await userApi.toggleStatus(userId);
           message.success('Thay đổi trạng thái người dùng thành công!');
           fetchUsers(pagination);
         } catch (error) {
