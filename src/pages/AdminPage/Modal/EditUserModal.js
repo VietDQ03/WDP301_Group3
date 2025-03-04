@@ -96,7 +96,6 @@ const EditUserModal = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Chỉ gửi những trường được phép update và có thay đổi
     const updateUserDto = {
       name: editingUser.name,
       age: editingUser.age,
@@ -105,7 +104,6 @@ const EditUserModal = ({
       role: formData.role || editingUser.role
     };
   
-    // Nếu là HR và có chọn company
     if (localSelectedRole === "67566b60671f5436a0de69a5" && formData.company) {
       updateUserDto.company = companies.find(c => c.value === formData.company)?.data;
     }
@@ -157,7 +155,6 @@ const EditUserModal = ({
 
           <div className="px-4 py-2">
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Basic Information Section */}
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-4">
                   <User className="w-4 h-4 text-blue-500" />
