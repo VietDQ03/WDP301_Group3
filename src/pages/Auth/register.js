@@ -35,9 +35,8 @@ function RegisterPage() {
     const { name, value } = e.target;
 
     if (name === 'age') {
-      // Chỉ cho phép số không âm
       const numValue = parseInt(value);
-      if (numValue < 0) return; // Không cập nhật state nếu là số âm
+      if (numValue < 0) return; 
 
       if (!isNaN(numValue) || value === '') {
         setFormData(prev => ({
@@ -145,7 +144,6 @@ function RegisterPage() {
       {!isOtpSent ? (
         <div className="flex min-h-screen bg-gray-50">
           <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-purple-400 to-pink-500">
-            {/* Back Button */}
             <button
               onClick={() => navigate(-1)}
               className="absolute top-4 left-4 flex items-center gap-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"

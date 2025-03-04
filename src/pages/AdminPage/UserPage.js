@@ -102,7 +102,6 @@ const UserPage = () => {
         const formattedUsers = response.data.result
           .filter(user => !user.isDeleted)
           .map((user, index) => {
-            // Tìm role tương ứng từ danh sách roles
             const userRole = roles.find(role => role._id === user.role);
             
             return {
