@@ -5,7 +5,14 @@ import { userApi } from "../../api/AdminPageAPI/userAPI";
 import { roleApi } from "../../api/AdminPageAPI/roleAPI";
 import EditUserModal from './Modal/EditUserModal';
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Tag, Modal } from "antd";
-import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, } from "@ant-design/icons";
+import { 
+  PlusOutlined, 
+  ReloadOutlined, 
+  SettingOutlined, 
+  EditOutlined, 
+  StopOutlined, 
+  ExclamationCircleOutlined 
+} from "@ant-design/icons";
 import './UserPage.css';
 
 const { Content } = Layout;
@@ -35,7 +42,6 @@ const UserPage = () => {
     total: 0,
   });
 
-  // Effect để xử lý scroll khi mở/đóng modal
   useEffect(() => {
     if (editModalVisible) {
       document.body.style.overflow = 'hidden';
@@ -91,22 +97,31 @@ const UserPage = () => {
         pageSize: params.pageSize || 10,
         ...params,
       });
-
+  
       if (response?.data) {
-        const formattedUsers = response.data.result.map((user, index) => ({
-          key: user._id,
-          stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
-          name: user.name,
-          email: user.email,
-          age: user.age,
-          gender: user.gender,
-          address: user.address,
-          role: user.role,
-          roleName: roleMap[user.role] || 'N/A',
-          createdAt: new Date(user.createdAt).toLocaleString(),
-          updatedAt: new Date(user.updatedAt).toLocaleString(),
-        }));
-
+        const formattedUsers = response.data.result
+          .filter(user => !user.isDeleted)
+          .map((user, index) => {
+            // Tìm role tương ứng từ danh sách roles
+            const userRole = roles.find(role => role._id === user.role);
+            
+            return {
+              key: user._id,
+              stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
+              name: user.name,
+              email: user.email,
+              age: user.age,
+              gender: user.gender,
+              address: user.address,
+              role: user.role,
+              roleName: userRole ? userRole.name : 'N/A', // Lấy tên role trực tiếp từ role object
+              isActived: user.isActived,
+              premium: user.premium || 0,
+              createdAt: new Date(user.createdAt).toLocaleString(),
+              updatedAt: new Date(user.updatedAt).toLocaleString(),
+            };
+          });
+  
         setUsers(formattedUsers);
         setPagination({
           current: response.data.meta.current,
@@ -124,8 +139,8 @@ const UserPage = () => {
 
   useEffect(() => {
     const initData = async () => {
-      await fetchRoles();
-      fetchUsers({
+      await fetchRoles(); // Fetch roles trước
+      await fetchUsers({ // Sau đó fetch users
         current: 1,
         pageSize: 10,
       });
@@ -133,22 +148,29 @@ const UserPage = () => {
     initData();
   }, []);
 
-  const handleDelete = (id) => {
+  useEffect(() => {
+    if (roles.length > 0) {
+      fetchUsers(pagination);
+    }
+  }, [roles]);
+
+  const handleBan = (userId) => {
     confirm({
-      title: 'Bạn có chắc chắn muốn xóa người dùng này?',
+      title: 'Xác nhận thay đổi trạng thái người dùng',
       icon: <ExclamationCircleOutlined />,
-      content: 'Hành động này không thể hoàn tác',
-      okText: 'Xóa',
+      content: 'Bạn có chắc chắn muốn thay đổi trạng thái của người dùng này?',
+      okText: 'Xác nhận',
       okType: 'danger',
       cancelText: 'Hủy',
       onOk: async () => {
         try {
-          await userApi.delete(id);
-          message.success('Xóa người dùng thành công!');
+          // Implement your toggle status API call here
+          // await userApi.toggleStatus(userId);
+          message.success('Thay đổi trạng thái người dùng thành công!');
           fetchUsers(pagination);
         } catch (error) {
-          console.error("Error deleting user:", error);
-          message.error('Có lỗi xảy ra khi xóa người dùng!');
+          console.error("Error toggling user status:", error);
+          message.error('Có lỗi xảy ra khi thay đổi trạng thái người dùng!');
         }
       },
     });
@@ -167,28 +189,33 @@ const UserPage = () => {
     });
   };
 
+  const getRoleColor = (roleName) => {
+    switch (roleName) {
+      case 'SUPER_ADMIN':
+        return 'red';
+      case 'ADMIN':
+        return 'blue';
+      case 'NORMAL_USER':
+        return 'green';
+      default:
+        return 'default';
+    }
+  };
+
   const handleUpdate = async (id, values) => {
     try {
       const requestData = {
         updateUserDto: {
-          name: values.name.trim(),
-          email: values.email.trim(),
-          age: values.age,
-          gender: values.gender,
-          role: values.role,
-          address: values.address,
-          company: {
-            _id: values.company?._id,
-            name: values.company?.name
-          }
+          name: values.name ? values.name.trim() : editingUser?.name, // Kiểm tra giá trị trước khi trim
+          email: values.email ? values.email.trim() : editingUser?.email, // Kiểm tra giá trị trước khi trim
+          age: values.age || editingUser?.age,
+          gender: values.gender || editingUser?.gender,
+          role: values.role || editingUser?.role,
+          address: values.address || editingUser?.address,
+          company: values.company || editingUser?.company, // Giữ nguyên nếu không thay đổi
         },
-        user: {
-          _id: id,
-          name: values.name.trim(),
-          email: values.email.trim()
-        }
       };
-
+  
       await userApi.update(id, requestData);
       fetchUsers(pagination);
     } catch (error) {
@@ -239,23 +266,40 @@ const UserPage = () => {
       ),
     },
     {
-      title: "Vai trò",
-      dataIndex: "role",
-      key: "role",
+      title: "Số lượt đăng bài",
+      dataIndex: "premium",
+      key: "premium",
       align: "center",
-      render: (roleId) => (
-        <Tag color="green">
-          {roleMap[roleId] || 'N/A'}
+      render: (premium) => {
+        if (!premium) return <Tag color="default">Không</Tag>;
+        return (
+          <Tag color={premium === 1 ? "gold" : "purple"}>
+            {premium} lượt
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Vai trò",
+      dataIndex: "roleName",
+      key: "roleName",
+      align: "center",
+      render: (roleName) => (
+        <Tag color={getRoleColor(roleName)}>
+          {roleName || 'N/A'}
         </Tag>
       ),
     },
     {
-      title: "Địa Chỉ",
-      dataIndex: "address",
-      key: "address",
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
+      title: "Trạng thái",
+      dataIndex: "isActived",
+      key: "isActived",
+      align: "center",
+      render: (isActived) => (
+        <Tag color={isActived ? 'success' : 'error'}>
+          {isActived ? 'Hoạt động' : 'Không hoạt động'}
+        </Tag>
+      ),
     },
     {
       title: "Hành Động",
@@ -272,12 +316,12 @@ const UserPage = () => {
               onClick={() => handleEdit(record)}
             />
           </Tooltip>
-          <Tooltip title="Xóa">
+          <Tooltip title={record.isActived ? "Khóa" : "Mở khóa"}>
             <Button
               type="text"
-              icon={<DeleteOutlined />}
+              icon={<StopOutlined />}
               className="text-red-500 hover:text-red-700"
-              onClick={() => handleDelete(record.key)}
+              onClick={() => handleBan(record.key)}
             />
           </Tooltip>
         </Space>
@@ -314,24 +358,27 @@ const UserPage = () => {
     fetchUsers(pagination);
   };
 
-  const handleModalSubmit = async (values) => {
+  const handleModalSubmit = async (updateData) => {
     try {
-      const company = selectedRole === '67566b60671f5436a0de69a5' ? {
-        _id: values.company?._id,
-        name: values.company?.name
-      } : null;
-
-      await handleUpdate(editingUser?.key, {
-        ...values,
-        company
-      });
-      message.success('Cập nhật thông tin thành công!');
+      // Chỉ gửi những trường có giá trị
+      const filteredUpdateData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, value]) => value !== undefined && value !== '')
+      );
+  
+      if (Object.keys(filteredUpdateData).length === 0) {
+        message.error("Không có dữ liệu nào được thay đổi!");
+        return;
+      }
+  
+      await userApi.update(editingUser?.key, filteredUpdateData);
+  
+      message.success("Cập nhật thông tin thành công!");
       setEditModalVisible(false);
       setEditingUser(null);
-      modalForm.resetFields();
       fetchUsers(pagination);
     } catch (error) {
-      message.error('Có lỗi xảy ra khi cập nhật thông tin!');
+      console.error("Error updating user:", error);
+      message.error("Có lỗi xảy ra khi cập nhật thông tin!");
     }
   };
 
@@ -347,7 +394,6 @@ const UserPage = () => {
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
         <Content className="m-6">
-          {/* Search Section */}
           <div className="bg-white p-4 shadow rounded-lg mb-6">
             <Form
               form={form}
@@ -376,7 +422,6 @@ const UserPage = () => {
             </Form>
           </div>
 
-          {/* List Section */}
           <div className="bg-white p-6 shadow rounded-lg">
             <div className="flex justify-between items-center mb-4">
               <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
