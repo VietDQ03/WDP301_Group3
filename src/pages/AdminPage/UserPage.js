@@ -139,20 +139,80 @@ const UserPage = () => {
 
   useEffect(() => {
     const initData = async () => {
-      await fetchRoles(); // Fetch roles trước
-      await fetchUsers({ // Sau đó fetch users
-        current: 1,
-        pageSize: 10,
-      });
+      setLoading(true);
+      try {
+        // Fetch roles và users song song
+        const [rolesResponse, usersResponse] = await Promise.all([
+          roleApi.getAll({
+            current: rolePagination.current,
+            pageSize: rolePagination.pageSize,
+            ...form.getFieldsValue()
+          }),
+          userApi.getAll({
+            current: 1,
+            pageSize: 10,
+          })
+        ]);
+  
+        // Xử lý roles data
+        const transformedRoles = rolesResponse.data.result.map(role => ({
+          ...role,
+          key: role._id,
+        }));
+  
+        const roleMapping = {};
+        transformedRoles.forEach(role => {
+          roleMapping[role._id] = role.name;
+        });
+  
+        setRoleMap(roleMapping);
+        setRoles(transformedRoles);
+        setRolePagination({
+          ...rolePagination,
+          total: rolesResponse.data.meta.total,
+        });
+  
+        // Xử lý users data
+        if (usersResponse?.data) {
+          const formattedUsers = usersResponse.data.result
+            .filter(user => !user.isDeleted)
+            .map((user, index) => {
+              const userRole = transformedRoles.find(role => role._id === user.role);
+              
+              return {
+                key: user._id,
+                stt: index + 1 + ((usersResponse.data.meta.current - 1) * usersResponse.data.meta.pageSize),
+                name: user.name,
+                email: user.email,
+                age: user.age,
+                gender: user.gender,
+                address: user.address,
+                role: user.role,
+                roleName: userRole ? userRole.name : 'N/A',
+                isActived: user.isActived,
+                premium: user.premium || 0,
+                createdAt: new Date(user.createdAt).toLocaleString(),
+                updatedAt: new Date(user.updatedAt).toLocaleString(),
+              };
+            });
+  
+          setUsers(formattedUsers);
+          setPagination({
+            current: usersResponse.data.meta.current,
+            pageSize: usersResponse.data.meta.pageSize,
+            total: usersResponse.data.meta.total,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        message.error('Không thể tải dữ liệu');
+      } finally {
+        setLoading(false);
+      }
     };
+  
     initData();
   }, []);
-
-  useEffect(() => {
-    if (roles.length > 0) {
-      fetchUsers(pagination);
-    }
-  }, [roles]);
 
   const handleBan = (userId) => {
     confirm({
@@ -202,27 +262,6 @@ const UserPage = () => {
     }
   };
 
-  const handleUpdate = async (id, values) => {
-    try {
-      const requestData = {
-        updateUserDto: {
-          name: values.name ? values.name.trim() : editingUser?.name, // Kiểm tra giá trị trước khi trim
-          email: values.email ? values.email.trim() : editingUser?.email, // Kiểm tra giá trị trước khi trim
-          age: values.age || editingUser?.age,
-          gender: values.gender || editingUser?.gender,
-          role: values.role || editingUser?.role,
-          address: values.address || editingUser?.address,
-          company: values.company || editingUser?.company, // Giữ nguyên nếu không thay đổi
-        },
-      };
-  
-      await userApi.update(id, requestData);
-      fetchUsers(pagination);
-    } catch (error) {
-      console.error("Error updating user:", error);
-      throw error;
-    }
-  };
 
   const columns = [
     {
