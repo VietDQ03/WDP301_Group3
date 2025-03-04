@@ -97,26 +97,31 @@ const UserPage = () => {
         pageSize: params.pageSize || 10,
         ...params,
       });
-
+  
       if (response?.data) {
         const formattedUsers = response.data.result
           .filter(user => !user.isDeleted)
-          .map((user, index) => ({
-            key: user._id,
-            stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
-            name: user.name,
-            email: user.email,
-            age: user.age,
-            gender: user.gender,
-            address: user.address,
-            role: user.role,
-            roleName: roleMap[user.role] || 'N/A',
-            isActived: user.isActived,
-            premium: user.premium || 0,
-            createdAt: new Date(user.createdAt).toLocaleString(),
-            updatedAt: new Date(user.updatedAt).toLocaleString(),
-          }));
-
+          .map((user, index) => {
+            // Tìm role tương ứng từ danh sách roles
+            const userRole = roles.find(role => role._id === user.role);
+            
+            return {
+              key: user._id,
+              stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
+              name: user.name,
+              email: user.email,
+              age: user.age,
+              gender: user.gender,
+              address: user.address,
+              role: user.role,
+              roleName: userRole ? userRole.name : 'N/A', // Lấy tên role trực tiếp từ role object
+              isActived: user.isActived,
+              premium: user.premium || 0,
+              createdAt: new Date(user.createdAt).toLocaleString(),
+              updatedAt: new Date(user.updatedAt).toLocaleString(),
+            };
+          });
+  
         setUsers(formattedUsers);
         setPagination({
           current: response.data.meta.current,
@@ -134,14 +139,20 @@ const UserPage = () => {
 
   useEffect(() => {
     const initData = async () => {
-      await fetchRoles();
-      fetchUsers({
+      await fetchRoles(); // Fetch roles trước
+      await fetchUsers({ // Sau đó fetch users
         current: 1,
         pageSize: 10,
       });
     };
     initData();
   }, []);
+
+  useEffect(() => {
+    if (roles.length > 0) {
+      fetchUsers(pagination);
+    }
+  }, [roles]);
 
   const handleBan = (userId) => {
     confirm({
@@ -178,28 +189,33 @@ const UserPage = () => {
     });
   };
 
+  const getRoleColor = (roleName) => {
+    switch (roleName) {
+      case 'SUPER_ADMIN':
+        return 'red';
+      case 'ADMIN':
+        return 'blue';
+      case 'NORMAL_USER':
+        return 'green';
+      default:
+        return 'default';
+    }
+  };
+
   const handleUpdate = async (id, values) => {
     try {
       const requestData = {
         updateUserDto: {
-          name: values.name.trim(),
-          email: values.email.trim(),
-          age: values.age,
-          gender: values.gender,
-          role: values.role,
-          address: values.address,
-          company: {
-            _id: values.company?._id,
-            name: values.company?.name
-          }
+          name: values.name ? values.name.trim() : editingUser?.name, // Kiểm tra giá trị trước khi trim
+          email: values.email ? values.email.trim() : editingUser?.email, // Kiểm tra giá trị trước khi trim
+          age: values.age || editingUser?.age,
+          gender: values.gender || editingUser?.gender,
+          role: values.role || editingUser?.role,
+          address: values.address || editingUser?.address,
+          company: values.company || editingUser?.company, // Giữ nguyên nếu không thay đổi
         },
-        user: {
-          _id: id,
-          name: values.name.trim(),
-          email: values.email.trim()
-        }
       };
-
+  
       await userApi.update(id, requestData);
       fetchUsers(pagination);
     } catch (error) {
@@ -269,7 +285,9 @@ const UserPage = () => {
       key: "roleName",
       align: "center",
       render: (roleName) => (
-        <Tag color="blue">{roleName || 'N/A'}</Tag>
+        <Tag color={getRoleColor(roleName)}>
+          {roleName || 'N/A'}
+        </Tag>
       ),
     },
     {
@@ -340,24 +358,27 @@ const UserPage = () => {
     fetchUsers(pagination);
   };
 
-  const handleModalSubmit = async (values) => {
+  const handleModalSubmit = async (updateData) => {
     try {
-      const company = selectedRole === '67566b60671f5436a0de69a5' ? {
-        _id: values.company?._id,
-        name: values.company?.name
-      } : null;
-
-      await handleUpdate(editingUser?.key, {
-        ...values,
-        company
-      });
-      message.success('Cập nhật thông tin thành công!');
+      // Chỉ gửi những trường có giá trị
+      const filteredUpdateData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, value]) => value !== undefined && value !== '')
+      );
+  
+      if (Object.keys(filteredUpdateData).length === 0) {
+        message.error("Không có dữ liệu nào được thay đổi!");
+        return;
+      }
+  
+      await userApi.update(editingUser?.key, filteredUpdateData);
+  
+      message.success("Cập nhật thông tin thành công!");
       setEditModalVisible(false);
       setEditingUser(null);
-      modalForm.resetFields();
       fetchUsers(pagination);
     } catch (error) {
-      message.error('Có lỗi xảy ra khi cập nhật thông tin!');
+      console.error("Error updating user:", error);
+      message.error("Có lỗi xảy ra khi cập nhật thông tin!");
     }
   };
 

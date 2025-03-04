@@ -33,7 +33,24 @@ function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    if (name === 'age') {
+      // Chỉ cho phép số không âm
+      const numValue = parseInt(value);
+      if (numValue < 0) return; // Không cập nhật state nếu là số âm
+
+      if (!isNaN(numValue) || value === '') {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const validateForm = () => {
@@ -43,7 +60,16 @@ function RegisterPage() {
     if (!formData.email) newErrors.email = "Vui lòng nhập email.";
     if (!formData.password) newErrors.password = "Vui lòng nhập mật khẩu.";
     if (!formData.confirmPassword) newErrors.confirmPassword = "Vui lòng nhập lại mật khẩu.";
-    if (!formData.age) newErrors.age = "Vui lòng nhập tuổi của bạn.";
+    if (!formData.age) {
+      newErrors.age = "Vui lòng nhập tuổi của bạn.";
+    } else {
+      const age = parseInt(formData.age);
+      if (isNaN(age) || age < 15) {
+        newErrors.age = "Tuổi không hợp lệ.";
+      } else if (age > 100) {
+        newErrors.age = "Tuổi không hợp lệ.";
+      }
+    }
     if (!formData.gender) newErrors.gender = "Vui lòng chọn giới tính.";
 
     if (formData.password !== formData.confirmPassword) {
@@ -228,9 +254,15 @@ function RegisterPage() {
                     id="age"
                     name="age"
                     type="number"
+                    min="0"
                     placeholder="Nhập tuổi của bạn"
                     value={formData.age}
                     onChange={handleChange}
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === 'e') {
+                        e.preventDefault();
+                      }
+                    }}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
@@ -295,7 +327,7 @@ function RegisterPage() {
           </div>
         </div>
       ) : (
-        <OtpVerification 
+        <OtpVerification
           userEmail={userEmail}
           otp={otp}
           setOtp={setOtp}
