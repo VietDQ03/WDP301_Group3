@@ -58,6 +58,10 @@ const EditUserModal = ({
                 isActived: editingUser?.isActived
             });
             setIsActivedChanged(false);
+
+            if (editingUser?.role === "67566b60671f5436a0de69a5") {
+                fetchCompanies();
+            }
         }
     }, [visible, editingUser]);
 
@@ -115,14 +119,20 @@ const EditUserModal = ({
             address: editingUser.address,
             role: formData.role || editingUser.role,
             premium: parseInt(formData.premium),
-            // Chỉ cập nhật nếu đã thay đổi
             isActived: isActivedChanged ? formData.isActived === 'true' : editingUser.isActived
         };
 
         if (localSelectedRole === "67566b60671f5436a0de69a5" && formData.company) {
-            updateUserDto.company = companies.find(c => c.value === formData.company)?.data;
+            const selectedCompany = companies.find(c => c.value === formData.company);
+            if (selectedCompany) {
+                updateUserDto.company = {
+                    _id: selectedCompany.value,
+                    name: selectedCompany.label
+                };
+            }
         }
 
+        console.log(updateUserDto)
         onFinish?.(updateUserDto);
     };
 
@@ -262,7 +272,6 @@ const EditUserModal = ({
                                 </div>
                             </div>
 
-                            {/* Role & Company Section */}
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                                 <div className="flex items-center gap-2 mb-4">
                                     <Building className="w-4 h-4 text-blue-500" />
@@ -270,7 +279,7 @@ const EditUserModal = ({
                                         Thông tin vai trò
                                     </h3>
                                 </div>
-                                <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-gray-700 font-medium text-sm mb-2">
                                             Vai trò
@@ -322,7 +331,6 @@ const EditUserModal = ({
                                             </div>
                                         </div>
                                     )}
-
                                 </div>
                             </div>
 

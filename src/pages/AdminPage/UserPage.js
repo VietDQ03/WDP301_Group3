@@ -4,14 +4,14 @@ import Header from "../../components/AdminPage/Header";
 import { userApi } from "../../api/AdminPageAPI/userAPI";
 import { roleApi } from "../../api/AdminPageAPI/roleAPI";
 import EditUserModal from './Modal/EditUserModal';
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Tag, Modal } from "antd";
-import { 
-  PlusOutlined, 
-  ReloadOutlined, 
-  SettingOutlined, 
-  EditOutlined, 
-  StopOutlined, 
-  ExclamationCircleOutlined 
+import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Tag, Modal, Select } from "antd";
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+  EditOutlined,
+  StopOutlined,
+  ExclamationCircleOutlined
 } from "@ant-design/icons";
 import './UserPage.css';
 
@@ -97,13 +97,13 @@ const UserPage = () => {
         pageSize: params.pageSize || 10,
         ...params,
       });
-  
+
       if (response?.data) {
         const formattedUsers = response.data.result
           .filter(user => !user.isDeleted)
           .map((user, index) => {
             const userRole = roles.find(role => role._id === user.role);
-            
+
             return {
               key: user._id,
               stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
@@ -113,14 +113,19 @@ const UserPage = () => {
               gender: user.gender,
               address: user.address,
               role: user.role,
-              roleName: userRole ? userRole.name : 'N/A', 
+              roleName: userRole ? userRole.name : 'N/A',
               isActived: user.isActived,
               premium: user.premium || 0,
               createdAt: new Date(user.createdAt).toLocaleString(),
               updatedAt: new Date(user.updatedAt).toLocaleString(),
+              // Thêm thông tin company vào đây
+              company: user.company ? {
+                _id: user.company._id,
+                name: user.company.name
+              } : null
             };
           });
-  
+
         setUsers(formattedUsers);
         setPagination({
           current: response.data.meta.current,
@@ -151,30 +156,30 @@ const UserPage = () => {
             pageSize: 10,
           })
         ]);
-  
+
         const transformedRoles = rolesResponse.data.result.map(role => ({
           ...role,
           key: role._id,
         }));
-  
+
         const roleMapping = {};
         transformedRoles.forEach(role => {
           roleMapping[role._id] = role.name;
         });
-  
+
         setRoleMap(roleMapping);
         setRoles(transformedRoles);
         setRolePagination({
           ...rolePagination,
           total: rolesResponse.data.meta.total,
         });
-  
+
         if (usersResponse?.data) {
           const formattedUsers = usersResponse.data.result
             .filter(user => !user.isDeleted)
             .map((user, index) => {
               const userRole = transformedRoles.find(role => role._id === user.role);
-              
+
               return {
                 key: user._id,
                 stt: index + 1 + ((usersResponse.data.meta.current - 1) * usersResponse.data.meta.pageSize),
@@ -189,9 +194,13 @@ const UserPage = () => {
                 premium: user.premium || 0,
                 createdAt: new Date(user.createdAt).toLocaleString(),
                 updatedAt: new Date(user.updatedAt).toLocaleString(),
+                company: user.company ? {
+                  _id: user.company._id,
+                  name: user.company.name
+                } : null
               };
             });
-  
+
           setUsers(formattedUsers);
           setPagination({
             current: usersResponse.data.meta.current,
@@ -206,7 +215,7 @@ const UserPage = () => {
         setLoading(false);
       }
     };
-  
+
     initData();
   }, []);
 
@@ -256,6 +265,14 @@ const UserPage = () => {
     }
   };
 
+  // Handle real-time search
+  const handleSearch = (changedValues, allValues) => {
+    fetchUsers({
+      ...pagination,
+      current: 1,
+      ...allValues,
+    });
+  };
 
   const columns = [
     {
@@ -371,14 +388,6 @@ const UserPage = () => {
     });
   };
 
-  const onFinish = (values) => {
-    fetchUsers({
-      ...pagination,
-      current: 1,
-      ...values,
-    });
-  };
-
   const onReset = () => {
     form.resetFields();
     fetchUsers({
@@ -393,18 +402,17 @@ const UserPage = () => {
 
   const handleModalSubmit = async (updateData) => {
     try {
-      // Chỉ gửi những trường có giá trị
       const filteredUpdateData = Object.fromEntries(
         Object.entries(updateData).filter(([_, value]) => value !== undefined && value !== '')
       );
-  
+
       if (Object.keys(filteredUpdateData).length === 0) {
         message.error("Không có dữ liệu nào được thay đổi!");
         return;
       }
-  
+
       await userApi.update(editingUser?.key, filteredUpdateData);
-  
+
       message.success("Cập nhật thông tin thành công!");
       setEditModalVisible(false);
       setEditingUser(null);
@@ -430,26 +438,59 @@ const UserPage = () => {
           <div className="bg-white p-4 shadow rounded-lg mb-6">
             <Form
               form={form}
-              onFinish={onFinish}
               layout="vertical"
               className="ml-4"
+              onValuesChange={handleSearch}
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <Form.Item name="name" label="Tên Người Dùng" className="col-span-1">
-                  <Input placeholder="Nhập tên người dùng" style={{ height: '40px' }} />
+                  <Input
+                    placeholder="Nhập tên người dùng"
+                    style={{ height: '40px' }}
+                    allowClear
+                  />
                 </Form.Item>
 
                 <Form.Item name="email" label="Email" className="col-span-1">
-                  <Input placeholder="Nhập email" style={{ height: '40px' }} />
+                  <Input
+                    placeholder="Nhập email"
+                    style={{ height: '40px' }}
+                    allowClear
+                  />
                 </Form.Item>
 
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
-                  <div className="flex space-x-2">
-                    <Button type="primary" htmlType="submit">
-                      Tìm kiếm
-                    </Button>
-                    <Button onClick={onReset}>Đặt lại</Button>
-                  </div>
+                <Form.Item name="role" label="Vai trò" className="col-span-1">
+                  <Select
+                    placeholder="Chọn vai trò"
+                    style={{ width: '100%', height: '40px' }}
+                    allowClear
+                  >
+                    {roles.map(role => (
+                      <Select.Option key={role._id} value={role._id}>
+                        {role.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+
+                <Form.Item name="isActived" label="Trạng thái" className="col-span-1">
+                  <Select
+                    placeholder="Chọn trạng thái"
+                    style={{ width: '100%', height: '40px' }}
+                    allowClear
+                  >
+                    <Select.Option value={true}>Hoạt động</Select.Option>
+                    <Select.Option value={false}>Không hoạt động</Select.Option>
+                  </Select>
+                </Form.Item>
+
+                <Form.Item label=" " className="col-span-1">
+                  <Button
+                    onClick={onReset}
+                    style={{ height: '40px' }}
+                  >
+                    Đặt lại
+                  </Button>
                 </Form.Item>
               </div>
             </Form>
@@ -461,14 +502,8 @@ const UserPage = () => {
                 DANH SÁCH NGƯỜI DÙNG
               </Title>
               <Space>
-                <Button type="primary" icon={<PlusOutlined />}>
-                  Thêm mới
-                </Button>
                 <Tooltip title="Làm mới">
                   <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
-                </Tooltip>
-                <Tooltip title="Cài đặt">
-                  <Button icon={<SettingOutlined />} />
                 </Tooltip>
               </Space>
             </div>
