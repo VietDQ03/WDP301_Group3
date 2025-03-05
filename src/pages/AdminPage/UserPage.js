@@ -92,40 +92,40 @@ const UserPage = () => {
   const fetchUsers = async (params = {}) => {
     try {
       setLoading(true);
-      const response = await userApi.getAll({
-        current: params.current || 1,
-        pageSize: params.pageSize || 10,
-        ...params,
-      });
-
+      const searchParams = {
+        ...form.getFieldsValue(), // Get current form values
+        current: params.current || pagination.current,
+        pageSize: params.pageSize || pagination.pageSize,
+      };
+  
+      const response = await userApi.search(searchParams);
+  
       if (response?.data) {
-        const formattedUsers = response.data.result
-          .map((user, index) => {
-            const userRole = roles.find(role => role._id === user.role);
-
-            return {
-              key: user._id,
-              stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
-              name: user.name,
-              email: user.email,
-              age: user.age,
-              gender: user.gender,
-              address: user.address,
-              role: user.role,
-              roleName: userRole ? userRole.name : 'N/A',
-              isActived: user.isActived,
-              isDeleted: user.isDeleted,
-              premium: user.premium || 0,
-              createdAt: new Date(user.createdAt).toLocaleString(),
-              updatedAt: new Date(user.updatedAt).toLocaleString(),
-              // Thêm thông tin company vào đây
-              company: user.company ? {
-                _id: user.company._id,
-                name: user.company.name
-              } : null
-            };
-          });
-
+        const formattedUsers = response.data.result.map((user, index) => {
+          const userRole = roles.find(role => role._id === user.role);
+          
+          return {
+            key: user._id,
+            stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
+            name: user.name,
+            email: user.email,
+            age: user.age,
+            gender: user.gender,
+            address: user.address,
+            role: user.role,
+            roleName: userRole ? userRole.name : 'N/A',
+            isActived: user.isActived,
+            isDeleted: user.isDeleted,
+            premium: user.premium || 0,
+            createdAt: new Date(user.createdAt).toLocaleString(),
+            updatedAt: new Date(user.updatedAt).toLocaleString(),
+            company: user.company ? {
+              _id: user.company._id,
+              name: user.company.name
+            } : null
+          };
+        });
+  
         setUsers(formattedUsers);
         setPagination({
           current: response.data.meta.current,
@@ -275,12 +275,63 @@ const UserPage = () => {
   };
 
   // Handle real-time search
-  const handleSearch = (changedValues, allValues) => {
-    fetchUsers({
-      ...pagination,
-      current: 1,
-      ...allValues,
-    });
+  const handleSearch = async (changedValues, allValues) => {
+    try {
+      setLoading(true);
+      
+      // Clean up the search values by removing empty strings
+      const searchValues = {};
+      Object.keys(allValues).forEach(key => {
+        if (allValues[key] !== undefined && allValues[key] !== '') {
+          searchValues[key] = allValues[key];
+        }
+      });
+  
+      const response = await userApi.search({
+        ...searchValues,
+        current: 1, // Reset to first page when searching
+        pageSize: pagination.pageSize
+      });
+  
+      if (response?.data) {
+        const formattedUsers = response.data.result.map((user, index) => {
+          const userRole = roles.find(role => role._id === user.role);
+          
+          return {
+            key: user._id,
+            stt: index + 1,
+            name: user.name,
+            email: user.email,
+            age: user.age,
+            gender: user.gender,
+            address: user.address,
+            role: user.role,
+            roleName: userRole ? userRole.name : 'N/A',
+            isActived: user.isActived,
+            isDeleted: user.isDeleted,
+            premium: user.premium || 0,
+            createdAt: new Date(user.createdAt).toLocaleString(),
+            updatedAt: new Date(user.updatedAt).toLocaleString(),
+            company: user.company ? {
+              _id: user.company._id,
+              name: user.company.name
+            } : null
+          };
+        });
+  
+        setUsers(formattedUsers);
+        setPagination({
+          ...pagination,
+          current: response.data.meta.current,
+          total: response.data.meta.total,
+        });
+      }
+    } catch (error) {
+      console.error("Error searching users:", error);
+      message.error('Có lỗi xảy ra khi tìm kiếm người dùng');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const columns = [
@@ -397,6 +448,7 @@ const UserPage = () => {
 
   const handleTableChange = (newPagination, filters, sorter) => {
     fetchUsers({
+      ...form.getFieldsValue(), // Include current search parameters
       ...newPagination,
       ...filters,
       sortField: sorter.field,
@@ -503,7 +555,7 @@ const UserPage = () => {
                 <Form.Item label=" " className="col-span-1">
                   <Button
                     onClick={onReset}
-                    style={{ height: '40px' }}
+                    style={{ height: '40px', width: '50%' }}
                   >
                     Đặt lại
                   </Button>
