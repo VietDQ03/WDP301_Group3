@@ -100,7 +100,6 @@ const UserPage = () => {
 
       if (response?.data) {
         const formattedUsers = response.data.result
-          .filter(user => !user.isDeleted)
           .map((user, index) => {
             const userRole = roles.find(role => role._id === user.role);
 
@@ -115,6 +114,7 @@ const UserPage = () => {
               role: user.role,
               roleName: userRole ? userRole.name : 'N/A',
               isActived: user.isActived,
+              isDeleted: user.isDeleted,
               premium: user.premium || 0,
               createdAt: new Date(user.createdAt).toLocaleString(),
               updatedAt: new Date(user.updatedAt).toLocaleString(),
@@ -176,7 +176,6 @@ const UserPage = () => {
 
         if (usersResponse?.data) {
           const formattedUsers = usersResponse.data.result
-            .filter(user => !user.isDeleted)
             .map((user, index) => {
               const userRole = transformedRoles.find(role => role._id === user.role);
 
@@ -191,6 +190,7 @@ const UserPage = () => {
                 role: user.role,
                 roleName: userRole ? userRole.name : 'N/A',
                 isActived: user.isActived,
+                isDeleted: user.isDeleted, // Thêm trường isDeleted
                 premium: user.premium || 0,
                 createdAt: new Date(user.createdAt).toLocaleString(),
                 updatedAt: new Date(user.updatedAt).toLocaleString(),
@@ -217,24 +217,33 @@ const UserPage = () => {
     };
 
     initData();
-  }, []);
+}, []);
 
   const handleBan = (userId) => {
     confirm({
-      title: 'Xác nhận thay đổi trạng thái người dùng',
+      title: 'Xác nhận vô hiệu hóa người dùng',
       icon: <ExclamationCircleOutlined />,
-      content: 'Bạn có chắc chắn muốn thay đổi trạng thái của người dùng này?',
+      content: 'Bạn có chắc chắn muốn vô hiệu hóa người dùng này? Hành động này không thể hoàn tác.',
       okText: 'Xác nhận',
       okType: 'danger',
       cancelText: 'Hủy',
-      onOk: async () => {
+      async onOk() {
         try {
-          message.success('Thay đổi trạng thái người dùng thành công!');
+          setLoading(true);
+          // Sử dụng API delete thay vì update
+          await userApi.delete(userId);
+
+          message.success('Vô hiệu hóa người dùng thành công!');
+          // Refresh lại danh sách người dùng
           fetchUsers(pagination);
         } catch (error) {
-          console.error("Error toggling user status:", error);
-          message.error('Có lỗi xảy ra khi thay đổi trạng thái người dùng!');
+          console.error("Error deleting user:", error);
+          message.error('Có lỗi xảy ra khi vô hiệu hóa người dùng!');
+        } finally {
+          setLoading(false);
         }
+      },
+      onCancel() {
       },
     });
   };
@@ -345,11 +354,16 @@ const UserPage = () => {
       dataIndex: "isActived",
       key: "isActived",
       align: "center",
-      render: (isActived) => (
-        <Tag color={isActived ? 'success' : 'error'}>
-          {isActived ? 'Hoạt động' : 'Không hoạt động'}
-        </Tag>
-      ),
+      render: (isActived, record) => {
+        if (record.isDeleted) {
+          return <Tag color="red">Đã bị ban</Tag>;
+        }
+        return (
+          <Tag color={isActived ? 'success' : 'warning'}>
+            {isActived ? 'Hoạt động' : 'Không hoạt động'}
+          </Tag>
+        );
+      },
     },
     {
       title: "Hành Động",
@@ -364,19 +378,21 @@ const UserPage = () => {
               icon={<EditOutlined />}
               className="text-blue-500 hover:text-blue-700"
               onClick={() => handleEdit(record)}
+              disabled={record.isDeleted} // Disable nút edit nếu user đã bị ban
             />
           </Tooltip>
-          <Tooltip title={record.isActived ? "Khóa" : "Mở khóa"}>
+          <Tooltip title={record.isDeleted ? "Đã bị ban" : "Ban người dùng"}>
             <Button
               type="text"
               icon={<StopOutlined />}
               className="text-red-500 hover:text-red-700"
               onClick={() => handleBan(record.key)}
+              disabled={record.isDeleted} // Disable nút ban nếu user đã bị ban
             />
           </Tooltip>
         </Space>
       ),
-    },
+    }
   ];
 
   const handleTableChange = (newPagination, filters, sorter) => {
