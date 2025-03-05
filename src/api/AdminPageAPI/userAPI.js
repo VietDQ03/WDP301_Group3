@@ -2,9 +2,9 @@ import axios from "../../config/axiosCustom";
 
 export const userApi = {
   getAll: (params) => {
-    return axios.get('/users', { 
+    return axios.get('/users', {
       params: {
-        current: params.current || 1, 
+        current: params.current || 1,
         pageSize: params.pageSize || 10
       }
     });
@@ -18,11 +18,9 @@ export const userApi = {
     return axios.get(`/users/${id}`);
   },
 
-  update: async (_id, updateData, userData) => {
-    return axios.patch(`/users/${_id}`, {
-      updateUserDto: updateData,
-      user: userData
-    });
+  update: async (_id, updateData) => {
+    // Gửi trực tiếp updateData làm request body
+    return axios.patch(`/users/${_id}`, updateData);
   },
 
   delete: async (id) => {
@@ -30,12 +28,19 @@ export const userApi = {
   },
 
   search: async (params) => {
-    return axios.get("/users", { 
-      params: {
-        current: params.current || 1,
-        pageSize: params.pageSize || 10,
-        ...params
-      }
-    });
+    const searchParams = {
+      current: params.current || 1,
+      pageSize: params.pageSize || 10,
+      name: params.name || undefined,
+      email: params.email || undefined,
+      role: params.role || undefined,
+      isActived: params.isActived !== undefined ? params.isActived : undefined
+    };
+
+    Object.keys(searchParams).forEach(key =>
+      searchParams[key] === undefined && delete searchParams[key]
+    );
+
+    return axios.get("/users", { params: searchParams });
   },
 };

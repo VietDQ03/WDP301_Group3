@@ -4,8 +4,15 @@ import Header from "../../components/AdminPage/Header";
 import { userApi } from "../../api/AdminPageAPI/userAPI";
 import { roleApi } from "../../api/AdminPageAPI/roleAPI";
 import EditUserModal from './Modal/EditUserModal';
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Tag, Modal } from "antd";
-import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, } from "@ant-design/icons";
+import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Tag, Modal, Select } from "antd";
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+  EditOutlined,
+  StopOutlined,
+  ExclamationCircleOutlined
+} from "@ant-design/icons";
 import './UserPage.css';
 
 const { Content } = Layout;
@@ -35,7 +42,6 @@ const UserPage = () => {
     total: 0,
   });
 
-  // Effect để xử lý scroll khi mở/đóng modal
   useEffect(() => {
     if (editModalVisible) {
       document.body.style.overflow = 'hidden';
@@ -86,27 +92,40 @@ const UserPage = () => {
   const fetchUsers = async (params = {}) => {
     try {
       setLoading(true);
-      const response = await userApi.getAll({
-        current: params.current || 1,
-        pageSize: params.pageSize || 10,
-        ...params,
-      });
-
+      const searchParams = {
+        ...form.getFieldsValue(), // Get current form values
+        current: params.current || pagination.current,
+        pageSize: params.pageSize || pagination.pageSize,
+      };
+  
+      const response = await userApi.search(searchParams);
+  
       if (response?.data) {
-        const formattedUsers = response.data.result.map((user, index) => ({
-          key: user._id,
-          stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
-          name: user.name,
-          email: user.email,
-          age: user.age,
-          gender: user.gender,
-          address: user.address,
-          role: user.role,
-          roleName: roleMap[user.role] || 'N/A',
-          createdAt: new Date(user.createdAt).toLocaleString(),
-          updatedAt: new Date(user.updatedAt).toLocaleString(),
-        }));
-
+        const formattedUsers = response.data.result.map((user, index) => {
+          const userRole = roles.find(role => role._id === user.role);
+          
+          return {
+            key: user._id,
+            stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
+            name: user.name,
+            email: user.email,
+            age: user.age,
+            gender: user.gender,
+            address: user.address,
+            role: user.role,
+            roleName: userRole ? userRole.name : 'N/A',
+            isActived: user.isActived,
+            isDeleted: user.isDeleted,
+            premium: user.premium || 0,
+            createdAt: new Date(user.createdAt).toLocaleString(),
+            updatedAt: new Date(user.updatedAt).toLocaleString(),
+            company: user.company ? {
+              _id: user.company._id,
+              name: user.company.name
+            } : null
+          };
+        });
+  
         setUsers(formattedUsers);
         setPagination({
           current: response.data.meta.current,
@@ -124,32 +143,107 @@ const UserPage = () => {
 
   useEffect(() => {
     const initData = async () => {
-      await fetchRoles();
-      fetchUsers({
-        current: 1,
-        pageSize: 10,
-      });
-    };
-    initData();
-  }, []);
+      setLoading(true);
+      try {
+        const [rolesResponse, usersResponse] = await Promise.all([
+          roleApi.getAll({
+            current: rolePagination.current,
+            pageSize: rolePagination.pageSize,
+            ...form.getFieldsValue()
+          }),
+          userApi.getAll({
+            current: 1,
+            pageSize: 10,
+          })
+        ]);
 
-  const handleDelete = (id) => {
+        const transformedRoles = rolesResponse.data.result.map(role => ({
+          ...role,
+          key: role._id,
+        }));
+
+        const roleMapping = {};
+        transformedRoles.forEach(role => {
+          roleMapping[role._id] = role.name;
+        });
+
+        setRoleMap(roleMapping);
+        setRoles(transformedRoles);
+        setRolePagination({
+          ...rolePagination,
+          total: rolesResponse.data.meta.total,
+        });
+
+        if (usersResponse?.data) {
+          const formattedUsers = usersResponse.data.result
+            .map((user, index) => {
+              const userRole = transformedRoles.find(role => role._id === user.role);
+
+              return {
+                key: user._id,
+                stt: index + 1 + ((usersResponse.data.meta.current - 1) * usersResponse.data.meta.pageSize),
+                name: user.name,
+                email: user.email,
+                age: user.age,
+                gender: user.gender,
+                address: user.address,
+                role: user.role,
+                roleName: userRole ? userRole.name : 'N/A',
+                isActived: user.isActived,
+                isDeleted: user.isDeleted, // Thêm trường isDeleted
+                premium: user.premium || 0,
+                createdAt: new Date(user.createdAt).toLocaleString(),
+                updatedAt: new Date(user.updatedAt).toLocaleString(),
+                company: user.company ? {
+                  _id: user.company._id,
+                  name: user.company.name
+                } : null
+              };
+            });
+
+          setUsers(formattedUsers);
+          setPagination({
+            current: usersResponse.data.meta.current,
+            pageSize: usersResponse.data.meta.pageSize,
+            total: usersResponse.data.meta.total,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        message.error('Không thể tải dữ liệu');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initData();
+}, []);
+
+  const handleBan = (userId) => {
     confirm({
-      title: 'Bạn có chắc chắn muốn xóa người dùng này?',
+      title: 'Xác nhận vô hiệu hóa người dùng',
       icon: <ExclamationCircleOutlined />,
-      content: 'Hành động này không thể hoàn tác',
-      okText: 'Xóa',
+      content: 'Bạn có chắc chắn muốn vô hiệu hóa người dùng này? Hành động này không thể hoàn tác.',
+      okText: 'Xác nhận',
       okType: 'danger',
       cancelText: 'Hủy',
-      onOk: async () => {
+      async onOk() {
         try {
-          await userApi.delete(id);
-          message.success('Xóa người dùng thành công!');
+          setLoading(true);
+          // Sử dụng API delete thay vì update
+          await userApi.delete(userId);
+
+          message.success('Vô hiệu hóa người dùng thành công!');
+          // Refresh lại danh sách người dùng
           fetchUsers(pagination);
         } catch (error) {
           console.error("Error deleting user:", error);
-          message.error('Có lỗi xảy ra khi xóa người dùng!');
+          message.error('Có lỗi xảy ra khi vô hiệu hóa người dùng!');
+        } finally {
+          setLoading(false);
         }
+      },
+      onCancel() {
       },
     });
   };
@@ -167,33 +261,76 @@ const UserPage = () => {
     });
   };
 
-  const handleUpdate = async (id, values) => {
-    try {
-      const requestData = {
-        updateUserDto: {
-          name: values.name.trim(),
-          email: values.email.trim(),
-          age: values.age,
-          gender: values.gender,
-          role: values.role,
-          address: values.address,
-          company: {
-            _id: values.company?._id,
-            name: values.company?.name
-          }
-        },
-        user: {
-          _id: id,
-          name: values.name.trim(),
-          email: values.email.trim()
-        }
-      };
+  const getRoleColor = (roleName) => {
+    switch (roleName) {
+      case 'SUPER_ADMIN':
+        return 'red';
+      case 'ADMIN':
+        return 'blue';
+      case 'NORMAL_USER':
+        return 'green';
+      default:
+        return 'default';
+    }
+  };
 
-      await userApi.update(id, requestData);
-      fetchUsers(pagination);
+  // Handle real-time search
+  const handleSearch = async (changedValues, allValues) => {
+    try {
+      setLoading(true);
+      
+      // Clean up the search values by removing empty strings
+      const searchValues = {};
+      Object.keys(allValues).forEach(key => {
+        if (allValues[key] !== undefined && allValues[key] !== '') {
+          searchValues[key] = allValues[key];
+        }
+      });
+  
+      const response = await userApi.search({
+        ...searchValues,
+        current: 1, // Reset to first page when searching
+        pageSize: pagination.pageSize
+      });
+  
+      if (response?.data) {
+        const formattedUsers = response.data.result.map((user, index) => {
+          const userRole = roles.find(role => role._id === user.role);
+          
+          return {
+            key: user._id,
+            stt: index + 1,
+            name: user.name,
+            email: user.email,
+            age: user.age,
+            gender: user.gender,
+            address: user.address,
+            role: user.role,
+            roleName: userRole ? userRole.name : 'N/A',
+            isActived: user.isActived,
+            isDeleted: user.isDeleted,
+            premium: user.premium || 0,
+            createdAt: new Date(user.createdAt).toLocaleString(),
+            updatedAt: new Date(user.updatedAt).toLocaleString(),
+            company: user.company ? {
+              _id: user.company._id,
+              name: user.company.name
+            } : null
+          };
+        });
+  
+        setUsers(formattedUsers);
+        setPagination({
+          ...pagination,
+          current: response.data.meta.current,
+          total: response.data.meta.total,
+        });
+      }
     } catch (error) {
-      console.error("Error updating user:", error);
-      throw error;
+      console.error("Error searching users:", error);
+      message.error('Có lỗi xảy ra khi tìm kiếm người dùng');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -239,23 +376,45 @@ const UserPage = () => {
       ),
     },
     {
-      title: "Vai trò",
-      dataIndex: "role",
-      key: "role",
+      title: "Số lượt đăng bài",
+      dataIndex: "premium",
+      key: "premium",
       align: "center",
-      render: (roleId) => (
-        <Tag color="green">
-          {roleMap[roleId] || 'N/A'}
+      render: (premium) => {
+        if (!premium) return <Tag color="default">Không</Tag>;
+        return (
+          <Tag color={premium === 1 ? "gold" : "purple"}>
+            {premium} lượt
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Vai trò",
+      dataIndex: "roleName",
+      key: "roleName",
+      align: "center",
+      render: (roleName) => (
+        <Tag color={getRoleColor(roleName)}>
+          {roleName || 'N/A'}
         </Tag>
       ),
     },
     {
-      title: "Địa Chỉ",
-      dataIndex: "address",
-      key: "address",
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
+      title: "Trạng thái",
+      dataIndex: "isActived",
+      key: "isActived",
+      align: "center",
+      render: (isActived, record) => {
+        if (record.isDeleted) {
+          return <Tag color="red">Đã bị ban</Tag>;
+        }
+        return (
+          <Tag color={isActived ? 'success' : 'warning'}>
+            {isActived ? 'Hoạt động' : 'Không hoạt động'}
+          </Tag>
+        );
+      },
     },
     {
       title: "Hành Động",
@@ -270,35 +429,30 @@ const UserPage = () => {
               icon={<EditOutlined />}
               className="text-blue-500 hover:text-blue-700"
               onClick={() => handleEdit(record)}
+              disabled={record.isDeleted} // Disable nút edit nếu user đã bị ban
             />
           </Tooltip>
-          <Tooltip title="Xóa">
+          <Tooltip title={record.isDeleted ? "Đã bị ban" : "Ban người dùng"}>
             <Button
               type="text"
-              icon={<DeleteOutlined />}
+              icon={<StopOutlined />}
               className="text-red-500 hover:text-red-700"
-              onClick={() => handleDelete(record.key)}
+              onClick={() => handleBan(record.key)}
+              disabled={record.isDeleted} // Disable nút ban nếu user đã bị ban
             />
           </Tooltip>
         </Space>
       ),
-    },
+    }
   ];
 
   const handleTableChange = (newPagination, filters, sorter) => {
     fetchUsers({
+      ...form.getFieldsValue(), // Include current search parameters
       ...newPagination,
       ...filters,
       sortField: sorter.field,
       sortOrder: sorter.order,
-    });
-  };
-
-  const onFinish = (values) => {
-    fetchUsers({
-      ...pagination,
-      current: 1,
-      ...values,
     });
   };
 
@@ -314,24 +468,26 @@ const UserPage = () => {
     fetchUsers(pagination);
   };
 
-  const handleModalSubmit = async (values) => {
+  const handleModalSubmit = async (updateData) => {
     try {
-      const company = selectedRole === '67566b60671f5436a0de69a5' ? {
-        _id: values.company?._id,
-        name: values.company?.name
-      } : null;
+      const filteredUpdateData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, value]) => value !== undefined && value !== '')
+      );
 
-      await handleUpdate(editingUser?.key, {
-        ...values,
-        company
-      });
-      message.success('Cập nhật thông tin thành công!');
+      if (Object.keys(filteredUpdateData).length === 0) {
+        message.error("Không có dữ liệu nào được thay đổi!");
+        return;
+      }
+
+      await userApi.update(editingUser?.key, filteredUpdateData);
+
+      message.success("Cập nhật thông tin thành công!");
       setEditModalVisible(false);
       setEditingUser(null);
-      modalForm.resetFields();
       fetchUsers(pagination);
     } catch (error) {
-      message.error('Có lỗi xảy ra khi cập nhật thông tin!');
+      console.error("Error updating user:", error);
+      message.error("Có lỗi xảy ra khi cập nhật thông tin!");
     }
   };
 
@@ -347,50 +503,75 @@ const UserPage = () => {
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
         <Content className="m-6">
-          {/* Search Section */}
           <div className="bg-white p-4 shadow rounded-lg mb-6">
             <Form
               form={form}
-              onFinish={onFinish}
               layout="vertical"
               className="ml-4"
+              onValuesChange={handleSearch}
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <Form.Item name="name" label="Tên Người Dùng" className="col-span-1">
-                  <Input placeholder="Nhập tên người dùng" style={{ height: '40px' }} />
+                  <Input
+                    placeholder="Nhập tên người dùng"
+                    style={{ height: '40px' }}
+                    allowClear
+                  />
                 </Form.Item>
 
                 <Form.Item name="email" label="Email" className="col-span-1">
-                  <Input placeholder="Nhập email" style={{ height: '40px' }} />
+                  <Input
+                    placeholder="Nhập email"
+                    style={{ height: '40px' }}
+                    allowClear
+                  />
                 </Form.Item>
 
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
-                  <div className="flex space-x-2">
-                    <Button type="primary" htmlType="submit">
-                      Tìm kiếm
-                    </Button>
-                    <Button onClick={onReset}>Đặt lại</Button>
-                  </div>
+                <Form.Item name="role" label="Vai trò" className="col-span-1">
+                  <Select
+                    placeholder="Chọn vai trò"
+                    style={{ width: '100%', height: '40px' }}
+                    allowClear
+                  >
+                    {roles.map(role => (
+                      <Select.Option key={role._id} value={role._id}>
+                        {role.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+
+                <Form.Item name="isActived" label="Trạng thái" className="col-span-1">
+                  <Select
+                    placeholder="Chọn trạng thái"
+                    style={{ width: '100%', height: '40px' }}
+                    allowClear
+                  >
+                    <Select.Option value={true}>Hoạt động</Select.Option>
+                    <Select.Option value={false}>Không hoạt động</Select.Option>
+                  </Select>
+                </Form.Item>
+
+                <Form.Item label=" " className="col-span-1">
+                  <Button
+                    onClick={onReset}
+                    style={{ height: '40px', width: '50%' }}
+                  >
+                    Đặt lại
+                  </Button>
                 </Form.Item>
               </div>
             </Form>
           </div>
 
-          {/* List Section */}
           <div className="bg-white p-6 shadow rounded-lg">
             <div className="flex justify-between items-center mb-4">
               <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
                 DANH SÁCH NGƯỜI DÙNG
               </Title>
               <Space>
-                <Button type="primary" icon={<PlusOutlined />}>
-                  Thêm mới
-                </Button>
                 <Tooltip title="Làm mới">
                   <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
-                </Tooltip>
-                <Tooltip title="Cài đặt">
-                  <Button icon={<SettingOutlined />} />
                 </Tooltip>
               </Space>
             </div>
