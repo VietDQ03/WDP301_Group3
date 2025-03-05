@@ -92,40 +92,40 @@ const UserPage = () => {
   const fetchUsers = async (params = {}) => {
     try {
       setLoading(true);
-      const response = await userApi.getAll({
-        current: params.current || 1,
-        pageSize: params.pageSize || 10,
-        ...params,
-      });
-
+      const searchParams = {
+        ...form.getFieldsValue(), // Get current form values
+        current: params.current || pagination.current,
+        pageSize: params.pageSize || pagination.pageSize,
+      };
+  
+      const response = await userApi.search(searchParams);
+  
       if (response?.data) {
-        const formattedUsers = response.data.result
-          .filter(user => !user.isDeleted)
-          .map((user, index) => {
-            const userRole = roles.find(role => role._id === user.role);
-
-            return {
-              key: user._id,
-              stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
-              name: user.name,
-              email: user.email,
-              age: user.age,
-              gender: user.gender,
-              address: user.address,
-              role: user.role,
-              roleName: userRole ? userRole.name : 'N/A',
-              isActived: user.isActived,
-              premium: user.premium || 0,
-              createdAt: new Date(user.createdAt).toLocaleString(),
-              updatedAt: new Date(user.updatedAt).toLocaleString(),
-              // Thêm thông tin company vào đây
-              company: user.company ? {
-                _id: user.company._id,
-                name: user.company.name
-              } : null
-            };
-          });
-
+        const formattedUsers = response.data.result.map((user, index) => {
+          const userRole = roles.find(role => role._id === user.role);
+          
+          return {
+            key: user._id,
+            stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
+            name: user.name,
+            email: user.email,
+            age: user.age,
+            gender: user.gender,
+            address: user.address,
+            role: user.role,
+            roleName: userRole ? userRole.name : 'N/A',
+            isActived: user.isActived,
+            isDeleted: user.isDeleted,
+            premium: user.premium || 0,
+            createdAt: new Date(user.createdAt).toLocaleString(),
+            updatedAt: new Date(user.updatedAt).toLocaleString(),
+            company: user.company ? {
+              _id: user.company._id,
+              name: user.company.name
+            } : null
+          };
+        });
+  
         setUsers(formattedUsers);
         setPagination({
           current: response.data.meta.current,
@@ -176,7 +176,6 @@ const UserPage = () => {
 
         if (usersResponse?.data) {
           const formattedUsers = usersResponse.data.result
-            .filter(user => !user.isDeleted)
             .map((user, index) => {
               const userRole = transformedRoles.find(role => role._id === user.role);
 
@@ -191,6 +190,7 @@ const UserPage = () => {
                 role: user.role,
                 roleName: userRole ? userRole.name : 'N/A',
                 isActived: user.isActived,
+                isDeleted: user.isDeleted, // Thêm trường isDeleted
                 premium: user.premium || 0,
                 createdAt: new Date(user.createdAt).toLocaleString(),
                 updatedAt: new Date(user.updatedAt).toLocaleString(),
@@ -217,24 +217,33 @@ const UserPage = () => {
     };
 
     initData();
-  }, []);
+}, []);
 
   const handleBan = (userId) => {
     confirm({
-      title: 'Xác nhận thay đổi trạng thái người dùng',
+      title: 'Xác nhận vô hiệu hóa người dùng',
       icon: <ExclamationCircleOutlined />,
-      content: 'Bạn có chắc chắn muốn thay đổi trạng thái của người dùng này?',
+      content: 'Bạn có chắc chắn muốn vô hiệu hóa người dùng này? Hành động này không thể hoàn tác.',
       okText: 'Xác nhận',
       okType: 'danger',
       cancelText: 'Hủy',
-      onOk: async () => {
+      async onOk() {
         try {
-          message.success('Thay đổi trạng thái người dùng thành công!');
+          setLoading(true);
+          // Sử dụng API delete thay vì update
+          await userApi.delete(userId);
+
+          message.success('Vô hiệu hóa người dùng thành công!');
+          // Refresh lại danh sách người dùng
           fetchUsers(pagination);
         } catch (error) {
-          console.error("Error toggling user status:", error);
-          message.error('Có lỗi xảy ra khi thay đổi trạng thái người dùng!');
+          console.error("Error deleting user:", error);
+          message.error('Có lỗi xảy ra khi vô hiệu hóa người dùng!');
+        } finally {
+          setLoading(false);
         }
+      },
+      onCancel() {
       },
     });
   };
@@ -266,12 +275,63 @@ const UserPage = () => {
   };
 
   // Handle real-time search
-  const handleSearch = (changedValues, allValues) => {
-    fetchUsers({
-      ...pagination,
-      current: 1,
-      ...allValues,
-    });
+  const handleSearch = async (changedValues, allValues) => {
+    try {
+      setLoading(true);
+      
+      // Clean up the search values by removing empty strings
+      const searchValues = {};
+      Object.keys(allValues).forEach(key => {
+        if (allValues[key] !== undefined && allValues[key] !== '') {
+          searchValues[key] = allValues[key];
+        }
+      });
+  
+      const response = await userApi.search({
+        ...searchValues,
+        current: 1, // Reset to first page when searching
+        pageSize: pagination.pageSize
+      });
+  
+      if (response?.data) {
+        const formattedUsers = response.data.result.map((user, index) => {
+          const userRole = roles.find(role => role._id === user.role);
+          
+          return {
+            key: user._id,
+            stt: index + 1,
+            name: user.name,
+            email: user.email,
+            age: user.age,
+            gender: user.gender,
+            address: user.address,
+            role: user.role,
+            roleName: userRole ? userRole.name : 'N/A',
+            isActived: user.isActived,
+            isDeleted: user.isDeleted,
+            premium: user.premium || 0,
+            createdAt: new Date(user.createdAt).toLocaleString(),
+            updatedAt: new Date(user.updatedAt).toLocaleString(),
+            company: user.company ? {
+              _id: user.company._id,
+              name: user.company.name
+            } : null
+          };
+        });
+  
+        setUsers(formattedUsers);
+        setPagination({
+          ...pagination,
+          current: response.data.meta.current,
+          total: response.data.meta.total,
+        });
+      }
+    } catch (error) {
+      console.error("Error searching users:", error);
+      message.error('Có lỗi xảy ra khi tìm kiếm người dùng');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const columns = [
@@ -345,11 +405,16 @@ const UserPage = () => {
       dataIndex: "isActived",
       key: "isActived",
       align: "center",
-      render: (isActived) => (
-        <Tag color={isActived ? 'success' : 'error'}>
-          {isActived ? 'Hoạt động' : 'Không hoạt động'}
-        </Tag>
-      ),
+      render: (isActived, record) => {
+        if (record.isDeleted) {
+          return <Tag color="red">Đã bị ban</Tag>;
+        }
+        return (
+          <Tag color={isActived ? 'success' : 'warning'}>
+            {isActived ? 'Hoạt động' : 'Không hoạt động'}
+          </Tag>
+        );
+      },
     },
     {
       title: "Hành Động",
@@ -364,23 +429,26 @@ const UserPage = () => {
               icon={<EditOutlined />}
               className="text-blue-500 hover:text-blue-700"
               onClick={() => handleEdit(record)}
+              disabled={record.isDeleted} // Disable nút edit nếu user đã bị ban
             />
           </Tooltip>
-          <Tooltip title={record.isActived ? "Khóa" : "Mở khóa"}>
+          <Tooltip title={record.isDeleted ? "Đã bị ban" : "Ban người dùng"}>
             <Button
               type="text"
               icon={<StopOutlined />}
               className="text-red-500 hover:text-red-700"
               onClick={() => handleBan(record.key)}
+              disabled={record.isDeleted} // Disable nút ban nếu user đã bị ban
             />
           </Tooltip>
         </Space>
       ),
-    },
+    }
   ];
 
   const handleTableChange = (newPagination, filters, sorter) => {
     fetchUsers({
+      ...form.getFieldsValue(), // Include current search parameters
       ...newPagination,
       ...filters,
       sortField: sorter.field,
@@ -487,7 +555,7 @@ const UserPage = () => {
                 <Form.Item label=" " className="col-span-1">
                   <Button
                     onClick={onReset}
-                    style={{ height: '40px' }}
+                    style={{ height: '40px', width: '50%' }}
                   >
                     Đặt lại
                   </Button>
