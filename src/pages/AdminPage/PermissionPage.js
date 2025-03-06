@@ -371,6 +371,14 @@ const PermissionPage = () => {
                   <Button
                     icon={<ReloadOutlined />}
                     onClick={handleRefresh}
+                    size="large"
+                    style={{
+                      height: '44px',
+                      width: '44px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
                   />
                 </Tooltip>
               </Space>
