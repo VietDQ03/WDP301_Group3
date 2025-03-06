@@ -1,13 +1,17 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Tag, message, } from "antd";
-import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, } from "@ant-design/icons";
+import { Table, Input, Space, Form, Typography, Tooltip, Layout, Tag, message, Select, Button, Modal } from "antd";
+import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { roleApi } from "../../api/AdminPageAPI/roleAPI";
 import { permissionApi } from "../../api/AdminPageAPI/permissionsAPI";
+import AddEditRoleModal from "./Modal/AddEditRoleModal";
+import CustomButton from "../../components/Other/CustomButton";
+import debounce from 'lodash/debounce';
 
 const { Content } = Layout;
 const { Title } = Typography;
+const { confirm } = Modal; 
 
 const RolePage = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -15,7 +19,11 @@ const RolePage = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [permissions, setPermissions] = useState({});
-  const [loadingPermissions, setLoadingPermissions] = useState(new Set());
+  const [loadingAllPermissions, setLoadingAllPermissions] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingRole, setEditingRole] = useState(null);
+  const [searchText, setSearchText] = useState('');
+  const [searchStatus, setSearchStatus] = useState(undefined);
 
   const [pagination, setPagination] = useState({
     current: 1,
@@ -23,43 +31,83 @@ const RolePage = () => {
     total: 0,
   });
 
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((searchText, searchStatus) => {
+        fetchRoles({
+          current: 1,
+          name: searchText,
+          isActive: searchStatus
+        });
+      }, 500),
+    []
+  );
 
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
-  const fetchPermissionDetails = useCallback(async (id) => {
-    if (permissions[id] || loadingPermissions.has(id)) return;
+  const loadAllPermissions = useCallback(async (rolesData) => {
+    if (!rolesData?.length) {
+      setLoadingAllPermissions(false);
+      return;
+    }
 
-    setLoadingPermissions(prev => new Set([...prev, id]));
+    const allPermissionIds = new Set(
+      rolesData.flatMap(role => role.permissions || [])
+    );
+
+    const unloadedIds = Array.from(allPermissionIds)
+      .filter(id => !permissions[id]);
+
+    if (!unloadedIds.length) {
+      setLoadingAllPermissions(false);
+      return;
+    }
 
     try {
-      const response = await permissionApi.getOne(id);
-      if (response?.data) {
-        setPermissions(prev => ({
-          ...prev,
-          [id]: response.data.name || 'N/A'
-        }));
-      }
-    } catch (error) {
-      console.error("Error fetching permission details:", error);
+      const responses = await Promise.all(
+        unloadedIds.map(id => permissionApi.getOne(id))
+      );
+
+      const newPermissions = {};
+      responses.forEach((response, index) => {
+        const id = unloadedIds[index];
+        newPermissions[id] = response?.data?.name || `Permission ${id}`;
+      });
+
       setPermissions(prev => ({
         ...prev,
-        [id]: 'N/A'
+        ...newPermissions
+      }));
+    } catch (error) {
+      console.error("Error loading all permissions:", error);
+      const failedPermissions = unloadedIds.reduce((acc, id) => ({
+        ...acc,
+        [id]: `Permission ${id}`
+      }), {});
+
+      setPermissions(prev => ({
+        ...prev,
+        ...failedPermissions
       }));
     } finally {
-      setLoadingPermissions(prev => {
-        const newSet = new Set([...prev]);
-        newSet.delete(id);
-        return newSet;
-      });
+      setLoadingAllPermissions(false);
     }
-  }, [permissions, loadingPermissions]);
+  }, [permissions]);
 
   const fetchRoles = async (params = {}) => {
     setLoading(true);
+    setLoadingAllPermissions(true);
     try {
       const response = await roleApi.getAll({
         current: params.current || pagination.current,
         pageSize: params.pageSize || pagination.pageSize,
-        ...form.getFieldsValue()
+        name: params.name || searchText,
+        isActive: params.isActive !== undefined ? params.isActive : searchStatus,
+        ...params
       });
 
       const transformedData = response.data.result.map(role => ({
@@ -74,14 +122,16 @@ const RolePage = () => {
         current: params.current || pagination.current,
         pageSize: params.pageSize || pagination.pageSize,
       });
+
+      await loadAllPermissions(transformedData);
     } catch (error) {
-      message.error('Failed to fetch roles');
+      message.error('Không thể tải danh sách vai trò');
       console.error("Error fetching roles:", error);
+      setLoadingAllPermissions(false);
     } finally {
       setLoading(false);
     }
   };
-
 
   useEffect(() => {
     fetchRoles();
@@ -97,11 +147,20 @@ const RolePage = () => {
     });
   };
 
-  const onFinish = (values) => {
-    fetchRoles({ current: 1, ...values });
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchText(value);
+    debouncedSearch(value, searchStatus);
   };
 
-  const onReset = () => {
+  const handleStatusChange = (value) => {
+    setSearchStatus(value);
+    debouncedSearch(searchText, value);
+  };
+
+  const handleReset = () => {
+    setSearchText('');
+    setSearchStatus(undefined);
     form.resetFields();
     fetchRoles({ current: 1 });
   };
@@ -110,36 +169,62 @@ const RolePage = () => {
     fetchRoles();
   };
 
+  const handleAddNew = () => {
+    setEditingRole(null);
+    setModalVisible(true);
+  };
+
   const handleEdit = (record) => {
-    console.log("Edit record:", record);
+    setEditingRole(record);
+    setModalVisible(true);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await roleApi.delete(id);
-      message.success('Role deleted successfully');
-      fetchRoles();
-    } catch (error) {
-      message.error('Failed to delete role');
-      console.error("Error deleting role:", error);
-    }
+  const handleModalCancel = () => {
+    setModalVisible(false);
+    setEditingRole(null);
   };
 
-  const PermissionTag = ({ permissionId }) => {
-    useEffect(() => {
-      if (!permissions[permissionId] && !loadingPermissions.has(permissionId)) {
-        fetchPermissionDetails(permissionId);
-      }
-    }, [permissionId, permissions, loadingPermissions, fetchPermissionDetails]);
-
-    return (
-      <Tag color="blue">
-        {permissions[permissionId] || 'Loading...'}
-      </Tag>
-    );
+  const handleModalSuccess = () => {
+    fetchRoles();
   };
 
-  const columns = [
+  const handleDelete = (id) => {
+    confirm({
+      title: 'Bạn có chắc chắn muốn xóa vai trò này?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Hành động này không thể hoàn tác',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await roleApi.delete(id);
+          message.success('Xóa vai trò thành công!');
+          fetchRoles({
+            current: pagination.current,
+            pageSize: pagination.pageSize
+          });
+        } catch (error) {
+          console.error("Error deleting role:", error);
+          message.error('Có lỗi xảy ra khi xóa vai trò!');
+        }
+      },
+    });
+  };
+
+  const PermissionTag = useMemo(() => {
+    return React.memo(({ permissionId }) => {
+      const permissionName = permissions[permissionId];
+
+      return (
+        <Tag color={permissionName ? 'blue' : 'gray'}>
+          {permissionName || `Permission ${permissionId}`}
+        </Tag>
+      );
+    });
+  }, [permissions]);
+
+  const columns = useMemo(() => [
     {
       title: "STT",
       key: "index",
@@ -177,19 +262,19 @@ const RolePage = () => {
               ))}
             </div>
           ) : (
-            <span>No permissions</span>
+            <span>Chưa có quyền hạn</span>
           )}
         </div>
       )
     },
     {
-      title: "Trạng Thái",
+      title: "Trạng thái",
       dataIndex: "isActive",
       width: 120,
       key: "isActive",
       render: (isActive) => (
         <Tag color={isActive ? 'success' : 'error'}>
-          {isActive ? 'ACTIVE' : 'INACTIVE'}
+          {isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
         </Tag>
       ),
       onHeaderCell: () => ({
@@ -203,7 +288,7 @@ const RolePage = () => {
       width: 120,
       render: (_, record) => (
         <Space>
-          <Tooltip title="Edit">
+          <Tooltip title="Chỉnh sửa">
             <Button
               type="text"
               icon={<EditOutlined />}
@@ -211,7 +296,7 @@ const RolePage = () => {
               onClick={() => handleEdit(record)}
             />
           </Tooltip>
-          <Tooltip title="Delete">
+          <Tooltip title="Xóa">
             <Button
               type="text"
               icon={<DeleteOutlined />}
@@ -226,7 +311,7 @@ const RolePage = () => {
       }),
       align: 'center'
     }
-  ];
+  ], [PermissionTag, pagination.current, pagination.pageSize]);
 
   return (
     <Layout className="min-h-screen">
@@ -239,50 +324,78 @@ const RolePage = () => {
           <div className="bg-white p-4 shadow rounded-lg mb-6">
             <Form
               form={form}
-              onFinish={onFinish}
               layout="vertical"
               className="ml-4"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Form.Item name="name" label="Name" className="col-span-1">
-                  <Input placeholder="Enter role name" style={{ height: '40px' }} />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item label="Tên vai trò" className="col-span-1">
+                  <Input
+                    placeholder="Nhập tên vai trò"
+                    value={searchText}
+                    onChange={handleSearchChange}
+                    style={{ height: '40px' }}
+                  />
                 </Form.Item>
 
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
-                  <div className="flex space-x-2">
-                    <Button type="primary" htmlType="submit">
-                      Search
-                    </Button>
-                    <Button onClick={onReset}>Reset</Button>
-                  </div>
+                <Form.Item label="Trạng thái" className="col-span-1">
+                  <Select
+                    placeholder="Chọn trạng thái"
+                    allowClear
+                    style={{ width: '100%', height: '40px', }}
+                    value={searchStatus}
+                    onChange={handleStatusChange}
+                    options={[
+                      { value: true, label: 'Đang hoạt động' },
+                      { value: false, label: 'Ngừng hoạt động' }
+                    ]}
+                  />
+                </Form.Item>
+
+                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '29px' }}>
+                  <Button
+                    onClick={handleReset}
+                    size="large"
+                    style={{ height: '40px', padding: '6.5px 16px' }}
+                  >
+                    Đặt lại
+                  </Button>
                 </Form.Item>
               </div>
             </Form>
           </div>
 
           <div className="bg-white p-6 shadow rounded-lg">
-            {/* Table Header */}
             <div className="flex justify-between items-center mb-4">
               <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
                 DANH SÁCH VAI TRÒ
               </Title>
               <Space>
-                <Button type="primary" icon={<PlusOutlined />}>
+                <CustomButton
+                  icon={<PlusOutlined />}
+                  onClick={handleAddNew}
+                >
                   Thêm mới
-                </Button>
-                <Tooltip title="Refresh">
-                  <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
-                </Tooltip>
-                <Tooltip title="Settings">
-                  <Button icon={<SettingOutlined />} />
+                </CustomButton>
+                <Tooltip title="Làm mới">
+                  <Button
+                    icon={<ReloadOutlined />}
+                    onClick={handleRefresh}
+                    size="large"
+                    style={{
+                      height: '44px',
+                      width: '44px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  />
                 </Tooltip>
               </Space>
             </div>
 
-            {/* Table */}
             <Table
-              loading={loading}
-              dataSource={data}
+              loading={loading || loadingAllPermissions}
+              dataSource={loadingAllPermissions ? [] : data}
               columns={columns}
               pagination={{
                 ...pagination,
@@ -296,6 +409,13 @@ const RolePage = () => {
           </div>
         </Content>
       </Layout>
+
+      <AddEditRoleModal
+        open={modalVisible}
+        onCancel={handleModalCancel}
+        onSuccess={handleModalSuccess}
+        editData={editingRole}
+      />
     </Layout>
   );
 };

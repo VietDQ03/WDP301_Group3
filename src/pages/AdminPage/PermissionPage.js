@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
 import { permissionApi } from "../../api/AdminPageAPI/permissionsAPI";
+import AddEditPermissionModal from './Modal/AddEditPermissionModal';
+import CustomButton from '../../components/Other/CustomButton';
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message } from "antd";
-import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -58,6 +60,32 @@ const PermissionPage = () => {
   useEffect(() => {
     fetchPermissions();
   }, []);
+
+  const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  };
+
+  const handleSearch = debounce((changedValues, allValues) => {
+    const filteredValues = Object.fromEntries(
+      Object.entries(allValues).filter(([_, value]) => {
+        if (typeof value === 'string') return value.trim() !== '';
+        return value !== undefined && value !== null;
+      })
+    );
+
+    fetchPermissions({
+      ...filteredValues,
+      current: 1
+    });
+  }, 300);
 
   const handleDelete = async (id) => {
     confirm({
@@ -174,31 +202,24 @@ const PermissionPage = () => {
     });
   };
 
-  const onFinish = (values) => {
-    fetchPermissions({
-      ...values,
-      current: 1
-    });
-  };
-
-  const onReset = () => {
-    form.resetFields();
-    fetchPermissions({
-      current: 1,
-      pageSize: pagination.pageSize
-    });
-  };
-
   const handleModalOk = async () => {
     try {
       const values = await editForm.validateFields();
+
       if (editingPermission) {
         await permissionApi.update(editingPermission.key, values);
         message.success('Cập nhật quyền thành công!');
       } else {
-        await permissionApi.create(values);
+        const response = await permissionApi.create(values);
+
+        if (response.data?.statusCode === 400) {
+          message.error(`Permission với apiPath=${values.apiPath}, method=${values.method} đã tồn tại!`);
+          return;
+        }
+
         message.success('Thêm quyền mới thành công!');
       }
+
       setIsModalVisible(false);
       setEditingPermission(null);
       editForm.resetFields();
@@ -208,11 +229,19 @@ const PermissionPage = () => {
       });
     } catch (error) {
       console.error("Modal Error:", error);
-      message.error('Có lỗi xảy ra khi lưu quyền!');
+
+      if (error.response?.data?.message) {
+        message.error(error.response.data.message);
+      } else if (error.response?.data?.error) {
+        message.error(error.response.data.error);
+      } else {
+        message.error('Có lỗi xảy ra khi lưu quyền!');
+      }
     }
   };
 
   const handleRefresh = () => {
+    form.resetFields();
     fetchPermissions({
       current: pagination.current,
       pageSize: pagination.pageSize
@@ -222,40 +251,101 @@ const PermissionPage = () => {
   return (
     <Layout className="min-h-screen">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      
+
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-        
+
         <Content className="m-6">
           {/* Search Section */}
           <div className="bg-white p-4 shadow rounded-lg mb-6">
             <Form
               form={form}
-              onFinish={onFinish}
+              onValuesChange={handleSearch}
               className="ml-4"
               layout="vertical"
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Form.Item name="name" label="Tên Quyền" className="col-span-1">
-                  <Input placeholder="Nhập tên quyền" style={{ height: '40px' }} />
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Form.Item
+                  name="name"
+                  label="Tên Quyền"
+                  className="col-span-1"
+                >
+                  <Input
+                    placeholder="Nhập tên quyền"
+                    style={{ height: '40px' }}
+                    allowClear
+                    onChange={(e) => {
+                      if (!e.target.value) {
+                        form.setFieldsValue({ name: undefined });
+                        handleSearch({}, form.getFieldsValue());
+                      }
+                    }}
+                  />
                 </Form.Item>
 
-                <Form.Item name="method" label="Phương Thức" className="col-span-1">
-                  <Select placeholder="Chọn phương thức" style={{ height: '40px' }}>
-                    <Option value="GET">GET</Option>
-                    <Option value="POST">POST</Option>
-                    <Option value="PATCH">PATCH</Option>
-                    <Option value="DELETE">DELETE</Option>
+                <Form.Item
+                  name="method"
+                  label="Phương Thức"
+                  className="col-span-1"
+                >
+                  <Select
+                    placeholder="Chọn phương thức"
+                    style={{ height: '40px' }}
+                    allowClear
+                    onChange={(value) => {
+                      form.setFieldsValue({ method: value });
+                      handleSearch({}, form.getFieldsValue());
+                    }}
+                  >
+                    <Option value="GET">
+                      <span className="text-blue-500">GET</span>
+                    </Option>
+                    <Option value="POST">
+                      <span className="text-green-500">POST</span>
+                    </Option>
+                    <Option value="PATCH">
+                      <span className="text-orange-500">PATCH</span>
+                    </Option>
+                    <Option value="DELETE">
+                      <span className="text-red-500">DELETE</span>
+                    </Option>
                   </Select>
                 </Form.Item>
 
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
-                  <div className="flex space-x-2">
-                    <Button type="primary" htmlType="submit">
-                      Tìm kiếm
-                    </Button>
-                    <Button onClick={onReset}>Đặt lại</Button>
-                  </div>
+                <Form.Item
+                  name="module"
+                  label="Module"
+                  className="col-span-1"
+                >
+                  <Input
+                    placeholder="Nhập tên module"
+                    style={{ height: '40px' }}
+                    allowClear
+                    onChange={(e) => {
+                      if (!e.target.value) {
+                        form.setFieldsValue({ module: undefined });
+                        handleSearch({}, form.getFieldsValue());
+                      }
+                    }}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  className="col-span-1 flex items-end"
+                >
+                  <Button
+                    icon={<ReloadOutlined />}
+                    onClick={() => {
+                      form.resetFields();
+                      fetchPermissions({
+                        current: 1,
+                        pageSize: pagination.pageSize
+                      });
+                    }}
+                    className="h-10"
+                  >
+                    Đặt lại
+                  </Button>
                 </Form.Item>
               </div>
             </Form>
@@ -268,8 +358,7 @@ const PermissionPage = () => {
                 DANH SÁCH QUYỀN
               </Title>
               <Space>
-                <Button
-                  type="primary"
+                <CustomButton
                   icon={<PlusOutlined />}
                   onClick={() => {
                     setEditingPermission(null);
@@ -277,15 +366,20 @@ const PermissionPage = () => {
                   }}
                 >
                   Thêm mới
-                </Button>
+                </CustomButton>
                 <Tooltip title="Làm mới">
                   <Button
                     icon={<ReloadOutlined />}
                     onClick={handleRefresh}
+                    size="large"
+                    style={{
+                      height: '44px',
+                      width: '44px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
                   />
-                </Tooltip>
-                <Tooltip title="Cài đặt">
-                  <Button icon={<SettingOutlined />} />
                 </Tooltip>
               </Space>
             </div>
@@ -306,59 +400,17 @@ const PermissionPage = () => {
           </div>
 
           {/* Modal Add/Edit */}
-          <Modal
-            title={editingPermission ? "Sửa Quyền" : "Thêm Quyền Mới"}
+          <AddEditPermissionModal
             visible={isModalVisible}
-            onOk={handleModalOk}
             onCancel={() => {
               setIsModalVisible(false);
               setEditingPermission(null);
               editForm.resetFields();
             }}
-            width={800}
-          >
-            <Form
-              form={editForm}
-              layout="vertical"
-            >
-              <Form.Item
-                name="name"
-                label="Tên Quyền"
-                rules={[{ required: true, message: 'Vui lòng nhập tên quyền!' }]}
-              >
-                <Input placeholder="Nhập tên quyền" />
-              </Form.Item>
-
-              <Form.Item
-                name="apiPath"
-                label="API Path"
-                rules={[{ required: true, message: 'Vui lòng nhập API path!' }]}
-              >
-                <Input placeholder="Nhập API path" />
-              </Form.Item>
-
-              <Form.Item
-                name="method"
-                label="Phương Thức"
-                rules={[{ required: true, message: 'Vui lòng chọn phương thức!' }]}
-              >
-                <Select placeholder="Chọn phương thức">
-                  <Option value="GET">GET</Option>
-                  <Option value="POST">POST</Option>
-                  <Option value="PATCH">PATCH</Option>
-                  <Option value="DELETE">DELETE</Option>
-                </Select>
-              </Form.Item>
-
-              <Form.Item
-                name="module"
-                label="Module"
-                rules={[{ required: true, message: 'Vui lòng nhập tên module!' }]}
-              >
-                <Input placeholder="Nhập tên module" />
-              </Form.Item>
-            </Form>
-          </Modal>
+            onOk={handleModalOk}
+            editingPermission={editingPermission}
+            form={editForm}
+          />
         </Content>
       </Layout>
     </Layout>
