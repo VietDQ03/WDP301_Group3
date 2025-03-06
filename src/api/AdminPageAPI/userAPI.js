@@ -15,7 +15,9 @@ export const userApi = {
   },
 
   getOne: async (id) => {
-    return axios.get(`/users/${id}`);
+    const response = await axios.get(`/users/${id}`);
+    return response.data;
+
   },
 
   update: async (_id, updateData, userData) => {

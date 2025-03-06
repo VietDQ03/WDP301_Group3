@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
 import { resumeApi } from "../../api/AdminPageAPI/resumeAPI";
-import { companyApi } from "../../api/AdminPageAPI/companyApi";
-import { jobApi } from "../../api/AdminPageAPI/jobAPI";
 import { userApi } from "../../api/AdminPageAPI/userAPI";
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message } from "antd";
-import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { Table, Input, Button, Space, Typography, Tooltip, Layout, Select, message, Pagination, Modal } from "antd";
+import { ReloadOutlined, MailOutlined, EyeOutlined, UserOutlined, ExclamationCircleOutlined, DeleteOutlined } from "@ant-design/icons";
+import { motion } from 'framer-motion';
+import { debounce, max } from "lodash";
+import { useSelector } from "react-redux";
+import { Briefcase } from 'lucide-react';
+import ViewResumeModal from '../HrDashBoard/Modal/ViewResumeModal';
+import { jobApi } from "../../api/AdminPageAPI/jobAPI";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -15,220 +19,214 @@ const { confirm } = Modal;
 
 const ResumePage = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [resumes, setResumes] = useState([]);
-  const [companies, setCompanies] = useState({});
-  const [jobs, setJobs] = useState({});
-  const [users, setUsers] = useState({});
+  const [searchValues, setSearchValues] = useState({
+    email: '',
+    username: '',
+    status: undefined
+  });
+
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   });
 
-  const fetchDetails = async (id, type) => {
-    try {
-      let response;
-      switch (type) {
-        case 'user':
-          response = await userApi.getOne(id);
-          if (response?.data) {
-            setUsers(prev => ({
-              ...prev,
-              [id]: response.data.email || 'N/A'
-            }));
-          }
-          break;
-  
-        case 'job':
-          response = await jobApi.getOne(id);
-          if (response?.data) {
-            setJobs(prev => ({
-              ...prev,
-              [id]: response.data.name || 'N/A'
-            }));
-          }
-          break;
-  
-        case 'company':
-          response = await companyApi.findOne(id);
-          if (response?.data) {
-            setCompanies(prev => ({
-              ...prev,
-              [id]: response.data.name || 'N/A'
-            }));
-          }
-          break;
-      }
-    } catch (error) {
-      console.error(`Error fetching ${type} details:`, error);
-      // Set default value based on type
-      switch (type) {
-        case 'user':
-          setUsers(prev => ({ ...prev, [id]: 'N/A' }));
-          break;
-        case 'job':
-          setJobs(prev => ({ ...prev, [id]: 'N/A' }));
-          break;
-        case 'company':
-          setCompanies(prev => ({ ...prev, [id]: 'N/A' }));
-          break;
-      }
-    }
-  };
+  const { user } = useSelector((state) => state.auth);
 
   const fetchResumes = async (params = {}) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await resumeApi.search({
-        current: params.current || 1,
-        pageSize: params.pageSize || 10,
-        status: params.status,
-        job: params.job,
-        company: params.company,
-      });
+      const queryParams = {
+        current: params.current || pagination.current,
+        pageSize: params.pageSize || pagination.pageSize,
+        ...(params.status && { status: params.status }),
+        ...(params.email && { email: params.email.trim() }),
+        ...(params.username && { username: params.username.trim() })
+      };
   
-      if (response?.data) {
-        const formattedResumes = response.data.result.map((resume, index) => ({
-          key: resume._id,
-          stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
-          id: resume._id,
-          email: resume.email,
-          url: resume.url,
-          status: resume.status,
-          companyId: resume.companyId,
-          jobId: resume.jobId,
-          createdBy: resume.createdBy,
-          userId: resume.userId,
-          createdAt: new Date(resume.createdAt).toLocaleString(),
-          updatedAt: new Date(resume.updatedAt).toLocaleString(),
-        }));
+      let response;
+      if (user.role === 'HR' && user.company?._id) {
+        response = await resumeApi.findByCompany(user.company._id, queryParams);
+      } else {
+        response = await resumeApi.getAll(queryParams);
+      }
   
-        // Fetch all unique IDs
-        const uniqueIds = {
-          company: [...new Set(formattedResumes.map(resume => resume.companyId))],
-          job: [...new Set(formattedResumes.map(resume => resume.jobId))],
-          user: [...new Set(formattedResumes.map(resume => resume.userId))]
-        };
-  
-        // Fetch details for each type
-        Object.entries(uniqueIds).forEach(([type, ids]) => {
-          ids.forEach(id => {
-            const stateMap = type === 'company' ? companies : 
-                            type === 'job' ? jobs : users;
-            if (id && !stateMap[id]) {
-              fetchDetails(id, type);
+      const resumeData = response?.data;
+      if (resumeData?.result) {
+        const formattedResumes = await Promise.all(resumeData.result.map(async (resume, index) => {
+          let jobName = 'N/A';
+          let userName = 'N/A';
+
+          if (resume.companyId) {
+            try {
+              const jobResponse = await jobApi.getOne(resume.jobId);
+              jobName = jobResponse?.name || 'N/A';
+            } catch (err) {
+              console.error(`Lỗi khi lấy tên công ty cho resume ${resume._id}:`, err);
             }
-          });
-        });
+          }
+
+          if (resume.userId) {
+            try {
+              const userResponse = await userApi.getOne(resume.userId);
+              userName = userResponse?.name || 'N/A';
+            } catch (err) {
+              console.error(`Lỗi khi lấy tên người dùng cho resume ${resume._id}:`, err);
+            }
+          }
+  
+          return {
+            key: resume._id,
+            stt: index + 1 + ((resumeData.meta.current - 1) * resumeData.meta.pageSize),
+            id: resume._id,
+            email: resume.email,
+            url: resume.url,
+            status: resume.status,
+            companyId: resume.companyId || 'N/A',
+            userName,
+            jobName,
+            description: resume.description,
+            createdBy: resume.createdBy,
+            createdAt: new Date(resume.createdAt).toLocaleString(),
+            updatedAt: new Date(resume.updatedAt).toLocaleString(),
+            history: resume.history || []
+          };
+        }));
   
         setResumes(formattedResumes);
         setPagination({
-          current: response.data.meta.current,
-          pageSize: response.data.meta.pageSize,
-          total: response.data.meta.total,
+          current: resumeData.meta.current,
+          pageSize: resumeData.meta.pageSize,
+          total: resumeData.meta.total,
         });
       }
     } catch (error) {
-      console.error("Error fetching resumes:", error);
-      message.error('Không thể tải danh sách resumes');
+      console.error("Lỗi khi fetch resumes:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchResumes({
-      current: 1,
-      pageSize: 10,
-    });
+    fetchResumes();
   }, []);
 
-  const handleDelete = (id) => {
-    confirm({
-      title: 'Bạn có chắc chắn muốn xóa resume này?',
-      icon: <ExclamationCircleOutlined />,
-      content: 'Hành động này không thể hoàn tác',
-      okText: 'Xóa',
-      okType: 'danger',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          await resumeApi.delete(id);
-          message.success('Xóa resume thành công!');
-          fetchResumes(pagination);
-        } catch (error) {
-          console.error("Error deleting resume:", error);
-          message.error('Có lỗi xảy ra khi xóa resume!');
-        }
-      },
+  const debouncedSearch = useCallback(
+    debounce((searchParams) => {
+      fetchResumes({
+        ...searchParams,
+        current: 1
+      });
+    }, 500),
+    []
+  );
+
+  const handleInputChange = (field, value) => {
+    const newSearchValues = {
+      ...searchValues,
+      [field]: value
+    };
+    setSearchValues(newSearchValues);
+
+    debouncedSearch({
+      ...newSearchValues,
+      pageSize: pagination.pageSize
     });
   };
 
-  const handleUpdateStatus = async (id, newStatus) => {
-    try {
-      await resumeApi.updateStatus(id, newStatus);
-      message.success('Cập nhật trạng thái thành công!');
-      fetchResumes(pagination);
-    } catch (error) {
-      console.error("Error updating status:", error);
-      message.error('Có lỗi xảy ra khi cập nhật trạng thái!');
-    }
+  const handlePaginationChange = (page, pageSize) => {
+    fetchResumes({
+      ...searchValues,
+      current: page,
+      pageSize: pageSize
+    });
+  };
+
+  const handleDelete = (id) => {
+    confirm({
+      title: "Bạn có chắc chắn muốn xóa thư ứng tuyển này?",
+      icon: <ExclamationCircleOutlined />,
+      content: "Hành động này không thể hoàn tác",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await resumeApi.delete(id);
+          message.success("Xóa thư ứng tuyển thành công!");
+          fetchResumes({
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+          });
+        } catch (error) {
+          console.error("Error deleting resumes:", error);
+          message.error("Có lỗi xảy ra khi xóa resumes!");
+        }
+      },
+    });
   };
 
   const columns = [
     {
       title: "STT",
       dataIndex: "stt",
-      key: "stt",
-      width: 70,
-      align: "center",
+      width: 80,
+      align: "center"
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
-      onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      }),
-      render: (text) => <span className="text-blue-500">{text}</span>,
+      render: (text) => (
+        <div className="flex items-center text-gray-600">
+          <MailOutlined className="mr-2" />
+          {text}
+        </div>
+      ),
     },
     {
       title: "Tên Ứng Viên",
       align: "center",
-      key: "username",
+      dataIndex: "userName",
+      key: "userName",
+      render: (userName) => (
+        <div className="flex items-center justify-center font-medium text-gray-800">
+          <UserOutlined className="mr-2" />
+          {userName || 'N/A'}
+        </div>
+      ),
+    },
+    {
+      title: "Hồ sơ",
+      key: "resume",
+      align: "center",
       render: (_, record) => (
-        <span>{users[record.userId] ? users[record.userId].split('@')[0] : ' '}</span>
+        <Space size="middle">
+          <Tooltip title="Xem hồ sơ">
+            <a
+              href={`${process.env.REACT_APP_BASE_URL}/images/resume/${record?.url}`}
+              target="_blank"
+              className="text-gray-600 hover:text-blue-500 transition-colors duration-200"
+            >
+              <EyeOutlined className="text-xl" />
+            </a>
+          </Tooltip>
+        </Space>
       ),
     },
     {
-      title: "Hồ Sơ",
+      title: "Công Việc",
       align: "center",
-      dataIndex: "url",
-      key: "url",
-      render: (text) => (
-        <a href={text} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
-          {text}
-        </a>
-      ),
-    },
-    {
-      title: "Công ty",
-      align: "center",
-      dataIndex: "companyId",
-      key: "company",
-      render: (companyId) => (
-        <span>{companies[companyId] || ' '}</span>
-      ),
-    },
-    {
-      title: "Công việc",
-      align: "center",
-      dataIndex: "jobId",
-      key: "job",
-      render: (jobId) => (
-        <span>{jobs[jobId] || ' '}</span>
+      dataIndex: "jobName",
+      key: "jobName",
+      width: 250,
+      render: (jobName) => (
+        <div className="flex items-center justify-center text-gray-600">
+          <Briefcase className="w-4 h-4 mr-2" />
+          {jobName || 'N/A'}
+        </div>
       ),
     },
     {
@@ -236,42 +234,30 @@ const ResumePage = () => {
       dataIndex: "status",
       key: "status",
       align: "center",
-      render: (status, record) => (
-        <Select
-          value={status}
-          style={{ width: 120 }}
-          onChange={(newStatus) => handleUpdateStatus(record.id, newStatus)}
-        >
-          <Option value="PENDING">
-            <span style={{ color: '#f97316' }}>PENDING</span>
-          </Option>
-          <Option value="APPROVED">
-            <span style={{ color: '#22c55e' }}>APPROVED</span>
-          </Option>
-          <Option value="REJECTED">
-            <span style={{ color: '#ef4444' }}>REJECTED</span>
-          </Option>
-        </Select>
-      ),
+      render: (status) => {
+        let color = "gray";
+        let text = "Không xác định";
+        if (status === "PENDING") {
+          color = "yellow-500";
+          text = "Đang chờ";
+        } else if (status === "APPROVED") {
+          color = "green-500";
+          text = "Đã duyệt";
+        } else if (status === "REJECTED") {
+          color = "rose-500";
+          text = "Từ chối";
+        }
+        return <span className={`text-${color} font-medium`}>{text}</span>;
+      },
     },
     {
-      title: "Hành động",
+      title: "Hành Động",
+      align: "center",
       key: "actions",
       width: 120,
-      align: "center",
       render: (_, record) => (
         <Space>
-          <Tooltip title="Chỉnh sửa">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              className="text-blue-500 hover:text-blue-700"
-              onClick={() => {
-                console.log("Edit resume:", record);
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Xóa">
+          <Tooltip title="Delete">
             <Button
               type="text"
               icon={<DeleteOutlined />}
@@ -281,110 +267,194 @@ const ResumePage = () => {
           </Tooltip>
         </Space>
       ),
-    }
+    },
   ];
 
-  const handleTableChange = (newPagination, filters, sorter) => {
-    fetchResumes({
-      ...newPagination,
-      ...filters,
-      sortField: sorter.field,
-      sortOrder: sorter.order,
+  const handleReset = () => {
+    setSearchValues({
+      email: '',
+      username: '',
+      status: undefined
     });
-  };
 
-  const onFinish = (values) => {
-    fetchResumes({
-      ...pagination,
-      current: 1,
-      ...values,
-    });
-  };
-
-  const onReset = () => {
-    form.resetFields();
     fetchResumes({
       current: 1,
-      pageSize: pagination.pageSize,
+      pageSize: pagination.pageSize
     });
   };
 
   const handleRefresh = () => {
-    fetchResumes(pagination);
+    fetchResumes({
+      ...searchValues,
+      current: pagination.current,
+      pageSize: pagination.pageSize
+    });
   };
 
   return (
-    <Layout className="min-h-screen">
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+    <Layout className="min-h-screen flex flex-row">
+      <div
+        className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+          } flex-shrink-0`}
+      >
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      </div>
 
-      <Layout>
-        <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-
-        <Content className="m-6">
-          {/* Search Section */}
-          <div className="bg-white p-4 shadow rounded-lg mb-6">
-            <Form
-              form={form}
-              onFinish={onFinish}
-              layout="vertical"
-              className="ml-4"
+      <div className="flex-1">
+        <Layout>
+          <Header collapsed={collapsed} setCollapsed={setCollapsed} />
+          <Content className="m-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Form.Item name="job" label="Tên Ứng viên" className="col-span-1">
-                  <Input placeholder="Nhập tên ứng viên" style={{ height: '40px' }} />
-                </Form.Item>
-
-                <Form.Item name="company" label="Công ty" className="col-span-1">
-                  <Input placeholder="Nhập tên công ty" style={{ height: '40px' }} />
-                </Form.Item>
-
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
-                  <div className="flex space-x-2">
-                    <Button type="primary" htmlType="submit">
-                      Tìm kiếm
-                    </Button>
-                    <Button onClick={onReset}>Đặt lại</Button>
-                  </div>
-                </Form.Item>
+              <div className="mb-6">
+                <motion.h1
+                  className="text-2xl font-bold text-gray-800"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  Quản lý Hồ sơ Ứng tuyển
+                </motion.h1>
+                <motion.p
+                  className="text-gray-500 mt-1"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  Quản lý và theo dõi hồ sơ ứng tuyển của ứng viên
+                </motion.p>
               </div>
-            </Form>
-          </div>
 
-          {/* List Section */}
-          <div className="bg-white p-6 shadow rounded-lg">
-            <div className="flex justify-between items-center mb-4">
-              <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
-                DANH SÁCH ỨNG TUYỂN
-              </Title>
-              <Space>
-                <Button type="primary" icon={<PlusOutlined />}>
-                  Thêm mới
-                </Button>
-                <Tooltip title="Làm mới">
-                  <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
-                </Tooltip>
-                <Tooltip title="Cài đặt">
-                  <Button icon={<SettingOutlined />} />
-                </Tooltip>
-              </Space>
-            </div>
+              <motion.div
+                className="bg-white p-6 shadow-sm rounded-xl mb-6 border border-gray-100"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div>
+                    <label className="text-gray-700 font-medium mb-2 block">Email</label>
+                    <Input
+                      prefix={<MailOutlined className="text-gray-400" />}
+                      placeholder="Nhập email ứng viên"
+                      className="h-11 rounded-lg"
+                      value={searchValues.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      allowClear
+                    />
+                  </div>
 
-            <Table
-              dataSource={resumes}
-              columns={columns}
-              pagination={{
-                ...pagination,
-                showSizeChanger: true,
-              }}
-              onChange={handleTableChange}
-              bordered
-              size="middle"
-              className="overflow-x-auto"
-              loading={loading}
-            />
-          </div>
-        </Content>
-      </Layout>
+                  <div>
+                    <label className="text-gray-700 font-medium mb-2 block">Tên người dùng</label>
+                    <Input
+                      prefix={<UserOutlined className="text-gray-400" />}
+                      placeholder="Nhập tên người dùng"
+                      className="h-11 rounded-lg"
+                      value={searchValues.username}
+                      onChange={(e) => handleInputChange('username', e.target.value)}
+                      allowClear
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-gray-700 font-medium mb-2 block">Trạng thái</label>
+                    <Select
+                      placeholder="Chọn trạng thái"
+                      className="h-11 w-full"
+                      value={searchValues.status}
+                      onChange={(value) => handleInputChange('status', value)}
+                      allowClear
+                    >
+                      <Option value="PENDING">
+                        <span className="text-yellow-500">Đang chờ</span>
+                      </Option>
+                      <Option value="APPROVED">
+                        <span className="text-green-500">Đã duyệt</span>
+                      </Option>
+                      <Option value="REJECTED">
+                        <span className="text-rose-500">Từ chối</span>
+                      </Option>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-end gap-2">
+                    <Button
+                      onClick={handleReset}
+                      size="large"
+                      className="h-11 px-6 flex items-center"
+                      icon={<ReloadOutlined />}
+                    >
+                      Đặt lại
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="bg-white p-6 shadow-sm rounded-xl border border-gray-100 relative min-h-[600px]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <Title level={4} className="!text-xl !mb-1">Danh sách Hồ sơ Ứng tuyển</Title>
+                    <p className="text-gray-500 text-sm">
+                      Hiển thị {resumes.length} trên tổng số {pagination.total} hồ sơ
+                    </p>
+                  </div>
+                  <Space size="middle">
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Tooltip title="Làm mới dữ liệu">
+                        <Button
+                          icon={<ReloadOutlined />}
+                          onClick={handleRefresh}
+                          size="large"
+                          className="h-11 hover:bg-gray-50 hover:border-gray-300"
+                        >Làm mới</Button>
+                      </Tooltip>
+                    </motion.div>
+                  </Space>
+                </div>
+
+                <div className="pb-16 overflow-x-auto">
+                  <Table
+                    dataSource={resumes}
+                    columns={columns}
+                    pagination={false}
+                    className="shadow-sm rounded-lg overflow-hidden"
+                    loading={loading}
+                    rowClassName="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onRow={(record) => ({
+                      onClick: () => {
+                      },
+                    })}
+                  />
+                </div>
+                <div
+                  className="absolute bottom-0 left-0 right-0 bg-white px-6 py-4 border-t border-gray-100"
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'center'
+                  }}
+                >
+                  <Pagination
+                    {...pagination}
+                    showSizeChanger
+                    onChange={(page, pageSize) => {
+                      handlePaginationChange(page, pageSize);
+                    }}
+                  />
+                </div>
+              </motion.div>
+            </motion.div>
+          </Content>
+        </Layout>
+      </div>
     </Layout>
   );
 };

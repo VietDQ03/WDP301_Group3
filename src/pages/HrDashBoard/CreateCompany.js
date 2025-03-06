@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Layout, Form, Input, Select, DatePicker, Modal } from "antd";
-import { Pencil, MapPin, Eye, Upload, Plus, FileText, Building2 } from 'lucide-react';
+import { Layout, Form, Input } from "antd";
+import { Pencil, MapPin, Upload, FileText, Building2 } from 'lucide-react';
 import { PlusOutlined } from "@ant-design/icons";
-import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../../components/HrDashBoard/Sidebar";
-import Header from "../../components/HrDashBoard/Header";
+import Header from "../../components/AdminPage/Header";
 import { callCreateCompany, callUploadSingleFile } from "../../api/UserApi/UserApi";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import CustomButton from "../../components/Other/CustomButton";
 
 const { Content } = Layout;
-const { Option } = Select;
 
 const CreateCompanyForm = () => {
   const [form] = Form.useForm();
@@ -70,7 +68,7 @@ const CreateCompanyForm = () => {
 
       if (response && response.data) {
         alert("Yêu cầu tạo công ty đã được gửi thành công!");
-        navigate("/dashboard");
+        navigate("/admin/company/*");
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Error occurred while creating company";
@@ -176,7 +174,7 @@ const CreateCompanyForm = () => {
                   <div className="flex justify-end space-x-4 mt-8">
                     <button
                       type="button"
-                      onClick={() => navigate("/dashboard")}
+                      onClick={() => navigate("/admin/company/*")}
                       className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                     >
                       Huỷ

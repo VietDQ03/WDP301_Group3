@@ -8,6 +8,7 @@ import ResumePage from '../pages/AdminPage/ResumePage';
 import PermissionPage from '../pages/AdminPage/PermissionPage';
 import RolePage from '../pages/AdminPage/RolePage';
 import ProtectedRoute from './protectedRouter.js';
+import CreateCompanyForm from '../pages/HrDashBoard/CreateCompany.js';
 
 // // Company routes
 // import CompanyList from '../pages/company/CompanyList';
@@ -75,6 +76,14 @@ const ADMIN_ROUTER = [
     element: (
       <ProtectedRoute requiredRole="SUPER_ADMIN">
         <RolePage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/create-company',
+    element: (
+      <ProtectedRoute requiredRole="SUPER_ADMIN">
+        <CreateCompanyForm />
       </ProtectedRoute>
     ),
   },

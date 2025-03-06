@@ -170,6 +170,10 @@ function LoginPage() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = `${process.env.REACT_APP_API_URL}/auth/google/login`;
+  };
+
   if (showOtpVerification) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -196,8 +200,8 @@ function LoginPage() {
                     onClick={handleResendOtp}
                     disabled={countdown > 0 || isResending || isVerifying}
                     className={`flex items-center text-sm ${countdown > 0 || isResending || isVerifying
-                        ? 'text-gray-400 cursor-not-allowed'
-                        : 'text-blue-600 hover:text-blue-500'
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-blue-600 hover:text-blue-500'
                       } transition-colors duration-200`}
                   >
                     <RefreshCw className={`h-4 w-4 mr-1 ${isResending ? 'animate-spin' : ''}`} />
@@ -332,6 +336,19 @@ function LoginPage() {
             >
               {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
             </CustomButton>
+
+            <div className="relative mt-4">
+              <div className="flex items-center justify-center">
+                <span className="bg-white px-4 text-gray-500">hoặc</span>
+              </div>
+              <button
+                className="mt-4 w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-100 transition"
+                onClick={handleGoogleLogin}
+              >
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google Logo" className="w-5 h-5" />
+                Đăng nhập với Google
+              </button>
+            </div>
 
             {errors.general && (
               <p className="text-red-500 text-sm text-center">{errors.general}</p>

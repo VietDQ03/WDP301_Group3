@@ -2,10 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
 import { companyApi } from "../../api/AdminPageAPI/companyApi";
-import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Modal } from "antd";
+import { callUploadSingleFile } from "../../api/UserApi/UserApi";
+import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, message, Modal, Tag, Select } from "antd";
 import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import debounce from 'lodash/debounce';
+import { useNavigate } from 'react-router-dom';
+import ReactQuill from 'react-quill';
+import { Upload } from 'lucide-react';
 
+
+
+const { Option } = Select;
 const { Content } = Layout;
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -25,6 +32,48 @@ const CompanyPage = () => {
     pageSize: 10,
     total: 0,
   });
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [logo, setLogo] = useState(selectedCompany?.logo || "");
+
+  const handleUploadFileLogo = async ({ target }) => {
+    const file = target.files[0];
+    if (!file) return;
+
+    try {
+      const res = await callUploadSingleFile(file, "company");
+      if (res.data && res.data.url) {
+        setLogo(res.data.url);
+        form.setFieldsValue({ logo: res.data.url }); // Cập nhật vào form
+        message.success("Logo đã được tải lên thành công!");
+      } else {
+        message.error("Không thể tải logo lên, vui lòng thử lại!");
+      }
+    } catch (error) {
+      message.error("Đã xảy ra lỗi khi tải logo lên.");
+    }
+  };
+
+  const navigate = useNavigate();
+
+  const handleEdit = (company) => {
+    setSelectedCompany(company);
+    setLogo(company?.logo || "");
+    setIsModalVisible(true);
+  };
+
+  useEffect(() => {
+    if (selectedCompany) {
+      setLogo(selectedCompany.logo || "");
+    }
+  }, [selectedCompany]);
+
+  useEffect(() => {
+    if (selectedCompany) {
+      form.setFieldsValue({ ...selectedCompany, logo });
+    }
+  }, [selectedCompany, logo, form]);
 
   const debouncedSearch = useCallback(
     debounce((searchParams) => {
@@ -131,10 +180,15 @@ const CompanyPage = () => {
       })
     },
     {
-      title: "Email",
-      dataIndex: ["createdBy", "email"],
-      key: "email",
+      title: "Trạng Thái",
+      dataIndex: "isActive",
+      key: "isActive",
       align: "center",
+      render: (isActive) => (
+        <Tag color={isActive ? "green" : "red"}>
+          {isActive ? "Hoạt động" : "Không hoạt động"}
+        </Tag>
+      ),
     },
     {
       title: "Hành Động",
@@ -148,7 +202,7 @@ const CompanyPage = () => {
               type="text"
               icon={<EditOutlined />}
               className="text-blue-500 hover:text-blue-700"
-              onClick={() => console.log('Edit company:', record)}
+              onClick={() => handleEdit(record)}
             />
           </Tooltip>
           <Tooltip title="Xóa">
@@ -161,7 +215,7 @@ const CompanyPage = () => {
           </Tooltip>
         </Space>
       ),
-    },
+    }
   ];
 
   const handleTableChange = (newPagination, filters, sorter) => {
@@ -180,7 +234,7 @@ const CompanyPage = () => {
       ...values
     });
   };
-  
+
   const onReset = () => {
     form.resetFields();
     setSearchValues({
@@ -200,6 +254,10 @@ const CompanyPage = () => {
       pageSize: pagination.pageSize,
       ...searchValues
     });
+  };
+
+  const handleCreateCompany = () => {
+    navigate('/create-company');
   };
 
   return (
@@ -254,7 +312,7 @@ const CompanyPage = () => {
                 DANH SÁCH CÔNG TY
               </Title>
               <Space>
-                <Button type="primary" icon={<PlusOutlined />}>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateCompany}>
                   Thêm mới
                 </Button>
                 <Tooltip title="Làm mới">
@@ -282,6 +340,89 @@ const CompanyPage = () => {
               className="overflow-x-auto"
               loading={loading}
             />
+            <Modal
+              title="Chỉnh sửa công ty"
+              open={isModalVisible}
+              onCancel={() => {
+                setIsModalVisible(false);
+                form.resetFields();
+              }}
+              footer={null}
+              centered // Đặt modal luôn giữa màn hình
+            >
+              <Form
+                form={form}
+                layout="vertical"
+                initialValues={{
+                  name: selectedCompany?.name,
+                  address: selectedCompany?.address,
+                  description: selectedCompany?.description,
+                  isActive: selectedCompany?.isActive,
+                  logo: selectedCompany?.logo
+                }}
+                onFinish={async (values) => {
+                  const payload = { ...values, logo };
+                  try {
+                    await companyApi.update(selectedCompany._id, payload);
+                    message.success("Cập nhật công ty thành công");
+                    setIsModalVisible(false);
+                    fetchCompanies(); // Refresh danh sách công ty
+                  } catch (error) {
+                    message.error("Không thể cập nhật công ty");
+                  }
+                }}
+              >
+                <Form.Item name="name" label="Tên Công Ty" rules={[{ required: true, message: "Vui lòng nhập tên công ty" }]}>
+                  <Input />
+                </Form.Item>
+
+                <Form.Item name="address" label="Địa Chỉ" rules={[{ required: true, message: "Vui lòng nhập địa chỉ công ty" }]}>
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  name="description"
+                  label="Mô tả công ty"
+                  rules={[{ required: true, message: "Vui lòng nhập mô tả công ty!" }]}
+                >
+                  <ReactQuill theme="snow" className="h-36" placeholder="Nhập mô tả công ty..." />
+                </Form.Item>
+
+                <Form.Item name="isActive" label="Trạng thái" className="mt-14">
+                  <Select>
+                    <Select.Option value={true}>Hoạt động</Select.Option>
+                    <Select.Option value={false}>Không hoạt động</Select.Option>
+                  </Select>
+                </Form.Item>
+
+                <div className="space-y-2 mb-4">
+                  <label className="block">
+                    <div className="flex items-center">
+                      <Upload className="w-5 h-5" />
+                      <span className="ml-2">Logo công ty</span>
+                      <span className="text-red-500 ml-1">*</span>
+                    </div>
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <label className="cursor-pointer px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2 w-60 justify-center">
+                      <Upload className="w-5 h-5 flex-shrink-0" />
+                      <span className="truncate">{logo ? "Cập nhật logo" : "Tải Logo"}</span>
+                      <input
+                        type="file"
+                        onChange={handleUploadFileLogo}
+                        accept="image/*"
+                        className="absolute inset-0 w-0 h-0 opacity-0 cursor-pointer"
+                      />
+                    </label>
+                    {logo && <span className="text-green-600 truncate inline-block" >{logo}</span>}
+                  </div>
+                </div>
+
+                <Form.Item>
+                  <Button type="primary" htmlType="submit">Cập nhật</Button>
+                </Form.Item>
+              </Form>
+            </Modal>
           </div>
         </Content>
       </Layout>
