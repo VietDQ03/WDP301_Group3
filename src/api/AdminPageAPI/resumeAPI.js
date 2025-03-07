@@ -36,6 +36,9 @@ export const resumeApi = {
       params: {
         current: params.current || 1,
         pageSize: params.pageSize || 10,
+        email: params.email,
+        status: params.status,
+        searchType: params.searchType,
         ...params
       }
     });

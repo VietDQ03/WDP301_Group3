@@ -10,7 +10,7 @@ const PaymentPage = () => {
     const navigate = useNavigate();
     const selectedPlan = location.state || {
         planName: 'Cơ Bản',
-        planPrice: '99.000',
+        planPrice: '199.000',
         planPeriod: '/tháng',
         planFeatures: []
     };

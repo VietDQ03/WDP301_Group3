@@ -42,8 +42,8 @@ const ProPage = () => {
     },
     {
       name: 'Rabota Basic',
-      price: '99.000',
-      originalPrice: '299.000',
+      price: '199.000',
+      originalPrice: '499.000',
       period: '/tháng',
       description: 'Giải pháp khởi đầu tối ưu cho doanh nghiệp',
       features: [
@@ -58,8 +58,8 @@ const ProPage = () => {
     },
     {
       name: 'Rabota Pro',
-      price: '159.000',
-      originalPrice: '399.000',
+      price: '259.000',
+      originalPrice: '799.000',
       period: '/tháng',
       description: 'Nâng cao hiệu quả tuyển dụng cho doanh nghiệp',
       popular: true,
@@ -75,8 +75,8 @@ const ProPage = () => {
     },
     {
       name: 'Rabota Premium',
-      price: '199.000',
-      originalPrice: '499.000',
+      price: '299.000',
+      originalPrice: '999.000',
       period: '/tháng',
       description: 'Giải pháp tuyển dụng cao cấp dành cho doanh nghiệp',
       features: [
