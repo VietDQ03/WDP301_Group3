@@ -82,12 +82,20 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
         if (action.payload) {
-          state.user = action.payload.user;
-          state.role = action.payload.user?.role;
-          state.isAuthenticated = true;
-          state.error = null;
-          if (action.payload.access_token) {
-            localStorage.setItem("access_token", action.payload.access_token);
+          const userData = action.payload.user || action.payload.data?.user || action.payload.data;
+          
+          if (userData) {
+            state.user = userData;
+            state.role = userData.role;
+            state.isAuthenticated = true;
+            state.error = null;
+            // ✅ Lưu token nếu có
+            if (action.payload.access_token) {
+              localStorage.setItem("access_token", action.payload.access_token);
+            }
+          } else {
+            state.isAuthenticated = false;
+            state.error = "Không lấy được thông tin người dùng";
           }
         }
       })
@@ -115,13 +123,18 @@ const authSlice = createSlice({
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.isLoading = false;
-        // Kiểm tra và lấy data từ response
-        const userData = action.payload.data?.user || action.payload.data;
+        const userData = action.payload.user || action.payload.data?.user || action.payload.data;
+        
         if (userData) {
           state.user = userData;
           state.role = userData.role;
           state.isAuthenticated = true;
           state.error = null;
+        } else {
+          state.isAuthenticated = false;
+          state.user = null;
+          state.role = null;
+          state.error = "Không tìm thấy thông tin user";
         }
       })
       .addCase(checkAuth.rejected, (state) => {

@@ -65,6 +65,7 @@ const ResumePage = () => {
       );
 
       const resumeData = response?.data?.data;
+      console.log(resumeData)
 
       if (resumeData?.result) {
         const formattedResumes = resumeData.result.map((resume, index) => ({

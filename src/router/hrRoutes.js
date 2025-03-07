@@ -5,7 +5,6 @@ import ResumePage from '../pages/HrDashBoard/ResumePage';
 import ProPage from '../pages/HrDashBoard/ProPage';
 import PaymentPage from '../pages/Other/PaymentPage';
 import ProtectedRoute from './protectedRouter.js';
-import CreateCompanyForm from '../pages/HrDashBoard/CreateCompany.js';
 
 const DASHBOARD_ROUTER = [
   {
@@ -37,14 +36,6 @@ const DASHBOARD_ROUTER = [
     element: (
       <ProtectedRoute requiredRole="HR_ROLE">
         <ProPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/create-company',
-    element: (
-      <ProtectedRoute requiredRole="HR_ROLE">
-        <CreateCompanyForm />
       </ProtectedRoute>
     ),
   },
