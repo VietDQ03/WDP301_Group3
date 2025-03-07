@@ -29,10 +29,6 @@ export const callActivateAccount = (email, otp) => {
     return axios.post('/auth/active', { email, otp });
 };
 
-
-
-
-
 export const getAppliedJobs = async () => {
     return axios.post('/resumes/by-user');
 };
