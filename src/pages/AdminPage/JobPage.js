@@ -3,7 +3,7 @@ import Sidebar from "../../components/AdminPage/Sidebar";
 import Header from "../../components/AdminPage/Header";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message, } from "antd";
-import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, } from "@ant-design/icons";
+import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, SearchOutlined } from "@ant-design/icons";
 import { debounce, max } from 'lodash';
 
 const { Content } = Layout;
@@ -21,6 +21,8 @@ const JobPage = () => {
     pageSize: 10,
     total: 0
   });
+  const [searchParams, setSearchParams] = useState({});
+
 
   const fetchJobs = async (params = {}) => {
     try {
@@ -66,14 +68,13 @@ const JobPage = () => {
     fetchJobs();
   }, []);
 
-  // Debounced search handler
   const handleSearchChange = debounce((value, field) => {
     form.setFieldsValue({ [field]: value });
     fetchJobs({
-      ...form.getFieldsValue(), 
+      ...form.getFieldsValue(),
       current: 1,
     });
-  }, 300);
+  }, 500);
 
   const handleDelete = (id) => {
     confirm({
@@ -223,15 +224,35 @@ const JobPage = () => {
         <Content className="m-6">
           {/* Search Section */}
           <div className="bg-white p-4 shadow rounded-lg mb-6">
-            <Form form={form} onFinish={onFinish} className="ml-4" layout="vertical">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Form.Item name="name" label="Tên Việc Làm" className="col-span-1">
-                  <Input
-                    placeholder="Nhập tên việc làm"
-                    style={{ height: "40px" }}
-                    onChange={(e) => handleSearchChange(e.target.value, "name")}
-                  />
-                </Form.Item>
+            <Form
+              form={form}
+              layout="vertical"
+              className="space-y-4"
+              onValuesChange={(changedValues, allValues) => {
+                const searchParams = {
+                  ...allValues,
+                  current: 1,
+                  name: allValues.name?.trim() || undefined,
+                  location: allValues.location || undefined,
+                  level: allValues.level || undefined,
+                  isActive: allValues.status !== undefined ? allValues.status : undefined // ✅ Gán đúng key API yêu cầu
+                };
+
+                setSearchParams(searchParams);
+                handleSearchChange(searchParams);
+              }}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                <div>
+                  <label className="text-gray-700 font-medium mb-2 block">Tên Công Việc</label>
+                  <Form.Item name="name" className="mb-0">
+                    <Input
+                      prefix={<SearchOutlined className="text-gray-400" />}
+                      placeholder="Nhập tên công việc cần tìm"
+                      className="h-11 rounded-lg"
+                    />
+                  </Form.Item>
+                </div>
 
                 <Form.Item name="level" label="Mức Độ" className="col-span-1">
                   <Input
@@ -240,15 +261,41 @@ const JobPage = () => {
                     onChange={(e) => handleSearchChange(e.target.value, "level")}
                   />
                 </Form.Item>
+                <div>
+                  <label className="text-gray-700 font-medium mb-2 block">Địa Điểm</label>
+                  <Form.Item name="location" className="mb-0">
+                    <Select
+                      placeholder="Chọn địa điểm"
+                      className="h-11 w-full"
+                      allowClear
+                    >
+                      <Option value="HANOI">Hà Nội</Option>
+                      <Option value="HOCHIMINH">Hồ Chí Minh</Option>
+                      <Option value="DANANG">Đà Nẵng</Option>
+                      <Option value="OTHER">Khác</Option>
+                    </Select>
+                  </Form.Item>
+                </div>
 
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: "35px" }}>
-                  <div className="flex space-x-2">
-                    <Button type="primary" htmlType="submit">
-                      Tìm kiếm
-                    </Button>
-                    <Button onClick={onReset}>Đặt lại</Button>
-                  </div>
-                </Form.Item>
+                <div>
+                  <Form.Item name="isActive" label="Trạng Thái" className="mb-0">
+                    <Select placeholder="Chọn trạng thái" className="h-11 w-full" allowClear>
+                      <Option value={true}>Đang hoạt động</Option>
+                      <Option value={false}>Không hoạt động</Option>
+                    </Select>
+                  </Form.Item>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={onReset}
+                    size="large"
+                    className="h-11 px-6 flex items-center"
+                    icon={<ReloadOutlined />}
+                  >
+                    Đặt lại
+                  </Button>
+                </div>
               </div>
             </Form>
           </div>
