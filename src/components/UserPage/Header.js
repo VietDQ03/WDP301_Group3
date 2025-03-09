@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Dropdown } from 'antd';
-import { LogOut, User, Home, FileText, PlusCircle, Mail, LayoutDashboard, Menu, X } from 'lucide-react';
+import { LogOut, User, Home, FileText, PlusCircle, Mail, LayoutDashboard, Menu, X, UserPlus } from 'lucide-react';
 import { logout } from "../../redux/slices/auth";
 import LoginModal from "./LoginModal";
 import { useLocation } from "react-router-dom";
@@ -61,14 +61,14 @@ const Header = () => {
         window.location.reload();
       }
     },
-    {
-      icon: PlusCircle,
-      text: "Tạo CV",
-      onClick: () => {
-        navigate('/create-cv');
-        window.location.reload();
-      }
-    },
+    // {
+    //   icon: PlusCircle,
+    //   text: "Tạo CV",
+    //   onClick: () => {
+    //     navigate('/create-cv');
+    //     window.location.reload();
+    //   }
+    // },
     {
       icon: PlusCircle,
       text: "Đăng Tuyển",
@@ -89,6 +89,7 @@ const Header = () => {
           navigate('/profile');
         }
       },
+
       {
         key: 'logout',
         icon: <LogOut size={16} />,
@@ -97,7 +98,7 @@ const Header = () => {
           dispatch(logout());
         }
       },
-      
+
     ];
 
     if (user?.role?.name === "SUPER_ADMIN") {
@@ -120,6 +121,14 @@ const Header = () => {
         icon: <LayoutDashboard size={16} />,
         label: 'Việc đã ứng tuyển',
         onClick: () => navigate('/jobhistory')
+      });
+      baseItems.unshift({
+        key: 'becomeHR',
+        icon: <UserPlus size={16} />,
+        label: 'Trở thành nhà tuyển dụng',
+        onClick: () => {
+          navigate('/become-hr');
+        }
       });
     }
 

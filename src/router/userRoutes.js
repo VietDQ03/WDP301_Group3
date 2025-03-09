@@ -11,6 +11,7 @@ import Introduce from '../pages/UserPage/Introduce.js';
 import ChangePassword from '../pages/Other/ChangePassword.js';
 import ForgotPassword from '../pages/UserPage/ForgotPassword.js';
 import CreateCV from '../pages/Other/CreateCV.js';
+import CreateCompany from '../pages/Other/CreateCompany.js';
 
 const USER_ROUTES = [
   {
@@ -60,6 +61,10 @@ const USER_ROUTES = [
   {
     path: '/forgot-password',
     element: < ForgotPassword />,
+  },
+  {
+    path: '/become-hr',
+    element: < CreateCompany />,
   },
   {
     path: '*',
