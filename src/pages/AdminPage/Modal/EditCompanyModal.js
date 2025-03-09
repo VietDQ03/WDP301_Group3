@@ -7,7 +7,7 @@ import { companyApi } from "../../../api/AdminPageAPI/companyApi";
 
 const { Option } = Select;
 
-const EditCompanyModal = ({ visible, company, onClose, onUpdateSuccess }) => {
+const EditCompanyModal = ({ isModalVisible, company, onClose, refreshData, selectedCompany }) => {
   const [form] = Form.useForm();
   const [logo, setLogo] = useState(company?.logo || "");
 
@@ -29,9 +29,9 @@ const EditCompanyModal = ({ visible, company, onClose, onUpdateSuccess }) => {
     if (!file) return;
     try {
       const res = await callUploadSingleFile(file, "company");
-      if (res.data?.url) {
+      if (res.data && res.data.url) {
         setLogo(res.data.url);
-        form.setFieldsValue({ logo: res.data.url });
+        form.setFieldsValue({ logo: res.data.url }); // Cập nhật vào form
         message.success("Logo đã được tải lên thành công!");
       } else {
         message.error("Không thể tải logo lên, vui lòng thử lại!");
@@ -41,31 +41,63 @@ const EditCompanyModal = ({ visible, company, onClose, onUpdateSuccess }) => {
     }
   };
 
-  const handleUpdate = async (values) => {
-    const payload = { ...values, logo };
-    try {
-      await companyApi.update(company._id, payload);
-      message.success("Cập nhật công ty thành công");
-      onUpdateSuccess();
-      onClose();
-    } catch (error) {
-      message.error("Không thể cập nhật công ty");
-    }
-  };
-
   return (
-    <Modal title="Chỉnh sửa công ty" open={visible} onCancel={onClose} footer={null}>
-      <Form layout="vertical" form={form} onFinish={handleUpdate}>
-        <Form.Item name="name" label="Tên Công Ty" rules={[{ required: true, message: "Vui lòng nhập tên công ty" }]}> <Input /> </Form.Item>
-        <Form.Item name="address" label="Địa Chỉ"> <Input /> </Form.Item>
-        <Form.Item name="description" label="Mô tả công ty"> <ReactQuill theme="snow" className="h-36" placeholder="Nhập mô tả công ty..." /> </Form.Item>
-        <Form.Item name="isActive" label="Trạng thái"> 
+    <Modal
+      title="Chỉnh sửa công ty"
+      open={isModalVisible}
+      onCancel={() => {
+        onClose()
+        form.resetFields();
+      }}
+      footer={null}
+      centered // Đặt modal luôn giữa màn hình
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{
+          name: selectedCompany?.name,
+          address: selectedCompany?.address,
+          description: selectedCompany?.description,
+          isActive: selectedCompany?.isActive,
+          logo: selectedCompany?.logo
+        }}
+        onFinish={async (values) => {
+          const payload = { ...values, logo };
+          try {
+            await companyApi.update(selectedCompany._id, payload);
+            message.success("Cập nhật công ty thành công");
+            onClose()
+            refreshData()
+          } catch (error) {
+            message.error("Không thể cập nhật công ty");
+          }
+        }}
+      >
+        <Form.Item name="name" label="Tên Công Ty" rules={[{ required: true, message: "Vui lòng nhập tên công ty" }]}>
+          <Input />
+        </Form.Item>
+
+        <Form.Item name="address" label="Địa Chỉ" rules={[{ required: true, message: "Vui lòng nhập địa chỉ công ty" }]}>
+          <Input />
+        </Form.Item>
+
+        <Form.Item
+          name="description"
+          label="Mô tả công ty"
+          rules={[{ required: true, message: "Vui lòng nhập mô tả công ty!" }]}
+        >
+          <ReactQuill theme="snow" className="h-36" placeholder="Nhập mô tả công ty..." />
+        </Form.Item>
+
+        <Form.Item name="isActive" label="Trạng thái" className="mt-14">
           <Select>
-            <Option value={true}>Hoạt động</Option>
-            <Option value={false}>Không hoạt động</Option>
+            <Select.Option value={true}>Hoạt động</Select.Option>
+            <Select.Option value={false}>Không hoạt động</Select.Option>
           </Select>
         </Form.Item>
-        <div className="space-y-2">
+
+        <div className="space-y-2 mb-4">
           <label className="block">
             <div className="flex items-center">
               <Upload className="w-5 h-5" />
@@ -77,11 +109,17 @@ const EditCompanyModal = ({ visible, company, onClose, onUpdateSuccess }) => {
             <label className="cursor-pointer px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2 w-60 justify-center">
               <Upload className="w-5 h-5 flex-shrink-0" />
               <span className="truncate">{logo ? "Cập nhật logo" : "Tải Logo"}</span>
-              <input type="file" onChange={handleUploadFileLogo} accept="image/*" className="absolute inset-0 w-0 h-0 opacity-0 cursor-pointer" />
+              <input
+                type="file"
+                onChange={handleUploadFileLogo}
+                accept="image/*"
+                className="absolute inset-0 w-0 h-0 opacity-0 cursor-pointer"
+              />
             </label>
-            {logo && <span className="text-green-600">Logo đã tải lên</span>}
+            {logo && <span className="text-green-600 truncate inline-block" >{logo}</span>}
           </div>
         </div>
+
         <Form.Item>
           <Button type="primary" htmlType="submit">Cập nhật</Button>
         </Form.Item>
