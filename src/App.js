@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { checkAuth } from "./redux/slices/auth";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import PaymentSuccess from './pages/Other/PaymentSuccess';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -39,6 +40,7 @@ const App = () => {
       {ROUTES.hr.map((route, index) => (
         <Route key={index} path={route.path} element={route.element} />
       ))}
+      <Route path="/payment/success" element={<PaymentSuccess />} />
     </Routes>
   );
 };
