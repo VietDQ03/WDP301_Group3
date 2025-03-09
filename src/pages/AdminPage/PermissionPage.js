@@ -7,8 +7,6 @@ import CustomButton from '../../components/Other/CustomButton';
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message } from "antd";
 import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 
-
-
 const { Content } = Layout;
 const { Title } = Typography;
 const { Option } = Select;
