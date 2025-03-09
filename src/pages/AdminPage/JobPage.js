@@ -280,8 +280,8 @@ const JobPage = () => {
                 <div>
                   <Form.Item name="isActive" label="Trạng Thái" className="mb-0">
                     <Select placeholder="Chọn trạng thái" className="h-11 w-full" allowClear>
-                      <Option value={true}>Đang hoạt</Option>
-                      <Option value={false}>Ngưng tuyển</Option>
+                      <Option value={true}>Đang hoạt động</Option>
+                      <Option value={false}>Không hoạt động</Option>
                     </Select>
                   </Form.Item>
                 </div>
