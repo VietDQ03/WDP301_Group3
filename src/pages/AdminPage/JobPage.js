@@ -4,6 +4,7 @@ import Header from "../../components/AdminPage/Header";
 import { jobApi } from "../../api/AdminPageAPI/jobAPI";
 import { Table, Input, Button, Space, Form, Typography, Tooltip, Layout, Select, Tag, Modal, message, } from "antd";
 import { PlusOutlined, ReloadOutlined, SettingOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, } from "@ant-design/icons";
+import { debounce, max } from 'lodash';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -27,18 +28,18 @@ const JobPage = () => {
       const response = await jobApi.getAll({
         page: params.current || 1,
         pageSize: params.pageSize || 10,
-        ...params
+        ...params,
       });
 
       const { result, meta } = response.data;
 
       const formattedJobs = result.map((job, index) => ({
         key: job._id,
-        stt: index + 1 + ((meta.current - 1) * meta.pageSize),
+        stt: index + 1 + ((meta.current ? meta.current - 1 : 0) * meta.pageSize),
         name: job.name,
         company: job.company.name,
         location: job.location,
-        salary: new Intl.NumberFormat('vi-VN').format(job.salary) + ' đ',
+        salary: new Intl.NumberFormat("vi-VN").format(job.salary) + " đ",
         level: job.level,
         quantity: job.quantity,
         status: job.isActive ? "ACTIVE" : "INACTIVE",
@@ -65,33 +66,42 @@ const JobPage = () => {
     fetchJobs();
   }, []);
 
+  // Debounced search handler
+  const handleSearchChange = debounce((value, field) => {
+    form.setFieldsValue({ [field]: value });
+    fetchJobs({
+      ...form.getFieldsValue(), 
+      current: 1,
+    });
+  }, 300);
+
   const handleDelete = (id) => {
     confirm({
-      title: 'Bạn có chắc chắn muốn xóa công việc này?',
+      title: "Bạn có chắc chắn muốn xóa công việc này?",
       icon: <ExclamationCircleOutlined />,
-      content: 'Hành động này không thể hoàn tác',
-      okText: 'Xóa',
-      okType: 'danger',
-      cancelText: 'Hủy',
+      content: "Hành động này không thể hoàn tác",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
       onOk: async () => {
         try {
           await jobApi.delete(id);
-          message.success('Xóa công việc thành công!');
+          message.success("Xóa công việc thành công!");
           fetchJobs({
             current: pagination.current,
-            pageSize: pagination.pageSize
+            pageSize: pagination.pageSize,
           });
         } catch (error) {
           console.error("Error deleting job:", error);
-          message.error('Có lỗi xảy ra khi xóa công việc!');
+          message.error("Có lỗi xảy ra khi xóa công việc!");
         }
       },
     });
   };
 
   const statusMap = {
-    "ACTIVE": "Hoạt động",
-    "INACTIVE": "Không hoạt động"
+    ACTIVE: "Hoạt động",
+    INACTIVE: "Không hoạt động",
   };
 
   const columns = [
@@ -108,16 +118,16 @@ const JobPage = () => {
       dataIndex: "name",
       key: "name",
       onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
+        style: { textAlign: "center" },
+      }),
     },
     {
       title: "Công Ty",
       dataIndex: "company",
       key: "company",
       onHeaderCell: () => ({
-        style: { textAlign: 'center' }
-      })
+        style: { textAlign: "center" },
+      }),
     },
     {
       title: "Địa Điểm",
@@ -149,9 +159,7 @@ const JobPage = () => {
       dataIndex: "status",
       key: "status",
       render: (status) => (
-        <Tag color={status === "ACTIVE" ? "green" : "red"}>
-          {statusMap[status]}
-        </Tag>
+        <Tag color={status === "ACTIVE" ? "green" : "red"}>{statusMap[status]}</Tag>
       ),
     },
     {
@@ -161,14 +169,6 @@ const JobPage = () => {
       width: 120,
       render: (_, record) => (
         <Space>
-          <Tooltip title="Edit">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              className="text-blue-500 hover:text-blue-700"
-              onClick={() => handleEdit(record.key)}
-            />
-          </Tooltip>
           <Tooltip title="Delete">
             <Button
               type="text"
@@ -200,7 +200,10 @@ const JobPage = () => {
 
   const onReset = () => {
     form.resetFields();
-    fetchJobs();
+    fetchJobs({
+      current: 1,
+      pageSize: pagination.pageSize,
+    });
   };
 
   const handleRefresh = () => {
@@ -208,10 +211,6 @@ const JobPage = () => {
       current: pagination.current,
       pageSize: pagination.pageSize
     });
-  };
-
-  const handleEdit = (id) => {
-    console.log("Edit job with id:", id);
   };
 
   return (
@@ -224,27 +223,25 @@ const JobPage = () => {
         <Content className="m-6">
           {/* Search Section */}
           <div className="bg-white p-4 shadow rounded-lg mb-6">
-            <Form
-              form={form}
-              onFinish={onFinish}
-              className="ml-4"
-              layout="vertical"
-            >
+            <Form form={form} onFinish={onFinish} className="ml-4" layout="vertical">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Form.Item name="name" label="Tên Việc Làm" className="col-span-1">
-                  <Input placeholder="Nhập tên việc làm" style={{ height: '40px' }} />
+                  <Input
+                    placeholder="Nhập tên việc làm"
+                    style={{ height: "40px" }}
+                    onChange={(e) => handleSearchChange(e.target.value, "name")}
+                  />
                 </Form.Item>
 
                 <Form.Item name="level" label="Mức Độ" className="col-span-1">
-                  <Select placeholder="Chọn mức độ" style={{ height: '40px' }}>
-                    <Option value="FRESHER">FRESHER</Option>
-                    <Option value="JUNIOR">JUNIOR</Option>
-                    <Option value="MIDDLE">MIDDLE</Option>
-                    <Option value="SENIOR">SENIOR</Option>
-                  </Select>
+                  <Input
+                    placeholder="Nhập mức độ (FRESHER, JUNIOR, ...)"
+                    style={{ height: "40px" }}
+                    onChange={(e) => handleSearchChange(e.target.value, "level")}
+                  />
                 </Form.Item>
 
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '35px' }}>
+                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: "35px" }}>
                   <div className="flex space-x-2">
                     <Button type="primary" htmlType="submit">
                       Tìm kiếm
@@ -263,9 +260,6 @@ const JobPage = () => {
                 DANH SÁCH VIỆC LÀM
               </Title>
               <Space>
-                <Button type="primary" icon={<PlusOutlined />}>
-                  Thêm mới
-                </Button>
                 <Tooltip title="Làm mới">
                   <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
                 </Tooltip>

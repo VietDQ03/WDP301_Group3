@@ -71,7 +71,7 @@ const EditUserModal = ({
         try {
             const searchParams = {
                 current: params.current || 1,
-                pageSize: params.pageSize || 10,
+                pageSize: params.pageSize || 100,
             };
 
             const response = await companyApi.getAll(searchParams);

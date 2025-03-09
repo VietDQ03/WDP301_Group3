@@ -62,17 +62,6 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
     </button>
   );
 
-  const CreateCompanyButton = () => (
-    <Button 
-      type="primary" 
-      icon={<PlusOutlined />} 
-      className="bg-white text-blue-600 font-medium hover:bg-gray-100 transition-all"
-      onClick={handleCreateCompany}
-    >
-      Tạo công ty
-    </Button>
-  );
-
   const UserDropdown = () => (
     <Dropdown
       menu={menuItems}  
@@ -103,7 +92,6 @@ const AdminHeader = ({ collapsed, setCollapsed }) => {
     >
       <div className="flex items-center gap-4">
         <CollapseButton />
-        <CreateCompanyButton />
       </div>
       <UserDropdown />
     </Header>

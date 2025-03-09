@@ -27,7 +27,8 @@ export const resumeApi = {
   },
 
   delete: async (id) => {
-    return axios.delete(`/resumes/${id}`);
+    const response = await axios.delete(`/resumes/${id}`);
+    return response.data
   },
 
   search: async (params) => {
@@ -35,6 +36,9 @@ export const resumeApi = {
       params: {
         current: params.current || 1,
         pageSize: params.pageSize || 10,
+        email: params.email,
+        status: params.status,
+        searchType: params.searchType,
         ...params
       }
     });
