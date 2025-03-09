@@ -50,7 +50,7 @@ const ResumePage = () => {
       if (user.role === 'HR' && user.company?._id) {
         response = await resumeApi.findByCompany(user.company._id, queryParams);
       } else {
-        response = await resumeApi.getAll(queryParams);
+        response = await resumeApi.search(queryParams);
       }
   
       const resumeData = response?.data;
@@ -343,18 +343,6 @@ const ResumePage = () => {
                       className="h-11 rounded-lg"
                       value={searchValues.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      allowClear
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-gray-700 font-medium mb-2 block">Tên người dùng</label>
-                    <Input
-                      prefix={<UserOutlined className="text-gray-400" />}
-                      placeholder="Nhập tên người dùng"
-                      className="h-11 rounded-lg"
-                      value={searchValues.username}
-                      onChange={(e) => handleInputChange('username', e.target.value)}
                       allowClear
                     />
                   </div>

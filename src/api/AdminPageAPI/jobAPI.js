@@ -8,8 +8,13 @@ export const jobApi = {
     if (params.pageSize) queryString.append('pageSize', params.pageSize);
 
     if (params.name) queryString.append('name', params.name);
+    if (params.company) queryString.append('company', params.company); // ✅ Thêm công ty
     if (params.location) queryString.append('location', params.location);
+    if (params.salary) queryString.append('salary', params.salary); // ✅ Thêm mức lương
     if (params.level) queryString.append('level', params.level);
+    if (params.isActive !== undefined && params.isActive !== null) {
+      queryString.append('isActive', String(params.isActive));
+    }
     if (params.skills) {
       if (Array.isArray(params.skills)) {
         params.skills.forEach(skill => queryString.append('skills', skill));
