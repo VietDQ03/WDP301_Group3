@@ -20,7 +20,6 @@ const App = () => {
     const token = params.get("token");
   
     if (token) {
-      console.log("Token nhận được:", token); // Kiểm tra xem có token không
       localStorage.setItem("access_token", token);
       navigate("/", { replace: true }); 
     } else {

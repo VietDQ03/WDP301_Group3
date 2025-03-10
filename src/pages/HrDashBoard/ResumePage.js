@@ -34,6 +34,8 @@ const ResumePage = () => {
 
   const { user } = useSelector((state) => state.auth);
 
+  console.log(user)
+
   const fetchResumes = async (params = {}) => {
     setLoading(true);
     try {
@@ -186,24 +188,6 @@ const ResumePage = () => {
       ),
     },
     {
-      title: "Hồ sơ",
-      key: "resume",
-      align: "center",
-      render: (_, record) => (
-        <Space size="middle">
-          <Tooltip title="Xem hồ sơ">
-            <a
-              href={`${process.env.REACT_APP_BASE_URL}/images/resume/${record?.url}`}
-              target="_blank"
-              className="text-gray-600 hover:text-blue-500 transition-colors duration-200"
-            >
-              <EyeOutlined className="text-xl" />
-            </a>
-          </Tooltip>
-        </Space>
-      ),
-    },
-    {
       title: "Công Việc",
       align: "center",
       dataIndex: "jobName",
@@ -229,6 +213,9 @@ const ResumePage = () => {
         >
           <Option value="PENDING">
             <span className="text-yellow-500">Đang chờ</span>
+          </Option>
+          <Option value="PASSCV">
+            <span className="text-amber-500">Chờ phỏng vấn</span>
           </Option>
           <Option value="APPROVED">
             <span className="text-green-500">Đã duyệt</span>
@@ -359,6 +346,9 @@ const ResumePage = () => {
                     >
                       <Option value="PENDING">
                         <span className="text-yellow-500">Đang chờ</span>
+                      </Option>
+                      <Option value="PASSCV">
+                        <span className="text-yellow-500">Chờ phỏng vấn</span>
                       </Option>
                       <Option value="APPROVED">
                         <span className="text-green-500">Đã duyệt</span>

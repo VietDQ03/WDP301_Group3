@@ -250,7 +250,12 @@ const PermissionPage = () => {
 
   return (
     <Layout className="min-h-screen">
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <div
+        className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+          } flex-shrink-0`}
+      >
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      </div>
 
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
