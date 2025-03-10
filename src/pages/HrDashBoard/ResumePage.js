@@ -34,6 +34,8 @@ const ResumePage = () => {
 
   const { user } = useSelector((state) => state.auth);
 
+  console.log(user)
+
   const fetchResumes = async (params = {}) => {
     setLoading(true);
     try {
@@ -212,6 +214,9 @@ const ResumePage = () => {
           <Option value="PENDING">
             <span className="text-yellow-500">Đang chờ</span>
           </Option>
+          <Option value="PASSCV">
+            <span className="text-amber-500">Chờ phỏng vấn</span>
+          </Option>
           <Option value="APPROVED">
             <span className="text-green-500">Đã duyệt</span>
           </Option>
@@ -341,6 +346,9 @@ const ResumePage = () => {
                     >
                       <Option value="PENDING">
                         <span className="text-yellow-500">Đang chờ</span>
+                      </Option>
+                      <Option value="PASSCV">
+                        <span className="text-yellow-500">Chờ phỏng vấn</span>
                       </Option>
                       <Option value="APPROVED">
                         <span className="text-green-500">Đã duyệt</span>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { LayoutDashboard, Briefcase, FileText } from 'lucide-react';
+import { LayoutDashboard, Briefcase, FileText, Receipt, UserSearch } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Sidebar = ({ collapsed }) => {
@@ -22,6 +22,16 @@ const Sidebar = ({ collapsed }) => {
       key: '/dashboard/resume',
       icon: <FileText size={20} />,
       label: 'Danh Sách Ứng Tuyển'
+    },
+    {
+      key: '/dashboard/candidates',
+      icon: <UserSearch size={20} />,
+      label: 'Gợi ý Ứng Viên'
+    },
+    {
+      key: '/dashboard/payment-history',
+      icon: <Receipt size={20} />,
+      label: 'Lịch sử thanh toán'
     }
   ];
 

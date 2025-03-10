@@ -11,7 +11,7 @@ import debounce from 'lodash/debounce';
 
 const { Content } = Layout;
 const { Title } = Typography;
-const { confirm } = Modal; 
+const { confirm } = Modal;
 
 const RolePage = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -158,12 +158,40 @@ const RolePage = () => {
     debouncedSearch(searchText, value);
   };
 
-  const handleReset = () => {
+  const handleReset = useCallback(async () => {
     setSearchText('');
     setSearchStatus(undefined);
     form.resetFields();
-    fetchRoles({ current: 1 });
-  };
+
+    try {
+      setLoading(true);
+      const response = await roleApi.getAll({
+        current: 1,
+        pageSize: pagination.pageSize,
+        name: '',
+        isActive: undefined
+      });
+
+      const transformedData = response.data.result.map(role => ({
+        ...role,
+        key: role._id,
+      }));
+
+      setData(transformedData);
+      setPagination(prev => ({
+        ...prev,
+        total: response.data.meta.total,
+        current: 1
+      }));
+
+      await loadAllPermissions(transformedData);
+    } catch (error) {
+      message.error('Không thể tải danh sách vai trò');
+      console.error("Error fetching roles:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination.pageSize, form, loadAllPermissions]);
 
   const handleRefresh = () => {
     fetchRoles();
@@ -315,7 +343,12 @@ const RolePage = () => {
 
   return (
     <Layout className="min-h-screen">
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <div
+        className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+          } flex-shrink-0`}
+      >
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      </div>
 
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
@@ -351,11 +384,15 @@ const RolePage = () => {
                   />
                 </Form.Item>
 
-                <Form.Item className="col-span-1" style={{ marginBottom: 0, marginTop: '29px' }}>
+                <Form.Item
+                  className="col-span-1"
+                  label=" "
+                >
                   <Button
                     onClick={handleReset}
-                    size="large"
-                    style={{ height: '40px', padding: '6.5px 16px' }}
+                    className="w-50"
+                    style={{ height: '40px' }}
+                    icon={<ReloadOutlined />}
                   >
                     Đặt lại
                   </Button>

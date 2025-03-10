@@ -5,6 +5,8 @@ import ResumePage from '../pages/HrDashBoard/ResumePage';
 import ProPage from '../pages/HrDashBoard/ProPage';
 import PaymentPage from '../pages/Other/PaymentPage';
 import ProtectedRoute from './protectedRouter.js';
+import PaymentSuccess from '../pages/Other/PaymentSuccess.js';
+import PaymentHistory from '../pages/HrDashBoard/PaymentHistory.js';
 
 const DASHBOARD_ROUTER = [
   {
@@ -40,8 +42,28 @@ const DASHBOARD_ROUTER = [
     ),
   },
   {
+    path: '/dashboard/payment-history',
+    element: (
+      <ProtectedRoute requiredRole="HR_ROLE">
+        <PaymentHistory />
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: '/payment',
-    element: <PaymentPage />,
+    element: (
+      <ProtectedRoute requiredRole="HR_ROLE">
+        <PaymentPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/payment/success',
+    element: (
+      <ProtectedRoute requiredRole="HR_ROLE">
+        <PaymentSuccess />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '*',
