@@ -37,7 +37,7 @@ const ProPage = () => {
       const paymentData = {
         amount: amount,
         orderType: "UPGRADE_PLAN",
-        orderInfo: `Thanh toan goi ${plan.name} - ${billingPeriod === 'monthly' ? 'Hang thang' : 'Hang nam'}`,
+        orderInfo: `Thanh toan goi ${plan.name} - ${billingPeriod === 'monthly' ? 'Hang thang' : 'Hang nam'} `,
         language: "vn",
         bankCode: "",
         userId: user?._id,
