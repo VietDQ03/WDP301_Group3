@@ -97,13 +97,13 @@ const UserPage = () => {
         current: params.current || pagination.current,
         pageSize: params.pageSize || pagination.pageSize,
       };
-  
+
       const response = await userApi.search(searchParams);
-  
+
       if (response?.data) {
         const formattedUsers = response.data.result.map((user, index) => {
           const userRole = roles.find(role => role._id === user.role);
-          
+
           return {
             key: user._id,
             stt: index + 1 + ((response.data.meta.current - 1) * response.data.meta.pageSize),
@@ -125,7 +125,7 @@ const UserPage = () => {
             } : null
           };
         });
-  
+
         setUsers(formattedUsers);
         setPagination({
           current: response.data.meta.current,
@@ -217,7 +217,7 @@ const UserPage = () => {
     };
 
     initData();
-}, []);
+  }, []);
 
   const handleBan = (userId) => {
     confirm({
@@ -278,7 +278,7 @@ const UserPage = () => {
   const handleSearch = async (changedValues, allValues) => {
     try {
       setLoading(true);
-      
+
       // Clean up the search values by removing empty strings
       const searchValues = {};
       Object.keys(allValues).forEach(key => {
@@ -286,17 +286,17 @@ const UserPage = () => {
           searchValues[key] = allValues[key];
         }
       });
-  
+
       const response = await userApi.search({
         ...searchValues,
         current: 1, // Reset to first page when searching
         pageSize: pagination.pageSize
       });
-  
+
       if (response?.data) {
         const formattedUsers = response.data.result.map((user, index) => {
           const userRole = roles.find(role => role._id === user.role);
-          
+
           return {
             key: user._id,
             stt: index + 1,
@@ -318,7 +318,7 @@ const UserPage = () => {
             } : null
           };
         });
-  
+
         setUsers(formattedUsers);
         setPagination({
           ...pagination,
@@ -499,7 +499,12 @@ const UserPage = () => {
 
   return (
     <Layout>
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <div
+        className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+          } flex-shrink-0`}
+      >
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      </div>
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
         <Content className="m-6">

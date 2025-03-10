@@ -77,8 +77,9 @@ const EditUserModal = ({
             const response = await companyApi.getAll(searchParams);
             if (response?.data) {
                 const { result } = response.data;
+                const activeCompanies = result.filter(company => company.isActive === true);
                 setCompanies(
-                    result.map((company) => ({
+                    activeCompanies.map((company) => ({
                         label: company.name,
                         value: company._id,
                         data: company,

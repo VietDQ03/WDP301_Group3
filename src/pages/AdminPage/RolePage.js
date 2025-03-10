@@ -11,7 +11,7 @@ import debounce from 'lodash/debounce';
 
 const { Content } = Layout;
 const { Title } = Typography;
-const { confirm } = Modal; 
+const { confirm } = Modal;
 
 const RolePage = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -315,7 +315,12 @@ const RolePage = () => {
 
   return (
     <Layout className="min-h-screen">
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <div
+        className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+          } flex-shrink-0`}
+      >
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      </div>
 
       <Layout>
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />

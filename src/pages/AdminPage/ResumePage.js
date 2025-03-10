@@ -198,24 +198,24 @@ const ResumePage = () => {
         </div>
       ),
     },
-    {
-      title: "Hồ sơ",
-      key: "resume",
-      align: "center",
-      render: (_, record) => (
-        <Space size="middle">
-          <Tooltip title="Xem hồ sơ">
-            <a
-              href={`${process.env.REACT_APP_BASE_URL}/images/resume/${record?.url}`}
-              target="_blank"
-              className="text-gray-600 hover:text-blue-500 transition-colors duration-200"
-            >
-              <EyeOutlined className="text-xl" />
-            </a>
-          </Tooltip>
-        </Space>
-      ),
-    },
+    // {
+    //   title: "Hồ sơ",
+    //   key: "resume",
+    //   align: "center",
+    //   render: (_, record) => (
+    //     <Space size="middle">
+    //       <Tooltip title="Xem hồ sơ">
+    //         <a
+    //           href={`${process.env.REACT_APP_BASE_URL}/images/resume/${record?.url}`}
+    //           target="_blank"
+    //           className="text-gray-600 hover:text-blue-500 transition-colors duration-200"
+    //         >
+    //           <EyeOutlined className="text-xl" />
+    //         </a>
+    //       </Tooltip>
+    //     </Space>
+    //   ),
+    // },
     {
       title: "Công Việc",
       align: "center",

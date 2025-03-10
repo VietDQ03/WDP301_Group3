@@ -1,4 +1,3 @@
-// src/router/index.jsx
 import { Navigate } from 'react-router';
 import DashboardPage from '../pages/AdminPage/DashboardPage';
 import CompanyPage from '../pages/AdminPage/CompanyPage';
@@ -8,18 +7,6 @@ import ResumePage from '../pages/AdminPage/ResumePage';
 import PermissionPage from '../pages/AdminPage/PermissionPage';
 import RolePage from '../pages/AdminPage/RolePage';
 import ProtectedRoute from './protectedRouter.js';
-
-// // Company routes
-// import CompanyList from '../pages/company/CompanyList';
-// import CompanyDetail from '../pages/company/CompanyDetail';
-// import CompanyCreate from '../pages/company/CompanyCreate';
-// import CompanyEdit from '../pages/company/CompanyEdit';
-
-// // User routes
-// import UserList from '../pages/user/UserList';
-// import UserDetail from '../pages/user/UserDetail';
-// import UserCreate from '../pages/user/UserCreate';
-// import UserEdit from '../pages/user/UserEdit';
 
 const ADMIN_ROUTER = [
   {

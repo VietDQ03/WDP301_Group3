@@ -67,27 +67,37 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       onCollapse={setCollapsed}
       className="border-r border-gray-200 shadow-sm bg-white"
       style={{
-        overflow: 'auto',
         height: '100vh',
-        position: 'sticky',
-        top: 0,
+        position: 'fixed',
         left: 0,
+        top: 0,
+        bottom: 0,
       }}
     >
+      {/* Logo/Header Section */}
       <div
-        className="flex items-center p-4 mx-2 my-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-colors"
-        onClick={() => navigate('/admin')}
+        className="sticky top-0 z-10 bg-white"
+        style={{
+          height: '64px',
+          borderBottom: '1px solid #f0f0f0'
+        }}
       >
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50">
-          <span className="text-blue-600 text-xl">🔐</span>
-        </div>
-        {!collapsed && (
-          <div className="ml-3 font-semibold text-lg text-gray-800 truncate">
-            Admin Dashboard
+        <div
+          className="h-16 flex items-center px-4 mx-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-colors"
+          onClick={() => navigate('/admin')}
+        >
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50">
+            <span className="text-blue-600 text-xl">🔐</span>
           </div>
-        )}
+          {!collapsed && (
+            <div className="ml-3 font-semibold text-lg text-gray-800 truncate">
+              Admin Dashboard
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Menu Section */}
       <Menu
         mode="inline"
         selectedKeys={[location.pathname]}
@@ -96,30 +106,31 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         onClick={handleMenuClick}
         style={{
           borderRight: 'none',
+          height: 'calc(100vh - 64px)', // Subtract header height
+          overflow: 'auto' // Allow menu to scroll independently
         }}
         theme="light"
         css={`
-          .ant-menu-item {
-            margin: 4px 8px !important;
-            border-radius: 6px !important;
-            &:hover {
-              background-color: #EBF5FF !important;
-            }
-            &.ant-menu-item-selected {
-              background-color: #EBF5FF !important;
-              color: #2563EB !important;
-              &::after {
-                display: none;
-              }
-            }
-          }
-          .ant-menu-item-icon {
-            width: 20px !important;
-            height: 20px !important;
-          }
-        `}
+    .ant-menu-item {
+      margin: 4px 8px !important;
+      border-radius: 6px !important;
+      &:hover {
+        background-color: #EBF5FF !important;
+      }
+      &.ant-menu-item-selected {
+        background-color: #EBF5FF !important;
+        color: #2563EB !important;
+        &::after {
+          display: none;
+        }
+      }
+    }
+    .ant-menu-item-icon {
+      width: 20px !important;
+      height: 20px !important;
+    }
+  `}
       />
-
     </Sider>
   );
 };
