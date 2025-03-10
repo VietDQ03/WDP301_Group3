@@ -45,14 +45,14 @@ const ResumePage = () => {
         ...(params.email && { email: params.email.trim() }),
         ...(params.username && { username: params.username.trim() })
       };
-  
+
       let response;
       if (user.role === 'HR' && user.company?._id) {
         response = await resumeApi.findByCompany(user.company._id, queryParams);
       } else {
         response = await resumeApi.search(queryParams);
       }
-  
+
       const resumeData = response?.data;
       if (resumeData?.result) {
         const formattedResumes = await Promise.all(resumeData.result.map(async (resume, index) => {
@@ -76,7 +76,7 @@ const ResumePage = () => {
               console.error(`Lỗi khi lấy tên người dùng cho resume ${resume._id}:`, err);
             }
           }
-  
+
           return {
             key: resume._id,
             stt: index + 1 + ((resumeData.meta.current - 1) * resumeData.meta.pageSize),
@@ -94,7 +94,7 @@ const ResumePage = () => {
             history: resume.history || []
           };
         }));
-  
+
         setResumes(formattedResumes);
         setPagination({
           current: resumeData.meta.current,
@@ -309,25 +309,6 @@ const ResumePage = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="mb-6">
-                <motion.h1
-                  className="text-2xl font-bold text-gray-800"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  Quản lý Hồ sơ Ứng tuyển
-                </motion.h1>
-                <motion.p
-                  className="text-gray-500 mt-1"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  Quản lý và theo dõi hồ sơ ứng tuyển của ứng viên
-                </motion.p>
-              </div>
-
               <motion.div
                 className="bg-white p-6 shadow-sm rounded-xl mb-6 border border-gray-100"
                 initial={{ opacity: 0, y: 20 }}
@@ -396,14 +377,16 @@ const ResumePage = () => {
                   </div>
                   <Space size="middle">
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Tooltip title="Làm mới dữ liệu">
+                      <Tooltip title="Làm mới">
                         <Button
                           icon={<ReloadOutlined />}
                           onClick={handleRefresh}
-                          size="large"
-                          className="h-11 hover:bg-gray-50 hover:border-gray-300"
-                        >Làm mới</Button>
+                          style={{ width: '44px', height: '44px' }}
+                          className="flex items-center justify-center"
+                        />
+
                       </Tooltip>
+
                     </motion.div>
                   </Space>
                 </div>

@@ -291,16 +291,20 @@ const JobPage = () => {
                   </Form.Item>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <Form.Item
+                  className="col-span-1"
+                  label=" "
+                >
                   <Button
                     onClick={onReset}
-                    size="large"
-                    className="h-11 px-6 flex items-center"
+                    className="w-50"
+                    style={{ height: '44px' }}
                     icon={<ReloadOutlined />}
                   >
                     Đặt lại
                   </Button>
-                </div>
+                </Form.Item>
+
               </div>
             </Form>
           </div>
@@ -313,10 +317,10 @@ const JobPage = () => {
               </Title>
               <Space>
                 <Tooltip title="Làm mới">
-                  <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
-                </Tooltip>
-                <Tooltip title="Cài đặt">
-                  <Button icon={<SettingOutlined />} />
+                  <Button icon={<ReloadOutlined />}
+                    onClick={handleRefresh}
+                    style={{ width: '44px', height: '44px' }}
+                    className="flex items-center justify-center" />
                 </Tooltip>
               </Space>
             </div>

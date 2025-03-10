@@ -557,10 +557,15 @@ const UserPage = () => {
                   </Select>
                 </Form.Item>
 
-                <Form.Item label=" " className="col-span-1">
+                <Form.Item
+                  className="col-span-1"
+                  label=" "
+                >
                   <Button
                     onClick={onReset}
-                    style={{ height: '40px', width: '50%' }}
+                    className="w-50"
+                    style={{ height: '40px' }}
+                    icon={<ReloadOutlined />}
                   >
                     Đặt lại
                   </Button>
@@ -576,7 +581,10 @@ const UserPage = () => {
               </Title>
               <Space>
                 <Tooltip title="Làm mới">
-                  <Button icon={<ReloadOutlined />} onClick={handleRefresh} />
+                  <Button icon={<ReloadOutlined />}
+                    onClick={handleRefresh}
+                    style={{ width: '44px', height: '44px' }}
+                    className="flex items-center justify-center" />
                 </Tooltip>
               </Space>
             </div>

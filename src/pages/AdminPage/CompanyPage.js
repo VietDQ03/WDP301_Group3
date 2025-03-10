@@ -232,118 +232,122 @@ const CompanyPage = () => {
 
   return (
     <Layout className="min-h-screen">
-        <div
-          className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
-            } flex-shrink-0`}
-        >
-          <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-        </div>
+      <div
+        className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
+          } flex-shrink-0`}
+      >
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      </div>
 
-        <Layout>
-          <Header collapsed={collapsed} setCollapsed={setCollapsed} />
+      <Layout>
+        <Header collapsed={collapsed} setCollapsed={setCollapsed} />
 
-          <Content className="m-6">
-            {/* Search Section */}
-            <div className="bg-white p-4 shadow rounded-lg mb-6">
-              <Form
-                form={searchForm}
-                onFinish={fetchCompanies}
-                layout="vertical"
-                className="ml-4"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Form.Item name="name" label="Tên Công Ty" className="col-span-1">
-                    <Input
-                      placeholder="Nhập tên công ty"
-                      style={{ height: '40px' }}
-                      onChange={(e) => handleSearchChange(e, 'name')}
-                    />
-                  </Form.Item>
+        <Content className="m-6">
+          {/* Search Section */}
+          <div className="bg-white p-4 shadow rounded-lg mb-6">
+            <Form
+              form={searchForm}
+              onFinish={fetchCompanies}
+              layout="vertical"
+              className="ml-4"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Form.Item name="name" label="Tên Công Ty" className="col-span-1">
+                  <Input
+                    placeholder="Nhập tên công ty"
+                    style={{ height: '40px' }}
+                    onChange={(e) => handleSearchChange(e, 'name')}
+                  />
+                </Form.Item>
 
-                  <Form.Item name="address" label="Địa chỉ" className="col-span-1">
-                    <Input
-                      placeholder="Nhập địa chỉ"
-                      style={{ height: '40px' }}
-                      onChange={(e) => handleSearchChange(e, 'address')}
-                    />
-                  </Form.Item>
+                <Form.Item name="address" label="Địa chỉ" className="col-span-1">
+                  <Input
+                    placeholder="Nhập địa chỉ"
+                    style={{ height: '40px' }}
+                    onChange={(e) => handleSearchChange(e, 'address')}
+                  />
+                </Form.Item>
 
-                  <Form.Item name="isActive" label="Trạng Thái" className="col-span-1">
-                    <Select
-                      placeholder="Chọn trạng thái"
-                      allowClear
-                      style={{ height: '40px' }}
-                      onChange={(value) => handleSearchChange(value, 'isActive')}
-                    >
-                      <Option value="true">Hoạt động</Option>
-                      <Option value="false">Không hoạt động</Option>
-                    </Select>
-                  </Form.Item>
-
-                  <Form.Item
-                    className="col-span-1"
-                    label=" "
+                <Form.Item name="isActive" label="Trạng Thái" className="col-span-1">
+                  <Select
+                    placeholder="Chọn trạng thái"
+                    allowClear
+                    style={{ height: '40px' }}
+                    onChange={(value) => handleSearchChange(value, 'isActive')}
                   >
-                    <Button
-                      onClick={onReset}
-                      className="w-50"
-                      style={{ height: '40px' }}
-                    >
-                      Đặt lại
-                    </Button>
-                  </Form.Item>
-                </div>
-              </Form>
-            </div>
+                    <Option value="true">Hoạt động</Option>
+                    <Option value="false">Không hoạt động</Option>
+                  </Select>
+                </Form.Item>
 
-            {/* List Section */}
-            <div className="bg-white p-6 shadow rounded-lg">
-              <div className="flex justify-between items-center mb-4">
-                <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
-                  DANH SÁCH CÔNG TY
-                </Title>
-                <Space>
-                  <CustomButton
-                    icon={<PlusOutlined />}
-                    onClick={handleCreate}
+                <Form.Item
+                  className="col-span-1"
+                  label=" "
+                >
+                  <Button
+                    onClick={onReset}
+                    className="w-50"
+                    style={{ height: '40px' }}
+                    icon={<ReloadOutlined />}
                   >
-                    Thêm mới
-                  </CustomButton>
-                  <Tooltip title="Làm mới">
-                    <Button
-                      icon={<ReloadOutlined />}
-                      onClick={handleRefresh}
-                    />
-                  </Tooltip>
-                </Space>
+                    Đặt lại
+                  </Button>
+                </Form.Item>
               </div>
+            </Form>
+          </div>
 
-              <Table
-                dataSource={data}
-                columns={columns}
-                pagination={{
-                  ...pagination,
-                  showSizeChanger: true,
-                }}
-                onChange={handleTableChange}
-                bordered
-                size="middle"
-                className="overflow-x-auto"
-                loading={loading}
-              />
+          {/* List Section */}
+          <div className="bg-white p-6 shadow rounded-lg">
+            <div className="flex justify-between items-center mb-4">
+              <Title level={4} style={{ margin: 0 }} className="text-lg font-semibold">
+                DANH SÁCH CÔNG TY
+              </Title>
+              <Space>
+                <CustomButton
+                  icon={<PlusOutlined />}
+                  onClick={handleCreate}
+                >
+                  Thêm mới
+                </CustomButton>
+                <Tooltip title="Làm mới">
+                  <Button
+                    icon={<ReloadOutlined />}
+                    onClick={handleRefresh}
+                    style={{ width: '44px', height: '44px' }}
+                    className="flex items-center justify-center"
+                  />
 
-              <AddEditCompanyModal
-                visible={isModalVisible}
-                onClose={handleModalClose}
-                refreshData={fetchCompanies}
-                selectedCompany={selectedCompany}
-                mode={modalMode}
-              />
+                </Tooltip>
+              </Space>
             </div>
-          </Content>
-        </Layout>
+
+            <Table
+              dataSource={data}
+              columns={columns}
+              pagination={{
+                ...pagination,
+                showSizeChanger: true,
+              }}
+              onChange={handleTableChange}
+              bordered
+              size="middle"
+              className="overflow-x-auto"
+              loading={loading}
+            />
+
+            <AddEditCompanyModal
+              visible={isModalVisible}
+              onClose={handleModalClose}
+              refreshData={fetchCompanies}
+              selectedCompany={selectedCompany}
+              mode={modalMode}
+            />
+          </div>
+        </Content>
       </Layout>
-      );
+    </Layout>
+  );
 };
 
-      export default CompanyPage;
+export default CompanyPage;
