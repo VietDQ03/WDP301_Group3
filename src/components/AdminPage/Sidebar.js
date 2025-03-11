@@ -10,12 +10,19 @@ import {
   SafetyCertificateOutlined,
   ShoppingOutlined,
 } from '@ant-design/icons';
+import { ScrollText, TrendingUp } from 'lucide-react';
 
 const { Sider } = Layout;
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const iconStyle = {
+    width: '16px',
+    height: '16px',
+    strokeWidth: 2
+  };
 
   const menuItems = [
     {
@@ -53,6 +60,16 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       icon: <SafetyCertificateOutlined className="text-gray-500" />,
       label: <span className="text-white-700 font-medium">Danh Sách Vai Trò</span>,
     },
+    {
+      key: '/admin/payment-transaction',
+      icon: <ScrollText style={iconStyle} className="text-gray-500" />,
+      label: <span className="text-white-700 font-medium">Danh Sách Giao Dịch</span>,
+    },
+    {
+      key: '/admin/revenue',
+      icon: <TrendingUp style={iconStyle} className="text-gray-500" />,
+      label: <span className="text-white-700 font-medium">Doanh Thu</span>,
+    },
   ];
 
   const handleMenuClick = ({ key }) => {
@@ -86,7 +103,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           className="h-16 flex items-center px-4 mx-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-colors"
           onClick={() => navigate('/admin')}
         >
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg">
             <span className="text-blue-600 text-xl">🔐</span>
           </div>
           {!collapsed && (

@@ -1,7 +1,6 @@
 import axios from "../config/axiosCustom";
 
 export const paymentApi = {
-  // Lấy tất cả giao dịch (cho admin)
   getAll: (params) => {
     const { current, pageSize, ...searchParams } = params;
     return axios.get('/payment', {
@@ -29,7 +28,7 @@ export const paymentApi = {
     const response = await axios.post("/payment/create", {
       amount: data.amount,
       orderType: data.orderType,
-      orderInfo: data.orderInfo, 
+      orderInfo: data.orderInfo,
       language: data.language,
       bankCode: data.bankCode,
       userId: data.userId
