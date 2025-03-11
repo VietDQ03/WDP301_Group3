@@ -8,6 +8,7 @@ import PermissionPage from '../pages/AdminPage/PermissionPage';
 import RolePage from '../pages/AdminPage/RolePage';
 import ProtectedRoute from './protectedRouter.js';
 import PaymentTransaction from '../pages/AdminPage/PaymentTransaction.js';
+import Revenue from '../pages/AdminPage/Revenue.js';
 
 const ADMIN_ROUTER = [
   {
@@ -71,6 +72,14 @@ const ADMIN_ROUTER = [
     element: (
       <ProtectedRoute requiredRole="SUPER_ADMIN">
         <PaymentTransaction />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/revenue',
+    element: (
+      <ProtectedRoute requiredRole="SUPER_ADMIN">
+        <Revenue />
       </ProtectedRoute>
     ),
   },

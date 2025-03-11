@@ -10,13 +10,19 @@ import {
   SafetyCertificateOutlined,
   ShoppingOutlined,
 } from '@ant-design/icons';
-import { Receipt } from 'lucide-react';
+import { ScrollText, TrendingUp } from 'lucide-react';
 
 const { Sider } = Layout;
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const iconStyle = {
+    width: '16px',
+    height: '16px',
+    strokeWidth: 2
+  };
 
   const menuItems = [
     {
@@ -56,8 +62,13 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     },
     {
       key: '/admin/payment-transaction',
-      icon: <Receipt className="text-gray-500" />,
+      icon: <ScrollText style={iconStyle} className="text-gray-500" />,
       label: <span className="text-white-700 font-medium">Danh Sách Giao Dịch</span>,
+    },
+    {
+      key: '/admin/revenue',
+      icon: <TrendingUp style={iconStyle} className="text-gray-500" />,
+      label: <span className="text-white-700 font-medium">Doanh Thu</span>,
     },
   ];
 
