@@ -103,7 +103,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           className="h-16 flex items-center px-4 mx-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-colors"
           onClick={() => navigate('/admin')}
         >
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg">
             <span className="text-blue-600 text-xl">🔐</span>
           </div>
           {!collapsed && (
