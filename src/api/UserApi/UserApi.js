@@ -1,5 +1,8 @@
 import axios from "../../config/axiosCustom";
 
+export const updateUserProfile = (userId, userData) => {
+    return axios.patch(`/users/${userId}`, userData);
+};
 
 export const callCreateResume = (url, companyId, jobId, description) => {
     return axios.post('/resumes', { 
@@ -33,7 +36,6 @@ export const getAppliedJobs = async () => {
     return axios.post('/resumes/by-user');
 };
 
-// Trong file UserApi.js
 export const callCreateCompany = (name, address, description, logo) => {
     return axios.post('/companies', { 
         name,

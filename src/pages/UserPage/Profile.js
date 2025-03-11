@@ -10,15 +10,18 @@ import {
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import axios from "../../config/axiosCustom";
 import Header from "../../components/UserPage/Header";
 import Footer from "../../components/UserPage/Footer";
 import { updateUser } from "../../redux/slices/auth";
+import { companyApi } from "../../api/AdminPageAPI/companyApi";
+import { updateUserProfile } from "../../api/UserApi/UserApi";
 
 const UserProfile = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { user, isAuthenticated } = useSelector((state) => state.auth);
+
+    console.log(user)
 
     const [formData, setFormData] = useState({
         name: user?.name || "",
@@ -58,20 +61,6 @@ const UserProfile = () => {
         }
     }, [user]);
 
-    useEffect(() => {
-        if (user?.company?._id) {
-            axios
-                .get(`/companies/${user.company._id}`)
-                .then((response) => {
-                    setCompanyName(response.data.name || "Chưa cập nhật");
-                })
-                .catch((error) => {
-                    console.error("Lỗi khi lấy thông tin công ty:", error);
-                    setCompanyName("Chưa cập nhật");
-                });
-        }
-    }, [user?.company?._id]);
-
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -99,16 +88,15 @@ const UserProfile = () => {
                 age: formData.age === '' ? null : Number(formData.age)
             };
     
-            const response = await axios.patch(`/users/${user._id}`, dataToSubmit);
+            const { data } = await updateUserProfile(user._id, dataToSubmit);
     
-            // Dispatch action để update user trong redux store
-            dispatch(updateUser(response.data));
+            dispatch(updateUser(data));
     
             setFormData({
-                name: response.data.name || "",
-                age: response.data.age || "",
-                gender: response.data.gender || "",
-                address: response.data.address || "",
+                name: data.name || "",
+                age: data.age || "",
+                gender: data.gender || "",
+                address: data.address || "",
             });
     
             notification.success({
@@ -143,6 +131,18 @@ const UserProfile = () => {
         setIsEditing(false);
     };
 
+    useEffect(() => {
+        if (user?.company?._id) {
+            companyApi.findOne(user.company._id)
+                .then((data) => {
+                    setCompanyName(data.name || "Chưa cập nhật");
+                })
+                .catch((error) => {
+                    console.error("Lỗi khi lấy thông tin công ty:", error);
+                    setCompanyName("Chưa cập nhật");
+                });
+        }
+    }, [user?.company?._id]);
 
     return (
         <div className="min-h-screen bg-gray-100">

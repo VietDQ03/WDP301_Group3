@@ -10,6 +10,7 @@ import {
   SafetyCertificateOutlined,
   ShoppingOutlined,
 } from '@ant-design/icons';
+import { Receipt } from 'lucide-react';
 
 const { Sider } = Layout;
 
@@ -52,6 +53,11 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       key: '/admin/role',
       icon: <SafetyCertificateOutlined className="text-gray-500" />,
       label: <span className="text-white-700 font-medium">Danh Sách Vai Trò</span>,
+    },
+    {
+      key: '/admin/payment-transaction',
+      icon: <Receipt className="text-gray-500" />,
+      label: <span className="text-white-700 font-medium">Danh Sách Giao Dịch</span>,
     },
   ];
 
