@@ -84,6 +84,51 @@
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
+/* Select Multiple Styles */
+.ant-select-multiple .ant-select-selector {
+    min-height: 40px !important;
+    height: auto !important;
+    padding: 4px 8px !important;
+}
+
+.ant-select-multiple .ant-select-selection-overflow {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+}
+
+.ant-select-multiple .ant-select-selection-item {
+    height: 24px !important;
+    line-height: 22px !important;
+    background: rgba(0, 0, 0, 0.06) !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+    padding: 0 8px !important;
+    margin: 2px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.ant-select-multiple .ant-select-selection-item-content {
+    display: inline-block !important;
+    margin-right: 4px !important;
+    overflow: visible !important;
+    white-space: nowrap !important;
+    color: rgba(0, 0, 0, 0.88) !important;
+}
+
+.ant-select-multiple .ant-select-selection-item-remove {
+    color: rgba(0, 0, 0, 0.45) !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.ant-select-multiple .ant-select-selection-placeholder {
+    padding: 0 4px !important;
+    color: rgba(0, 0, 0, 0.25) !important;
+}
+
 /* Select Styles */
 .custom-form .ant-select-selector {
     height: 40px !important;

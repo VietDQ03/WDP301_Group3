@@ -334,7 +334,7 @@ const JobPage = () => {
       const formattedJobDetail = {
         _id: jobDetail._id,
         name: jobDetail.name,
-        skills: jobDetail.skills,
+        skills: jobDetail.skills.map(skill => skill.name),
         company: jobDetail.company,
         location: jobDetail.location,
         salary: jobDetail.salary,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Form, Input, Select, InputNumber, DatePicker, Switch, Modal, Button } from 'antd';
 import ReactQuill from 'react-quill';
@@ -8,19 +8,36 @@ import dayjs from 'dayjs';
 import './AddEditJobModal.style.css';
 import CustomButton from '../../../components/Other/CustomButton';
 import { formats, modules } from '../../../config/reactQuillConfig';
+import { skillApi } from '../../../api/skillAPI';
 
 const { Option } = Select;
 
 const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
     const [form] = Form.useForm();
     const { user } = useSelector((state) => state.auth);
+    const [skills, setSkills] = useState([]);
+
+    useEffect(() => {
+        const fetchSkills = async () => {
+            try {
+                const response = await skillApi.getAll({
+                    current: 1,
+                    pageSize: 100
+                });
+                setSkills(response?.data?.result);
+            } catch (error) {
+                console.error('Error fetching skills:', error);
+            }
+        };
+        fetchSkills();
+    }, []);
 
     React.useEffect(() => {
         if (jobData && mode === 'edit') {
             form.setFieldsValue({
                 name: jobData.name,
                 company: jobData.company._id,
-                skills: jobData.skills?.join(', '),
+                skills: jobData.skills?.map(skill => skill._id),
                 location: jobData.location,
                 level: jobData.level,
                 quantity: jobData.quantity,
@@ -39,10 +56,9 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
         try {
             const values = await form.validateFields();
 
-            // Format lại dữ liệu trước khi gửi
             const submissionData = {
                 name: values.name,
-                skills: values.skills.split(',').map(skill => skill.trim().toUpperCase()),
+                skills: values.skills,
                 salary: values.salary,
                 quantity: values.quantity,
                 level: values.level,
@@ -142,9 +158,28 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                     <Form.Item
                         name="skills"
                         label={renderLabel(<Code />, "Kỹ năng")}
-                        rules={[{ required: true, message: 'Vui lòng nhập kỹ năng!' }]}
+                        rules={[{ required: true, message: 'Vui lòng chọn kỹ năng!' }]}
                     >
-                        <Input placeholder="VD: REACT, JAVASCRIPT, NODEJS (phân cách bởi dấu phẩy)" />
+                        <Select
+                            mode="multiple"
+                            placeholder="Chọn kỹ năng"
+                            style={{
+                                width: '100%'
+                            }}
+                            className="custom-select"
+                            optionFilterProp="children"
+                            showSearch
+                            maxTagCount={5}
+                            maxTagTextLength={20}
+                            listHeight={200}
+                            dropdownStyle={{ padding: '8px' }}
+                        >
+                            {skills.map((skill) => (
+                                <Option key={skill._id} value={skill._id}>
+                                    {skill.name}
+                                </Option>
+                            ))}
+                        </Select>
                     </Form.Item>
 
                     <div className="grid grid-cols-2 gap-6">
@@ -216,7 +251,7 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                                 format="DD/MM/YYYY"
                                 disabledDate={disabledStartDate}
                                 placeholder="Chọn ngày bắt đầu"
-                                disabled={mode === 'edit'} 
+                                disabled={mode === 'edit'}
                             />
                         </Form.Item>
 
