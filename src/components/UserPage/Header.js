@@ -1,13 +1,13 @@
 import React, { useCallback, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Dropdown } from 'antd';
-import { LogOut, User, Home, FileText, PlusCircle, Mail, LayoutDashboard, Menu, X, UserPlus } from 'lucide-react';
+import { LogOut, User, Home, FileText, PlusCircle, Mail, LayoutDashboard, Menu, X, UserPlus, Search, Briefcase } from 'lucide-react';
 import { logout } from "../../redux/slices/auth";
 import LoginModal from "./LoginModal";
-import { useLocation } from "react-router-dom";
+import Notification from "../Other/Notification"; // Add this import
 
-const NavItem = ({ Icon, text, path, onClick }) => {
+const NavItem = ({ Icon, text, path, onClick, badge }) => {
   const navigate = useNavigate();
 
   const handleClick = (e) => {
@@ -22,15 +22,21 @@ const NavItem = ({ Icon, text, path, onClick }) => {
     }
   };
 
-
   return (
-    <li>
+    <li className="relative">
       <Link
         to={path}
         onClick={handleClick}
         className="flex items-center gap-4 cursor-pointer hover:bg-white/10 py-2 px-3 rounded-lg transition-colors"
       >
-        <Icon size={20} />
+        <div className="relative">
+          <Icon size={20} />
+          {badge && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              {badge}
+            </span>
+          )}
+        </div>
         <span className="text-lg font-medium">{text}</span>
       </Link>
     </li>
@@ -51,7 +57,6 @@ const Header = () => {
     navigate('/', { replace: true });
   }, [dispatch, navigate]);
 
-
   const navItems = [
     {
       icon: Home,
@@ -61,14 +66,6 @@ const Header = () => {
         window.location.reload();
       }
     },
-    // {
-    //   icon: PlusCircle,
-    //   text: "Tạo CV",
-    //   onClick: () => {
-    //     navigate('/create-cv');
-    //     window.location.reload();
-    //   }
-    // },
     {
       icon: PlusCircle,
       text: "Đăng Tuyển",
@@ -89,7 +86,6 @@ const Header = () => {
           navigate('/profile');
         }
       },
-
       {
         key: 'logout',
         icon: <LogOut size={16} />,
@@ -98,7 +94,6 @@ const Header = () => {
           dispatch(logout());
         }
       },
-
     ];
 
     if (user?.role?.name === "SUPER_ADMIN") {
@@ -118,20 +113,27 @@ const Header = () => {
     } else if (user?.role?.name === "NORMAL_USER") {
       baseItems.unshift({
         key: 'jobhistory',
-        icon: <LayoutDashboard size={16} />,
+        icon: <FileText size={16} />,
         label: 'Việc đã ứng tuyển',
         onClick: () => navigate('/jobhistory')
       });
       baseItems.unshift({
         key: 'becomeHR',
-        icon: <UserPlus size={16} />,
+        icon: <Briefcase size={16} />,
         label: 'Trở thành nhà tuyển dụng',
         onClick: () => {
           navigate('/become-hr');
         }
       });
+      baseItems.unshift({
+        key: 'quickapply',
+        icon: <Search size={16} />,
+        label: 'Chế độ tìm việc nhanh',
+        onClick: () => {
+          navigate('/quick-apply');
+        }
+      });
     }
-
     return baseItems;
   };
 
@@ -164,6 +166,10 @@ const Header = () => {
                     onClick={item.onClick}
                   />
                 ))}
+
+                {isAuthenticated && user?.role?.name === "NORMAL_USER" && (
+                  <Notification />
+                )}
 
                 {isAuthenticated ? (
                   <li>
@@ -200,8 +206,7 @@ const Header = () => {
 
           {/* Mobile Navigation */}
           <div
-            className={`${isMobileMenuOpen ? 'block' : 'hidden'
-              } md:hidden mt-4 transition-all duration-300 ease-in-out`}
+            className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden mt-4 transition-all duration-300 ease-in-out`}
           >
             <nav>
               <ul className="flex flex-col gap-2">
@@ -214,6 +219,11 @@ const Header = () => {
                     onClick={item.onClick}
                   />
                 ))}
+
+                {isAuthenticated && user?.role?.name === "NORMAL_USER" && (
+                  <Notification isMobile />
+                )}
+
                 {isAuthenticated ? (
                   <>
                     <div className="py-2 px-3 border-t border-white/10">

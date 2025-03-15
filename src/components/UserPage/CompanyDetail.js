@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Spin, message, Card } from "antd";
-import { companyApi } from "../../api/AdminPageAPI/companyApi";
-import { EnvironmentOutlined } from "@ant-design/icons";
+import { MapPin, Mail, Globe, Phone, Building2, Users, Calendar } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
+import { companyApi } from "../../api/AdminPageAPI/companyApi";
 
 const CompanyDetail = () => {
     const { id } = useParams();
@@ -31,51 +31,111 @@ const CompanyDetail = () => {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-screen">
-                <Spin tip="Đang tải..." />
+            <div className="min-h-screen flex justify-center items-center bg-gray-50">
+                <Spin tip="Đang tải..." size="large" />
             </div>
         );
     }
 
     if (!company) {
-        return <div className="text-center text-red-500">Không tìm thấy công ty!</div>;
+        return (
+            <div className="min-h-screen flex justify-center items-center bg-gray-50">
+                <div className="text-xl font-semibold text-red-500">Không tìm thấy công ty!</div>
+            </div>
+        );
     }
 
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen bg-gray-50">
             <Header />
-            <div className="flex-grow flex justify-center items-center bg-gray-100 p-6">
-                <Card className="w-full p-6 bg-white shadow-lg rounded-lg">
-                    {/* Logo + Tên công ty */}
-                    <div className="flex flex-col items-center">
-                        <img
-                            src={company?.logo
-                                ? `${process.env.REACT_APP_BASE_URL}/images/company/${company.logo}`
-                                : '/logo.png'
-                            }
-                            alt={company?.name || "Company Logo"}
-                            className="w-32 h-32 object-cover rounded-full shadow-md"
-                            onError={(e) => {
-                                e.target.src = '/logo.png';
-                            }}
-                        />
-                        <h2 className="text-2xl font-semibold mt-4 text-gray-800">{company.name}</h2>
+            <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+                {/* Company Header Card */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+                    <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-500">
+                        <div className="absolute -bottom-16 left-8">
+                            <div className="p-2 bg-white rounded-2xl shadow-lg">
+                                <img
+                                    src={company?.logo
+                                        ? `${process.env.REACT_APP_BASE_URL}/images/company/${company.logo}`
+                                        : '/logo.png'
+                                    }
+                                    alt={company?.name}
+                                    className="w-32 h-32 object-contain rounded-xl"
+                                    onError={(e) => {
+                                        e.target.src = '/logo.png';
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="pt-20 pb-8 px-8">
+                        <h1 className="text-3xl font-bold text-gray-900">{company.name}</h1>
+                        <div className="mt-4 flex items-center text-gray-600">
+                            <MapPin className="w-5 h-5 text-gray-400 mr-2" />
+                            <span>{company.address}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Content */}
+                    <div className="lg:col-span-2">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="p-6">
+                                <h2 className="text-xl font-bold text-gray-900 mb-4">Giới thiệu công ty</h2>
+                                <div 
+                                    className="prose max-w-none text-gray-600"
+                                    dangerouslySetInnerHTML={{ __html: company.description || "Chưa có mô tả." }}
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Địa chỉ công ty */}
-                    <div className="flex items-center justify-center mt-4 text-gray-600">
-                        <EnvironmentOutlined style={{ color: "#58aaab" }} className="text-lg" />
-                        <span className="ml-2">{company?.address}</span>
-                    </div>
+                    {/* Sidebar */}
+                    <div className="space-y-8">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin liên hệ</h3>
+                                <div className="space-y-4">
+                                    <div className="flex items-center text-gray-600">
+                                        <Building2 className="w-5 h-5 text-blue-500 mr-3" />
+                                        <span>Công ty {company.name}</span>
+                                    </div>
+                                    <div className="flex items-center text-gray-600">
+                                        <MapPin className="w-5 h-5 text-green-500 mr-3" />
+                                        <span>{company.address}</span>
+                                    </div>
+                                    {company.email && (
+                                        <div className="flex items-center text-gray-600">
+                                            <Mail className="w-5 h-5 text-red-500 mr-3" />
+                                            <span>{company.email}</span>
+                                        </div>
+                                    )}
+                                    {company.phone && (
+                                        <div className="flex items-center text-gray-600">
+                                            <Phone className="w-5 h-5 text-purple-500 mr-3" />
+                                            <span>{company.phone}</span>
+                                        </div>
+                                    )}
+                                    {company.website && (
+                                        <div className="flex items-center text-gray-600">
+                                            <Globe className="w-5 h-5 text-orange-500 mr-3" />
+                                            <a 
+                                                href={company.website} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline"
+                                            >
+                                                {company.website}
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
 
-                    {/* Mô tả công ty */}
-                    <div className="mt-6 text-gray-700 text-justify leading-relaxed border-t pt-4">
-                        <p
-                            className="text-gray-600 text-center mt-2"
-                            dangerouslySetInnerHTML={{ __html: company.description || "Chưa có mô tả." }}
-                        />
                     </div>
-                </Card>
+                </div>
             </div>
             <Footer />
         </div>

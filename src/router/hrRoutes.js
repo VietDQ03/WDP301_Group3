@@ -7,6 +7,7 @@ import PaymentPage from '../pages/Other/PaymentPage';
 import ProtectedRoute from './protectedRouter.js';
 import PaymentSuccess from '../pages/Other/PaymentSuccess.js';
 import PaymentHistory from '../pages/HrDashBoard/PaymentHistory.js';
+import CandidateSuggestions from '../pages/HrDashBoard/CandidateSuggestions.js';
 
 const DASHBOARD_ROUTER = [
   {
@@ -46,6 +47,14 @@ const DASHBOARD_ROUTER = [
     element: (
       <ProtectedRoute requiredRole="HR_ROLE">
         <PaymentHistory />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/dashboard/candidates',
+    element: (
+      <ProtectedRoute requiredRole="HR_ROLE">
+        <CandidateSuggestions />
       </ProtectedRoute>
     ),
   },

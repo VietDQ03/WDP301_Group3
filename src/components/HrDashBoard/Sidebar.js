@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { LayoutDashboard, Briefcase, FileText, Receipt, UserSearch } from 'lucide-react';
+import { LayoutDashboard, Briefcase, FileText, UserSearch, Star, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Sidebar = ({ collapsed }) => {
@@ -30,7 +30,7 @@ const Sidebar = ({ collapsed }) => {
     },
     {
       key: '/dashboard/payment-history',
-      icon: <Receipt size={20} />,
+      icon: <Wallet size={20} />,
       label: 'Lịch sử thanh toán'
     }
   ];
@@ -63,7 +63,7 @@ const Sidebar = ({ collapsed }) => {
     </div>
   );
 
-  const PremiumCard = () => (
+  const BuyMoreCreditsCard = () => (
     <motion.div
       className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#2b65a5] to-[#009345] p-6 shadow-lg"
       whileHover={{ scale: 1.02 }}
@@ -73,16 +73,13 @@ const Sidebar = ({ collapsed }) => {
       <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-24 w-24 rounded-full bg-[#009345] opacity-20 blur-2xl"></div>
       
       <div className="mb-4 inline-block rounded-full bg-[#2b65a5]/30 p-2">
-        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-        </svg>
+        <Star className="h-6 w-6 text-white" />
       </div>
 
       <div className="mb-4">
-        <h4 className="font-bold text-xl text-white mb-2">Rabota Premium</h4>
+        <h4 className="font-bold text-xl text-white mb-2">Thêm Lượt Đăng</h4>
         <p className="text-white/80 text-sm leading-relaxed">
-          Nâng tầm doanh nghiệp với các tính năng độc quyền và không giới hạn
+          Đăng nhiều tin tuyển dụng hơn để tiếp cận nhiều ứng viên tiềm năng
         </p>
       </div>
 
@@ -98,7 +95,7 @@ const Sidebar = ({ collapsed }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </span>
-        <span className="ml-6">Nâng cấp Premium ngay</span>
+        <span className="ml-6">Mua thêm lượt đăng tin</span>
       </motion.button>
     </motion.div>
   );
@@ -125,7 +122,7 @@ const Sidebar = ({ collapsed }) => {
 
         {!collapsed && (
           <div className="px-4 py-6 bg-white border-t border-gray-200">
-            <PremiumCard />
+            <BuyMoreCreditsCard />
           </div>
         )}
       </div>
