@@ -43,5 +43,14 @@ export const cvAPI = {
       console.error('Error fetching CV:', error);
       throw error;
     }
+  },
+
+  getAll: (params) => {
+    return axios.get('/cv/findAll', {
+      params: {
+        current: params.current || 1,
+        pageSize: params.pageSize || 10
+      }
+    });
   }
 };
