@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Layout, Table, Button, Space, Typography, Tooltip, Select, Tag, message, Pagination, Input } from "antd";
+import { Layout, Button, Space, Typography, Tooltip, Tag, message, Pagination, Select, Table } from "antd";
 import { ReloadOutlined, FileTextOutlined, UserOutlined, EyeOutlined, MailOutlined } from "@ant-design/icons";
 import { motion } from 'framer-motion';
 import { debounce } from 'lodash';
 import { cvAPI } from '../../api/cvAPI';
+import { skillApi } from '../../api/skillAPI';
+import { positionApi } from '../../api/positionAPI';
+import { experienceApi } from '../../api/experienceAPI';
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import ViewCandidateModal from "./Modal/ViewCandidateModal";
@@ -16,11 +19,13 @@ const CandidateSuggestions = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cvList, setCvList] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [skills, setSkills] = useState([]);
+  const [experiences, setExperiences] = useState([]);
   const [searchValues, setSearchValues] = useState({
-    email: '',
-    userId: '',
-    status: undefined,
-    experience: undefined
+    position: [],
+    skill: [],
+    experience: []
   });
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedCV, setSelectedCV] = useState(null);
@@ -30,44 +35,67 @@ const CandidateSuggestions = () => {
     total: 0
   });
 
+  const fetchSelectOptions = async () => {
+    try {
+      const [positionRes, skillRes, experienceRes] = await Promise.all([
+        positionApi.getAll({ pageSize: 100 }),
+        skillApi.getAll({ pageSize: 100 }),
+        experienceApi.getAll({ pageSize: 100 })
+      ]);
+
+      setPositions(positionRes.data.result);
+      setSkills(skillRes.data.result);
+      setExperiences(experienceRes.data.result);
+    } catch (error) {
+      console.error("Error fetching options:", error);
+      message.error("Có lỗi xảy ra khi tải dữ liệu!");
+    }
+  };
+
   const fetchCVs = async (params = {}) => {
     setLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
-  
+
       const queryParams = {
         current: params.current || pagination.current,
         pageSize: params.pageSize || pagination.pageSize,
-        ...(params.status && { status: params.status }),
-        ...(params.email && { email: params.email }),
-        ...(params.userId && { userId: params.userId }),
+        ...(params.position && { position: params.position }),
+        ...(params.skill && { skill: params.skill }),
         ...(params.experience && { experience: params.experience })
       };
-  
+
       const response = await cvAPI.getAll(queryParams);
       const { result, meta } = response?.data;
-  
-      // Lọc chỉ lấy các CV có isActive là true
+
       const activeCVs = result.filter(cv => cv.isActive === true);
-  
+
       const formattedCVs = activeCVs.map((cv, index) => ({
         key: cv._id,
         stt: ((meta.current - 1) * meta.pageSize) + index + 1,
-        userId: cv.user_id,
-        position: cv.position.join(', '),
-        skill: cv.skill.join(', '),
-        experience: cv.experience,
-        status: cv.isActive ? "ACTIVE" : "INACTIVE",
+        userName: cv.user_id.name,
+        userEmail: cv.user_id.email,
+        position: cv.position.map(p => p.name).join(', '),
+        skill: cv.skill.map(s => s.name).join(', '),
+        experience: cv.experience.name,
         url: cv.url,
         createdAt: new Date(cv.createdAt).toLocaleString(),
         updatedAt: new Date(cv.updatedAt).toLocaleString(),
+        _id: cv._id,
+        user_id: cv.user_id,
+        position_original: cv.position,
+        skill_original: cv.skill,
+        experience_original: cv.experience,
+        isActive: cv.isActive,
+        isDeleted: cv.isDeleted,
+        description: cv.description
       }));
-  
+
       setCvList(formattedCVs);
       setPagination({
         current: meta.current,
         pageSize: meta.pageSize,
-        total: activeCVs.length, // Cập nhật tổng số lượng CV active
+        total: activeCVs.length,
       });
     } catch (error) {
       console.error("Error fetching CVs:", error);
@@ -79,6 +107,7 @@ const CandidateSuggestions = () => {
 
   useEffect(() => {
     fetchCVs();
+    fetchSelectOptions();
   }, []);
 
   const debouncedSearch = useCallback(
@@ -105,18 +134,20 @@ const CandidateSuggestions = () => {
   };
 
   const handleViewCV = (record) => {
-    setSelectedCV(record);
-    setIsViewModalOpen(true);
+    if (record) {
+      console.log("CV Data for modal:", record);
+      setSelectedCV(record);
+      setIsViewModalOpen(true);
+    }
   };
 
   const handleReset = () => {
     setSearchValues({
-      email: '',
-      userId: '',
-      status: undefined,
-      experience: undefined
+      position: [],
+      skill: [],
+      experience: []
     });
-
+  
     fetchCVs({
       current: 1,
       pageSize: pagination.pageSize
@@ -139,13 +170,24 @@ const CandidateSuggestions = () => {
       align: "center"
     },
     {
-      title: "User ID",
-      dataIndex: "userId",
-      key: "userId",
+      title: "Họ và tên",
+      dataIndex: "userName",
+      key: "userName",
       render: (text) => (
         <div className="flex items-center">
           <UserOutlined className="mr-2" />
-          <span>#{text.slice(-6)}</span>
+          <span>{text}</span>
+        </div>
+      ),
+    },
+    {
+      title: "Email",
+      dataIndex: "userEmail",
+      key: "userEmail",
+      render: (text) => (
+        <div className="flex items-center">
+          <MailOutlined className="mr-2" />
+          <span>{text}</span>
         </div>
       ),
     },
@@ -186,21 +228,10 @@ const CandidateSuggestions = () => {
       render: (experience) => (
         <div className="flex items-center justify-center">
           <Tag color="orange">
-            {experience ? `${experience} năm` : 'Chưa có KN'}
+            {experience}
           </Tag>
         </div>
       ),
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      align: "center",
-      render: (status) => (
-        <Tag color={status === "ACTIVE" ? "green" : "red"}>
-          {status === "ACTIVE" ? "Hoạt động" : "Không hoạt động"}
-        </Tag>
-      )
     },
     {
       title: "Hành động",
@@ -262,42 +293,42 @@ const CandidateSuggestions = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div>
-                    <label className="text-gray-700 font-medium mb-2 block">User ID</label>
-                    <Input
-                      prefix={<UserOutlined className="text-gray-400" />}
-                      placeholder="Nhập User ID"
-                      className="h-11 rounded-lg"
-                      value={searchValues.userId}
-                      onChange={(e) => handleInputChange('userId', e.target.value)}
-                      allowClear
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-gray-700 font-medium mb-2 block">Email</label>
-                    <Input
-                      prefix={<MailOutlined className="text-gray-400" />}
-                      placeholder="Nhập email"
-                      className="h-11 rounded-lg"
-                      value={searchValues.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      allowClear
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-gray-700 font-medium mb-2 block">Trạng thái</label>
+                    <label className="text-gray-700 font-medium mb-2 block">Vị trí ứng tuyển</label>
                     <Select
-                      placeholder="Chọn trạng thái"
+                      placeholder="Chọn vị trí ứng tuyển"
                       className="w-full h-11"
-                      value={searchValues.status}
-                      onChange={(value) => handleInputChange('status', value)}
+                      value={searchValues.position}
+                      onChange={(value) => handleInputChange('position', value)}
                       allowClear
+                      showSearch
+                      filterOption={(input, option) =>
+                        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                      }
                     >
-                      <Option value="ACTIVE">Hoạt động</Option>
-                      <Option value="INACTIVE">Không hoạt động</Option>
+                      {positions.map(pos => (
+                        <Option key={pos._id} value={pos._id}>{pos.name}</Option>
+                      ))}
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-gray-700 font-medium mb-2 block">Kỹ năng</label>
+                    <Select
+                      placeholder="Chọn kỹ năng"
+                      className="w-full h-11"
+                      value={searchValues.skill}
+                      onChange={(value) => handleInputChange('skill', value)}
+                      allowClear
+                      showSearch
+                      filterOption={(input, option) =>
+                        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                      }
+                    >
+                      {skills.map(skill => (
+                        <Option key={skill._id} value={skill._id}>{skill.name}</Option>
+                      ))}
                     </Select>
                   </div>
 
@@ -309,22 +340,22 @@ const CandidateSuggestions = () => {
                       value={searchValues.experience}
                       onChange={(value) => handleInputChange('experience', value)}
                       allowClear
+                      showSearch
+                      filterOption={(input, option) =>
+                        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                      }
                     >
-                      <Option value="0">Chưa có kinh nghiệm</Option>
-                      <Option value="1">1 năm</Option>
-                      <Option value="2">2 năm</Option>
-                      <Option value="3">3 năm</Option>
-                      <Option value="4">4 năm</Option>
-                      <Option value="5">5 năm</Option>
-                      <Option value="more">Trên 5 năm</Option>
+                      {experiences.map(exp => (
+                        <Option key={exp._id} value={exp._id}>{exp.name}</Option>
+                      ))}
                     </Select>
                   </div>
 
-                  <div className="flex items-end gap-2">
+                  <div className="flex items-end">
                     <Button
                       onClick={handleReset}
                       size="large"
-                      className="h-11 px-6 flex items-center"
+                      className="h-11 px-6 flex items-center w-full"
                       icon={<ReloadOutlined />}
                     >
                       Đặt lại

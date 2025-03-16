@@ -20,7 +20,7 @@ export const cvAPI = {
 
   update: async (id, data) => {
     try {
-      const response = await axios.patch(`/cv/${id}`, {
+      const response = await axios.patch(`/cv`, {
         url: data.url,
         position: data.position,
         skill: data.skill,
@@ -46,10 +46,13 @@ export const cvAPI = {
   },
 
   getAll: (params) => {
-    return axios.get('/cv/findAll', {
+    return axios.get('/cv/findAllIsActive', {
       params: {
         current: params.current || 1,
-        pageSize: params.pageSize || 10
+        pageSize: params.pageSize || 10,
+        ...(params.position && { position: params.position }),
+        ...(params.skill && { skill: params.skill }),
+        ...(params.experience && { experience: params.experience })
       }
     });
   }

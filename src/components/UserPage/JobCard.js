@@ -21,10 +21,12 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
     try {
       setIsLoading(true);
       const response = await jobApi.getAll({
-        page: 1,
+        current: 1,
         pageSize: 1000,
         ...filters,
       });
+
+      console.log(response)
 
       const { result } = response.data;
       const activeJobs = result.filter(job => 
