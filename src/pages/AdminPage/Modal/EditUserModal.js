@@ -37,13 +37,15 @@ const EditUserModal = ({
         role: editingUser?.role || "",
         company: editingUser?.company?._id || "",
         premium: editingUser?.premium || 0,
-        isActived: editingUser?.isActived
+        isActived: editingUser?.isActived,
+        hr: editingUser?.hr || "INACTIVE"
     });
 
     const [isActivedChanged, setIsActivedChanged] = useState(false);
 
     // Khi modal hiển thị, đồng bộ dữ liệu ban đầu
     useEffect(() => {
+        console.log("editingUser hr:", editingUser); // Thêm log để kiểm tra
         if (visible) {
             setLocalSelectedRole(editingUser?.role);
             setFormData({
@@ -55,7 +57,8 @@ const EditUserModal = ({
                 role: editingUser?.role || "",
                 company: editingUser?.company?._id || "",
                 premium: editingUser?.premium || 0,
-                isActived: editingUser?.isActived
+                isActived: editingUser?.isActived,
+                hr: editingUser?.hr || "INACTIVE"
             });
             setIsActivedChanged(false);
 
@@ -120,7 +123,8 @@ const EditUserModal = ({
             address: editingUser.address,
             role: formData.role || editingUser.role,
             premium: parseInt(formData.premium),
-            isActived: isActivedChanged ? formData.isActived === 'true' : editingUser.isActived
+            isActived: isActivedChanged ? formData.isActived === 'true' : editingUser.isActived,
+            hr: formData.hr
         };
 
         if (localSelectedRole === "67566b60671f5436a0de69a5" && formData.company) {
@@ -374,6 +378,26 @@ const EditUserModal = ({
                                             >
                                                 <option value={true}>Hoạt động</option>
                                                 <option value={false}>Không hoạt động</option>
+                                            </select>
+                                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-700 font-medium text-sm mb-2">
+                                            Trạng thái Yêu Cầu Tạo Công Ty
+                                        </label>
+                                        <div className="relative">
+                                            <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                            <select
+                                                name="hr"
+                                                value={formData.hr}
+                                                onChange={handleInputChange}
+                                                className="w-full h-10 pl-10 pr-10 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none bg-white text-sm"
+                                            >
+                                                <option value="INACTIVE">Chưa có yêu cầu công ty</option>
+                                                <option value="ACTIVE">Đã có công ty</option>
+                                                <option value="ON_LEAVE">Đã yêu cầu tạo công ty</option>
                                             </select>
                                             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                         </div>

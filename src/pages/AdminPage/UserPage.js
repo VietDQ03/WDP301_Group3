@@ -117,6 +117,7 @@ const UserPage = () => {
             isActived: user.isActived,
             isDeleted: user.isDeleted,
             premium: user.premium || 0,
+            hr: user.hr,
             createdAt: new Date(user.createdAt).toLocaleString(),
             updatedAt: new Date(user.updatedAt).toLocaleString(),
             company: user.company ? {
@@ -192,6 +193,7 @@ const UserPage = () => {
                 isActived: user.isActived,
                 isDeleted: user.isDeleted, // Thêm trường isDeleted
                 premium: user.premium || 0,
+                hr: user.hr,
                 createdAt: new Date(user.createdAt).toLocaleString(),
                 updatedAt: new Date(user.updatedAt).toLocaleString(),
                 company: user.company ? {
@@ -258,6 +260,7 @@ const UserPage = () => {
       gender: record.gender,
       role: record.role,
       address: record.address,
+      hr: record.hr,
     });
   };
 
@@ -310,6 +313,7 @@ const UserPage = () => {
             isActived: user.isActived,
             isDeleted: user.isDeleted,
             premium: user.premium || 0,
+            hr: user.hr,
             createdAt: new Date(user.createdAt).toLocaleString(),
             updatedAt: new Date(user.updatedAt).toLocaleString(),
             company: user.company ? {
