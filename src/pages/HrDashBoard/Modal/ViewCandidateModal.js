@@ -1,12 +1,20 @@
 import React from 'react';
 import { Modal, Button, Tag } from 'antd';
-import { FileText, User, Activity, Award, File, Briefcase, Code } from 'lucide-react';
+import { FileText, User, Activity, Award, File, Briefcase, Code, FileText as Description } from 'lucide-react';
 
 const ViewCandidateModal = ({ isOpen, onClose, cvData }) => {
   if (!cvData) return null;
 
   const handleDownload = () => {
     window.open(`${process.env.REACT_APP_API_URL}/uploads/${cvData.url}`, '_blank');
+  };
+
+  const modalStyle = {
+    top: '50px',
+    margin: '0 auto',
+    padding: '0',
+    maxHeight: '90vh',
+    overflow: 'auto'
   };
 
   return (
@@ -21,6 +29,8 @@ const ViewCandidateModal = ({ isOpen, onClose, cvData }) => {
       onCancel={onClose}
       width={800}
       className="custom-modal"
+      style={modalStyle}
+      bodyStyle={{ padding: '16px' }}
       footer={[
         <Button 
           key="download" 
@@ -36,14 +46,14 @@ const ViewCandidateModal = ({ isOpen, onClose, cvData }) => {
         </Button>
       ]}
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Thông tin cơ bản */}
         <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="font-medium text-gray-700 flex items-center gap-2 mb-4">
+          <h3 className="font-medium text-gray-700 flex items-center gap-2 mb-3">
             <User className="w-5 h-5 text-blue-500" />
             <span>Thông tin cơ bản</span>
           </h3>
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center">
               <span className="text-gray-500 min-w-[100px]">Họ và tên:</span>
               <span className="font-medium text-gray-700">{cvData.user_id.name}</span>
@@ -77,7 +87,7 @@ const ViewCandidateModal = ({ isOpen, onClose, cvData }) => {
 
         {/* Thông tin chi tiết */}
         <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="font-medium text-gray-700 flex items-center gap-2 mb-4">
+          <h3 className="font-medium text-gray-700 flex items-center gap-2 mb-3">
             <Briefcase className="w-5 h-5 text-blue-500" />
             <span>Thông tin chi tiết</span>
           </h3>
@@ -110,6 +120,20 @@ const ViewCandidateModal = ({ isOpen, onClose, cvData }) => {
                     {skill.name}
                   </Tag>
                 ))}
+              </div>
+            </div>
+            
+            <div>
+              <span className="text-gray-500 block mb-2 flex items-center gap-2">
+                <Description className="w-4 h-4" />
+                Mô tả:
+              </span>
+              <div className="bg-white p-3 rounded border border-gray-200">
+                {cvData.description ? (
+                  <p className="text-gray-700 whitespace-pre-wrap">{cvData.description}</p>
+                ) : (
+                  <p className="text-gray-500 italic">Không có mô tả</p>
+                )}
               </div>
             </div>
           </div>
