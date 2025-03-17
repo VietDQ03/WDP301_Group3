@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Input } from "antd";
 import { Pencil, MapPin, Upload, FileText, Building2 } from 'lucide-react';
@@ -9,6 +9,7 @@ import { callCreateCompany, callUploadSingleFile } from "../../api/UserApi/UserA
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import CustomButton from "../../components/Other/CustomButton";
+import { useSelector } from "react-redux";
 
 const CreateCompany = () => {
   const [form] = Form.useForm();
@@ -19,6 +20,19 @@ const CreateCompany = () => {
     logo: ""
   });
   const navigate = useNavigate();
+  const { user } = useSelector(state => state.auth);
+
+  useEffect(() => {
+    // Sử dụng setTimeout để đảm bảo component đã render xong
+    const timeoutId = setTimeout(() => {
+      if (user?.hr === "ON_LEAVE") {
+        alert("Bạn đang có yêu cầu tạo công ty đang chờ duyệt. Vui lòng chờ quản trị viên phê duyệt!");
+        navigate("/");
+      }
+    }, 100); // Delay 100ms
+
+    return () => clearTimeout(timeoutId);
+  }, [user, navigate]);
 
   const renderLabel = (icon, label) => (
     <div className="flex items-center gap-2 text-gray-700">
