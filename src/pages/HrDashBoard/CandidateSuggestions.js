@@ -355,7 +355,7 @@ const CandidateSuggestions = () => {
                     <Button
                       onClick={handleReset}
                       size="large"
-                      className="h-11 px-6 flex items-center w-full"
+                      className="h-11 px-6 flex items-center w-50"
                       icon={<ReloadOutlined />}
                     >
                       Đặt lại

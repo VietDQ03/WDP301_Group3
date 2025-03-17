@@ -404,13 +404,9 @@ const JobPage = () => {
     try {
       const submissionData = {
         ...formData,
-        company: {
-          _id: companyData._id,
-          name: companyData.name,
-          logo: companyData.logo,
-        }
+        company: companyData._id // Chỉ gửi ID của company
       };
-
+  
       if (modalMode === 'add') {
         await jobApi.create(submissionData);
         setIsAddEditModalOpen(false);
@@ -421,7 +417,7 @@ const JobPage = () => {
         showAlert('success', 'Cập nhật công việc thành công');
       }
       fetchJobs(pagination);
-
+  
     } catch (error) {
       console.error('Error submitting job:', error);
       setIsAddEditModalOpen(false);
