@@ -39,6 +39,24 @@ const QuickApply = () => {
     const [isSkillDropdownOpen, setIsSkillDropdownOpen] = useState(false);
     const [isExperienceDropdownOpen, setIsExperienceDropdownOpen] = useState(false);
 
+    const getSelectedPositionsText = () => {
+        return formData.position_ids
+            .map(id => positions.find(p => p._id === id)?.name)
+            .filter(Boolean)
+            .join(', ');
+    };
+
+    const getSelectedSkillsText = () => {
+        return formData.skill_ids
+            .map(id => skills.find(s => s._id === id)?.name)
+            .filter(Boolean)
+            .join(', ');
+    };
+
+    const getSelectedExperienceText = () => {
+        return experiences.find(e => e._id === formData.experience_id)?.name || '';
+    };
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (!event.target.closest('.position-dropdown-container')) {
@@ -70,18 +88,16 @@ const QuickApply = () => {
                 setExperiences(experiencesRes.data.result || []);
 
                 if (user?._id) {
-                    const cvDataArray = await cvAPI.findAllByUserId(user._id);
-                    console.log("CV Data Array:", cvDataArray);
+                    const response = await cvAPI.findAllByUserId(user._id);
+                    const cvData = response;
 
-                    if (cvDataArray?.[0]) {
-                        const cvData = cvDataArray[0];
-                        console.log("Setting CV Data:", cvData);
-                        
+                    if (cvData) {
+
                         setCvId(cvData._id);
                         setFormData({
-                            position_ids: cvData.position || [],
-                            skill_ids: cvData.skill || [],
-                            experience_id: cvData.experience || "",
+                            position_ids: cvData.position.map(pos => pos._id) || [],
+                            skill_ids: cvData.skill.map(skill => skill._id) || [],
+                            experience_id: cvData.experience?._id || "",
                             description: cvData.description || "",
                             isActive: typeof cvData.isActive === 'boolean' ? cvData.isActive : true
                         });
@@ -191,14 +207,12 @@ const QuickApply = () => {
 
             let response;
             if (cvId) {
-                // Nếu đã có CV thì update
                 response = await cvAPI.update(cvId, cvData);
             } else {
-                // Nếu chưa có CV thì create
                 response = await cvAPI.create(cvData);
-                setCvId(response.data._id); // Lưu ID của CV mới tạo
+                setCvId(response.data._id);
             }
-            
+
             alert("Lưu hồ sơ thành công!");
         } catch (error) {
             setError(error.message || "Đã có lỗi xảy ra khi lưu hồ sơ!");
@@ -279,7 +293,7 @@ const QuickApply = () => {
                                     </label>
                                     {urlCV && (
                                         <div className="flex items-center space-x-4">
-                                            <span 
+                                            <span
                                                 className="text-sm text-gray-600 max-w-[150px] truncate"
                                                 title={urlCV.split('/').pop()}
                                             >
@@ -304,33 +318,42 @@ const QuickApply = () => {
                                     Vị trí ứng tuyển
                                 </label>
                                 <div className="relative">
-                                    <input
-                                        type="text"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="Tìm kiếm vị trí..."
-                                        value={searchPosition}
-                                        onChange={(e) => setSearchPosition(e.target.value)}
-                                        onFocus={() => setIsPositionDropdownOpen(true)}
-                                    />
-                                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                </div>
-
-                                {formData.position_ids.length > 0 && (
-                                    <div className="mt-2 flex flex-wrap gap-2">
+                                    <div className="min-h-[42px] w-full px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 flex flex-wrap gap-2 items-center">
                                         {formData.position_ids.map(positionId => {
                                             const position = positions.find(p => p._id === positionId);
-                                            return position && (
-                                                <span
-                                                    key={position._id}
-                                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
-                                                >
-                                                    {position.name}
-                                                </span>
-                                            );
+                                            if (position) {
+                                                return (
+                                                    <span
+                                                        key={position._id}
+                                                        className="inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                                                    >
+                                                        {position.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handlePositionSelect(position._id);
+                                                            }}
+                                                            className="ml-1.5 text-blue-600 hover:text-blue-800"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                );
+                                            }
+                                            return null;
                                         })}
+                                        <input
+                                            type="text"
+                                            className="flex-1 outline-none min-w-[120px] bg-transparent"
+                                            placeholder={formData.position_ids.length === 0 ? "Tìm kiếm vị trí..." : ""}
+                                            value={searchPosition}
+                                            onChange={(e) => setSearchPosition(e.target.value)}
+                                            onFocus={() => setIsPositionDropdownOpen(true)}
+                                        />
                                     </div>
-                                )}
-
+                                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                </div>
                                 {isPositionDropdownOpen && (
                                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                         {filteredPositions.length > 0 ? (
@@ -357,33 +380,42 @@ const QuickApply = () => {
                                     Kỹ năng
                                 </label>
                                 <div className="relative">
-                                    <input
-                                        type="text"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="Tìm kiếm kỹ năng..."
-                                        value={searchSkill}
-                                        onChange={(e) => setSearchSkill(e.target.value)}
-                                        onFocus={() => setIsSkillDropdownOpen(true)}
-                                    />
-                                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                </div>
-
-                                {formData.skill_ids.length > 0 && (
-                                    <div className="mt-2 flex flex-wrap gap-2">
+                                    <div className="min-h-[42px] w-full px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 flex flex-wrap gap-2 items-center">
                                         {formData.skill_ids.map(skillId => {
                                             const skill = skills.find(s => s._id === skillId);
-                                            return skill && (
-                                                <span
-                                                    key={skill._id}
-                                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
-                                                >
-                                                    {skill.name}
-                                                </span>
-                                            );
+                                            if (skill) {
+                                                return (
+                                                    <span
+                                                        key={skill._id}
+                                                        className="inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                                                    >
+                                                        {skill.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleSkillSelect(skill._id);
+                                                            }}
+                                                            className="ml-1.5 text-blue-600 hover:text-blue-800"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                );
+                                            }
+                                            return null;
                                         })}
+                                        <input
+                                            type="text"
+                                            className="flex-1 outline-none min-w-[120px] bg-transparent"
+                                            placeholder={formData.skill_ids.length === 0 ? "Tìm kiếm kỹ năng..." : ""}
+                                            value={searchSkill}
+                                            onChange={(e) => setSearchSkill(e.target.value)}
+                                            onFocus={() => setIsSkillDropdownOpen(true)}
+                                        />
                                     </div>
-                                )}
-
+                                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                </div>
                                 {isSkillDropdownOpen && (
                                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                         {filteredSkills.length > 0 ? (
@@ -410,25 +442,33 @@ const QuickApply = () => {
                                     Kinh nghiệm
                                 </label>
                                 <div className="relative">
-                                    <input
-                                        type="text"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="Tìm kiếm kinh nghiệm..."
-                                        value={searchExperience}
-                                        onChange={(e) => setSearchExperience(e.target.value)}
-                                        onFocus={() => setIsExperienceDropdownOpen(true)}
-                                    />
+                                    <div className="min-h-[42px] w-full px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 flex flex-wrap gap-2 items-center">
+                                        {formData.experience_id && (
+                                            <span className="inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                                {experiences.find(e => e._id === formData.experience_id)?.name}
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFormData(prev => ({ ...prev, experience_id: "" }));
+                                                    }}
+                                                    className="ml-1.5 text-blue-600 hover:text-blue-800"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        )}
+                                        <input
+                                            type="text"
+                                            className="flex-1 outline-none min-w-[120px] bg-transparent"
+                                            placeholder={!formData.experience_id ? "Tìm kiếm kinh nghiệm..." : ""}
+                                            value={searchExperience}
+                                            onChange={(e) => setSearchExperience(e.target.value)}
+                                            onFocus={() => setIsExperienceDropdownOpen(true)}
+                                        />
+                                    </div>
                                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 </div>
-
-                                {formData.experience_id && (
-                                    <div className="mt-2">
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                            {experiences.find(e => e._id === formData.experience_id)?.name}
-                                        </span>
-                                    </div>
-                                )}
-
                                 {isExperienceDropdownOpen && (
                                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                         {filteredExperiences.length > 0 ? (
@@ -474,9 +514,7 @@ const QuickApply = () => {
                                     type="button"
                                     onClick={handleSaveProfile}
                                     disabled={loading}
-                                    className={`flex-1 py-2 px-4 rounded-lg text-white font-medium ${
-                                        loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-                                    }`}
+                                    className={`flex-1 py-2 px-4 rounded-lg text-white font-medium ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                                 >
                                     {loading ? 'Đang xử lý...' : 'Lưu hồ sơ'}
                                 </button>
@@ -485,11 +523,10 @@ const QuickApply = () => {
                                     type="button"
                                     onClick={handleToggleActive}
                                     disabled={loading}
-                                    className={`flex-1 py-2 px-4 rounded-lg text-white font-medium ${
-                                        loading ? 'bg-gray-400 cursor-not-allowed'
-                                            : formData.isActive ? 'bg-red-600 hover:bg-red-700'
-                                                : 'bg-green-600 hover:bg-green-700'
-                                    }`}
+                                    className={`flex-1 py-2 px-4 rounded-lg text-white font-medium ${loading ? 'bg-gray-400 cursor-not-allowed'
+                                        : formData.isActive ? 'bg-red-600 hover:bg-red-700'
+                                            : 'bg-green-600 hover:bg-green-700'
+                                        }`}
                                 >
                                     {loading ? 'Đang xử lý...'
                                         : formData.isActive ? 'Tắt ứng tuyển'

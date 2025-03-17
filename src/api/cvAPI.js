@@ -37,7 +37,7 @@ export const cvAPI = {
 
   findAllByUserId: async (id) => {
     try {
-      const response = await axios.get(`/cv/findAllByUserId/${id}`);
+      const response = await axios.get(`/cv/findByUserId/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching CV:', error);
