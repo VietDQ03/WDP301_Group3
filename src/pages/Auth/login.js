@@ -83,6 +83,11 @@ function LoginPage() {
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await handleLogin();
+  };
+
   const handleLogin = async () => {
     if (!validateForm()) return;
 
@@ -260,8 +265,8 @@ function LoginPage() {
     <div className="flex min-h-screen bg-gray-50">
       {/* Left Section */}
       <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-green-400 to-blue-500 relative">
-        {/* Back Button */}
         <button
+          type="button"
           onClick={() => navigate(-1)}
           className="absolute top-4 left-4 flex items-center gap-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"
         >
@@ -280,7 +285,7 @@ function LoginPage() {
           <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
             Đăng nhập
           </h1>
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-600">
                 Email
@@ -330,7 +335,7 @@ function LoginPage() {
             </div>
 
             <CustomButton
-              onClick={handleLogin}
+              htmlType="submit"
               style={{ width: '100%' }}
               disabled={isLoading}
             >
@@ -342,6 +347,7 @@ function LoginPage() {
                 <span className="bg-white px-4 text-gray-500">hoặc</span>
               </div>
               <button
+                type="button"
                 className="mt-4 w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-100 transition"
                 onClick={handleGoogleLogin}
               >
@@ -353,7 +359,7 @@ function LoginPage() {
             {errors.general && (
               <p className="text-red-500 text-sm text-center">{errors.general}</p>
             )}
-          </div>
+          </form>
 
           <div className="mt-6 text-center text-sm text-gray-600">
             Bạn chưa có tài khoản?{" "}
