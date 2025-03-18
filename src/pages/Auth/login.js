@@ -41,20 +41,6 @@ function LoginPage() {
     return () => clearInterval(timer);
   }, [countdown]);
 
-  // Handle Enter key press
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleLogin();
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('keypress', handleKeyPress);
-    return () => {
-      document.removeEventListener('keypress', handleKeyPress);
-    };
-  }, [formData]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -95,6 +81,11 @@ function LoginPage() {
     } catch (err) {
       setOtpError(err.message || 'Không thể gửi mã OTP. Vui lòng thử lại.');
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await handleLogin();
   };
 
   const handleLogin = async () => {
@@ -159,6 +150,7 @@ function LoginPage() {
       if (response.data) {
         alert("Xác thực thành công!");
         setShowOtpVerification(false);
+        // Try to login again automatically
         handleLogin();
       } else {
         setOtpError("Mã OTP không hợp lệ. Vui lòng thử lại.");
@@ -271,8 +263,10 @@ function LoginPage() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Left Section */}
       <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-green-400 to-blue-500 relative">
         <button
+          type="button"
           onClick={() => navigate(-1)}
           className="absolute top-4 left-4 flex items-center gap-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"
         >
@@ -291,7 +285,7 @@ function LoginPage() {
           <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
             Đăng nhập
           </h1>
-          <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-600">
                 Email
@@ -341,7 +335,7 @@ function LoginPage() {
             </div>
 
             <CustomButton
-              type="submit"
+              htmlType="submit"
               style={{ width: '100%' }}
               disabled={isLoading}
             >
