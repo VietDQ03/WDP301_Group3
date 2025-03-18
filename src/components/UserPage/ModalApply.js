@@ -56,6 +56,7 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
         setIsModalOpen(false);
     };
 
+    // Trong hàm handleSubmit, sửa lại dòng gọi API như sau:
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -70,7 +71,14 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
         } else {
             if (jobDetail) {
                 try {
-                    const res = await callCreateResume(urlCV, jobDetail?.company?._id, jobDetail?._id, coverLetter);
+                    // Đảm bảo chỉ truyền ID của company
+                    const res = await callCreateResume(
+                        urlCV,
+                        jobDetail?.company?._id, // Chỉ lấy _id của company
+                        jobDetail?._id,
+                        coverLetter
+                    );
+
                     if (res.data) {
                         alert("Ứng tuyển thành công!");
                         handleClose();

@@ -72,6 +72,10 @@ const USER_ROUTES = [
     element: <QuickApply />,
   },
   {
+    path: '/createcv',
+    element: <CreateCV />,
+  },
+  {
     path: '*',
     element: <Navigate to="/" replace />,
   },
