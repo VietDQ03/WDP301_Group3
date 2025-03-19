@@ -57,6 +57,30 @@ const QuickApply = () => {
         return experiences.find(e => e._id === formData.experience_id)?.name || '';
     };
 
+    const fetchCV = async () => {
+        try {
+            if (user?._id) {
+                const response = await cvAPI.findAllByUserId(user._id);
+                const cvData = response;
+
+                if (cvData) {
+                    setCvId(cvData._id);
+                    setFormData({
+                        position_ids: cvData.position.map(pos => pos._id) || [],
+                        skill_ids: cvData.skill.map(skill => skill._id) || [],
+                        experience_id: cvData.experience?._id || "",
+                        description: cvData.description || "",
+                        isActive: typeof cvData.isActive === 'boolean' ? cvData.isActive : true
+                    });
+                    setUrlCV(cvData.url || "");
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching CV data:", error);
+            setError("Không thể tải dữ liệu CV");
+        }
+    };
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (!event.target.closest('.position-dropdown-container')) {
@@ -87,24 +111,7 @@ const QuickApply = () => {
                 setSkills(skillsRes.data.result || []);
                 setExperiences(experiencesRes.data.result || []);
 
-                if (user?._id) {
-                    const response = await cvAPI.findAllByUserId(user._id);
-                    const cvData = response;
-
-                    if (cvData) {
-
-                        setCvId(cvData._id);
-                        setFormData({
-                            position_ids: cvData.position.map(pos => pos._id) || [],
-                            skill_ids: cvData.skill.map(skill => skill._id) || [],
-                            experience_id: cvData.experience?._id || "",
-                            description: cvData.description || "",
-                            isActive: typeof cvData.isActive === 'boolean' ? cvData.isActive : true
-                        });
-
-                        setUrlCV(cvData.url || "");
-                    }
-                }
+                await fetchCV();
             } catch (error) {
                 console.error("Error fetching data:", error);
                 setError("Không thể tải dữ liệu");
@@ -196,25 +203,28 @@ const QuickApply = () => {
     const handleSaveProfile = async () => {
         try {
             setLoading(true);
+
+            await new Promise(resolve => setTimeout(resolve, 1));
             const cvData = {
                 position: formData.position_ids,
                 skill: formData.skill_ids,
                 experience: formData.experience_id,
                 description: formData.description,
                 url: urlCV,
-                isActive: formData.isActive
+                isActive: cvId ? formData.isActive : true
             };
 
-            let response;
             if (cvId) {
-                response = await cvAPI.update(cvId, cvData);
+                await cvAPI.update(cvId, cvData);
             } else {
-                response = await cvAPI.create(cvData);
-                setCvId(response.data._id);
+                await cvAPI.create(cvData);
             }
 
             alert("Lưu hồ sơ thành công!");
+            // Tải lại dữ liệu sau khi lưu thành công
+            await fetchCV();
         } catch (error) {
+            console.error("Save profile error:", error);
             setError(error.message || "Đã có lỗi xảy ra khi lưu hồ sơ!");
         } finally {
             setLoading(false);
@@ -225,6 +235,7 @@ const QuickApply = () => {
         try {
             setLoading(true);
             setError("");
+            await new Promise(resolve => setTimeout(resolve, 1));
 
             if (!urlCV && !formData.isActive) {
                 alert("Vui lòng tải lên CV trước khi bật ứng tuyển");
@@ -238,23 +249,18 @@ const QuickApply = () => {
                 experience: formData.experience_id,
                 description: formData.description,
                 url: urlCV,
-                isActive: newActiveState
+                isActive: cvId ? newActiveState : true
             };
 
-            let response;
             if (cvId) {
-                response = await cvAPI.update(cvId, cvData);
+                await cvAPI.update(cvId, cvData);
             } else {
-                response = await cvAPI.create(cvData);
-                setCvId(response.data._id);
+                await cvAPI.create(cvData);
             }
 
-            setFormData(prev => ({
-                ...prev,
-                isActive: newActiveState
-            }));
-
             alert(newActiveState ? "Đã bật ứng tuyển" : "Đã tắt ứng tuyển");
+            // Tải lại dữ liệu sau khi cập nhật thành công
+            await fetchCV();
         } catch (error) {
             setError(error.message || "Đã có lỗi xảy ra!");
         } finally {
