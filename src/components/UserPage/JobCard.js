@@ -26,8 +26,6 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
         ...filters,
       });
 
-      console.log(response)
-
       const { result } = response.data;
       const activeJobs = result.filter(job => 
         job.isActive === true && 
