@@ -342,7 +342,7 @@ function LoginPage() {
               {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
             </CustomButton>
 
-            {/* <div className="mt-4 relative">
+            <div className="mt-4 relative">
               <div className="flex justify-center items-center">
                 <span className="bg-white text-gray-500 px-4">hoặc</span>
               </div>
@@ -354,7 +354,7 @@ function LoginPage() {
                 <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google Logo" className="h-5 w-5" />
                 Đăng nhập với Google
               </button>
-            </div> */}
+            </div>
 
             {errors.general && (
               <p className="text-center text-red-500 text-sm">{errors.general}</p>
