@@ -181,23 +181,23 @@ function LoginPage() {
 
   if (showOtpVerification) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-6 bg-white p-8 rounded-2xl shadow-lg backdrop-blur-sm bg-opacity-90 border border-gray-100">
+      <div className="flex bg-gradient-to-br justify-center from-blue-50 items-center lg:px-8 min-h-screen px-4 py-12 sm:px-6 to-indigo-50">
+        <div className="bg-opacity-90 bg-white border border-gray-100 p-8 rounded-2xl shadow-lg w-full backdrop-blur-sm max-w-md space-y-6">
           <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+            <h2 className="text-3xl text-gray-900 font-bold tracking-tight">
               Xác thực OTP
             </h2>
-            <p className="text-sm text-gray-500 mt-4">
+            <p className="text-gray-500 text-sm mt-4">
               Vui lòng nhập mã xác thực được gửi đến email:{' '}
-              <span className="font-medium text-gray-900">{formData.email}</span>
+              <span className="text-gray-900 font-medium">{formData.email}</span>
             </p>
           </div>
 
           <div className="mt-8 space-y-5">
             <div className="space-y-4">
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-sm font-medium text-gray-700">
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-gray-700 text-sm block font-medium">
                     Mã xác thực
                   </label>
                   <button
@@ -223,7 +223,7 @@ function LoginPage() {
                   placeholder="Nhập mã xác thực"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="appearance-none block w-full px-3 py-3 border border-gray-200 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-lg tracking-wider"
+                  className="border border-gray-200 rounded-lg text-center text-lg w-full appearance-none block focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 px-3 py-3 tracking-wider"
                   maxLength={6}
                 />
               </div>
@@ -231,11 +231,11 @@ function LoginPage() {
               <button
                 onClick={handleVerifyOtp}
                 disabled={isVerifying}
-                className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors duration-200"
+                className="flex bg-blue-600 border border-transparent justify-center rounded-lg shadow-sm text-sm text-white w-full disabled:bg-blue-300 disabled:cursor-not-allowed duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium hover:bg-blue-700 items-center px-4 py-3 transition-colors"
               >
                 {isVerifying ? (
                   <>
-                    <RefreshCw className="animate-spin h-4 w-4 mr-2" />
+                    <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                     Đang xác thực...
                   </>
                 ) : (
@@ -249,9 +249,9 @@ function LoginPage() {
           </div>
 
           {otpError && (
-            <div className="mt-4 p-3 bg-red-50 rounded-lg">
-              <p className="text-sm text-red-600 flex items-center">
-                <X className="h-4 w-4 mr-2 flex-shrink-0" />
+            <div className="bg-red-50 p-3 rounded-lg mt-4">
+              <p className="flex text-red-600 text-sm items-center">
+                <X className="flex-shrink-0 h-4 w-4 mr-2" />
                 {otpError}
               </p>
             </div>
@@ -262,13 +262,13 @@ function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex bg-gray-50 min-h-screen">
       {/* Left Section */}
-      <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-green-400 to-blue-500 relative">
+      <div className="flex-1 bg-gradient-to-br justify-center from-green-400 hidden items-center md:flex relative to-blue-500">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 flex items-center gap-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition"
+          className="flex bg-white p-2 rounded-full shadow-md absolute gap-2 hover:bg-gray-100 items-center left-4 top-4 transition"
         >
           <ArrowLeftOutlined className="text-gray-700" />
         </button>
@@ -276,18 +276,18 @@ function LoginPage() {
         <img
           src="/login.png"
           alt="Login Illustration"
-          className="w-2/3 max-w-md rounded-lg shadow-lg"
+          className="rounded-lg shadow-lg w-2/3 max-w-md"
         />
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
-          <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
+      <div className="flex flex-1 justify-center p-6 items-center">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+          <h1 className="text-2xl text-center text-gray-800 font-bold mb-6">
             Đăng nhập
           </h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-600">
+              <label htmlFor="email" className="text-gray-600 text-sm block font-medium">
                 Email
               </label>
               <input
@@ -297,13 +297,13 @@ function LoginPage() {
                 placeholder="Nhập email của bạn"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 px-4 py-2"
               />
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-600">
+              <label htmlFor="password" className="text-gray-600 text-sm block font-medium">
                 Mật khẩu
               </label>
               <div className="relative">
@@ -314,12 +314,12 @@ function LoginPage() {
                   placeholder="Nhập mật khẩu của bạn"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 px-4 py-2"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 -translate-y-1/2 absolute hover:text-gray-700 right-3 top-1/2 transform"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -327,7 +327,7 @@ function LoginPage() {
               {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
             </div>
 
-            <div className="flex justify-between items-center text-sm text-gray-600">
+            <div className="flex justify-between text-gray-600 text-sm items-center">
               <span></span>
               <a href="/forgot-password" className="text-blue-500 hover:underline">
                 Quên mật khẩu?
@@ -342,26 +342,26 @@ function LoginPage() {
               {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
             </CustomButton>
 
-            <div className="relative mt-4">
-              <div className="flex items-center justify-center">
-                <span className="bg-white px-4 text-gray-500">hoặc</span>
+            {/* <div className="mt-4 relative">
+              <div className="flex justify-center items-center">
+                <span className="bg-white text-gray-500 px-4">hoặc</span>
               </div>
               <button
                 type="button"
-                className="mt-4 w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-100 transition"
+                className="flex border border-gray-300 justify-center rounded-lg shadow-sm text-gray-700 w-full gap-2 hover:bg-gray-100 items-center mt-4 py-2 transition"
                 onClick={handleGoogleLogin}
               >
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google Logo" className="w-5 h-5" />
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google Logo" className="h-5 w-5" />
                 Đăng nhập với Google
               </button>
-            </div>
+            </div> */}
 
             {errors.general && (
-              <p className="text-red-500 text-sm text-center">{errors.general}</p>
+              <p className="text-center text-red-500 text-sm">{errors.general}</p>
             )}
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="text-center text-gray-600 text-sm mt-6">
             Bạn chưa có tài khoản?{" "}
             <a href="/register" className="text-blue-500 hover:underline">
               Đăng ký ngay
