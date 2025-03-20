@@ -27,12 +27,12 @@ const NavItem = ({ Icon, text, path, onClick, badge }) => {
       <Link
         to={path}
         onClick={handleClick}
-        className="flex items-center gap-4 cursor-pointer hover:bg-white/10 py-2 px-3 rounded-lg transition-colors"
+        className="flex rounded-lg cursor-pointer gap-4 hover:bg-white/10 items-center px-3 py-2 transition-colors"
       >
         <div className="relative">
           <Icon size={20} />
           {badge && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+            <span className="flex bg-red-500 h-4 justify-center rounded-full text-white text-xs w-4 -right-1 -top-1 absolute items-center">
               {badge}
             </span>
           )}
@@ -63,6 +63,14 @@ const Header = () => {
       text: "Trang Chủ",
       onClick: () => {
         navigate('/');
+        window.location.reload();
+      }
+    },
+    {
+      icon: PlusCircle,
+      text: "Tạo CV",
+      onClick: () => {
+        navigate('/create-cv');
         window.location.reload();
       }
     },
@@ -141,10 +149,10 @@ const Header = () => {
     <>
       <header className="bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between items-center">
             {/* Logo */}
             <div
-              className="flex items-center gap-4 cursor-pointer"
+              className="flex cursor-pointer gap-4 items-center"
               onClick={() => {
                 navigate('/');
                 window.location.reload();
@@ -156,7 +164,7 @@ const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:block">
-              <ul className="flex items-center gap-2">
+              <ul className="flex gap-2 items-center">
                 {navItems.map((item) => (
                   <NavItem
                     key={item.text}
@@ -179,11 +187,11 @@ const Header = () => {
                       trigger={['click']}
                       overlayClassName="w-56"
                     >
-                      <div className="flex items-center gap-4 cursor-pointer hover:bg-white/10 py-2 px-3 rounded-lg transition-colors">
+                      <div className="flex rounded-lg cursor-pointer gap-4 hover:bg-white/10 items-center px-3 py-2 transition-colors">
                         <span className="text-lg font-medium">
                           Xin chào, {user?.name || "Admin"}
                         </span>
-                        <div className="w-10 h-10 rounded-full bg-white/25 border-2 border-white/50 flex items-center justify-center">
+                        <div className="flex bg-white/25 border-2 border-white/50 h-10 justify-center rounded-full w-10 items-center">
                           <User className="text-white" size={20} />
                         </div>
                       </div>
@@ -197,7 +205,7 @@ const Header = () => {
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-2 rounded-lg hover:bg-white/10 md:hidden transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -226,7 +234,7 @@ const Header = () => {
 
                 {isAuthenticated ? (
                   <>
-                    <div className="py-2 px-3 border-t border-white/10">
+                    <div className="border-t border-white/10 px-3 py-2">
                       <span className="text-lg font-medium">
                         Xin chào, {user?.name || "Admin"}
                       </span>
@@ -235,7 +243,7 @@ const Header = () => {
                       <li key={item.key}>
                         <button
                           onClick={item.onClick}
-                          className="flex items-center gap-4 w-full cursor-pointer hover:bg-white/10 py-2 px-3 rounded-lg transition-colors"
+                          className="flex rounded-lg w-full cursor-pointer gap-4 hover:bg-white/10 items-center px-3 py-2 transition-colors"
                         >
                           {item.icon}
                           <span className="text-lg font-medium">{item.label}</span>
