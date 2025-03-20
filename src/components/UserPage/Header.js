@@ -68,14 +68,6 @@ const Header = () => {
     },
     {
       icon: PlusCircle,
-      text: "Tạo CV",
-      onClick: () => {
-        navigate('/create-cv');
-        window.location.reload();
-      }
-    },
-    {
-      icon: PlusCircle,
       text: "Đăng Tuyển",
       onClick: () => {
         navigate('/introduce');

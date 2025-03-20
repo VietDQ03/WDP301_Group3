@@ -1,125 +1,106 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, X, ArrowRight, FileText, Users, Phone, Medal, Clock, Bell } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Check, X, ArrowRight, FileText } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import BackButton from '../../components/Other/BackButton';
+import { useSelector } from 'react-redux';
+import { paymentApi } from '../../api/paymentAPI';
+
+const formatAmountForVNPay = (amount) => {
+  return parseInt(amount.replace(/\D/g, ''));
+};
 
 const ProPage = () => {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState('cards');
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
 
   const handleNavigateToDashboard = () => {
     navigate('/dashboard');
   };
 
-  const handleSelectPlan = (plan) => {
-    if (plan.name === 'Rabota Free') return;
-    navigate('/payment', {
-      state: {
-        planName: plan.name,
-        planPrice: plan.price,
-        planPeriod: plan.period,
-        planFeatures: plan.features,
+  const handleSelectPlan = async (plan) => {
+    if (!isAuthenticated) {
+      alert('Vui lòng đăng nhập để tiếp tục');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const amount = formatAmountForVNPay(plan.price);
+
+      const paymentData = {
+        amount: amount,
+        orderType: "BUY_CREDITS",
+        orderInfo: `Mua them ${plan.name}`,
+        language: "vn",
+        bankCode: "",
+        userId: user?._id,
+        returnUrl: `${window.location.origin}/payment/vnpay-return`,
+        planDetails: {
+          planId: plan.name,
+          planType: 'credits',
+          planDuration: 30,
+          originalPrice: plan.originalPrice,
+          discountedPrice: plan.price,
+          features: plan.features
+        }
+      };
+
+      const response = await paymentApi.create(paymentData);
+
+      if (response.data?.paymentUrl) {
+        localStorage.setItem('pendingPayment', JSON.stringify({
+          planName: plan.name,
+          amount: amount,
+          orderId: response.data.orderId,
+          timestamp: new Date().getTime()
+        }));
+        window.open(response.data.paymentUrl, '_blank');
+      } else {
+        alert('Không thể tạo link thanh toán. Vui lòng thử lại sau.');
       }
-    });
+
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Có lỗi xảy ra khi xử lý thanh toán');
+    }
   };
 
   const plans = [
     {
-      name: 'Rabota Free',
-      price: '0',
-      period: '/tháng',
-      description: 'Trải nghiệm các tính năng cơ bản',
+      name: '3 Lượt Đăng',
+      price: '99.000',
+      originalPrice: '199.000',
+      description: 'Thêm 3 lượt đăng tin tuyển dụng',
       features: [
-        'Đăng 2 tin tuyển dụng/tháng',
-        'Xem hồ sơ cơ bản',
-        'Hỗ trợ email cơ bản',
+        'Thêm 3 lượt đăng tin',
+        'Hiệu lực 30 ngày',
+        'Dùng cho tài khoản hiện tại',
       ],
-      notIncluded: [
-        'Hỗ trợ 24/7',
-        'Tư vấn riêng'
-      ]
     },
     {
-      name: 'Rabota Basic',
-      price: '199.000',
-      originalPrice: '499.000',
-      period: '/tháng',
-      description: 'Giải pháp khởi đầu tối ưu cho doanh nghiệp',
-      features: [
-        'Đăng 5 tin tuyển dụng/tháng',
-        'Hỗ trợ email',
-        'Xem hồ sơ đầy đủ',
-      ],
-      notIncluded: [
-        'Hỗ trợ 24/7',
-        'Tư vấn riêng'
-      ]
-    },
-    {
-      name: 'Rabota Pro',
-      price: '259.000',
-      originalPrice: '799.000',
-      period: '/tháng',
-      description: 'Nâng cao hiệu quả tuyển dụng cho doanh nghiệp',
+      name: '5 Lượt Đăng',
+      price: '159.000',
+      originalPrice: '299.000',
+      description: 'Thêm 5 lượt đăng tin tuyển dụng', 
       popular: true,
       features: [
-        'Tất cả tính năng Basic',
-        'Đăng 10 tin tuyển dụng/tháng',
-        'Hỗ trợ 24/7',
-        // 'Ưu tiên hiển thị tin',
+        'Thêm 5 lượt đăng tin',
+        'Hiệu lực 30 ngày',
+        'Dùng cho tài khoản hiện tại',
       ],
-      notIncluded: [
-        'Tư vấn riêng'
-      ]
     },
     {
-      name: 'Rabota Premium',
+      name: '10 Lượt Đăng',
       price: '299.000',
-      originalPrice: '999.000',
-      period: '/tháng',
-      description: 'Giải pháp tuyển dụng cao cấp dành cho doanh nghiệp',
+      originalPrice: '499.000',
+      description: 'Thêm 10 lượt đăng tin tuyển dụng',
       features: [
-        'Tất cả tính năng Pro',
-        'Đăng không giới hạn tin',
-        'Hỗ trợ ưu tiên 24/7',
-        'Độc quyền hiển thị banner',
-        'Tư vấn riêng',
+        'Thêm 10 lượt đăng tin',
+        'Hiệu lực 30 ngày',
+        'Dùng cho tài khoản hiện tại',
       ],
     }
-  ];
-
-  const comparisonFeatures = [
-    {
-      name: 'Số lượng tin đăng',
-      icon: FileText,
-      values: ['2 tin/tháng', '5 tin/tháng', '10 tin/tháng', 'Không giới hạn']
-    },
-    {
-      name: 'Xem hồ sơ ứng viên',
-      icon: Users,
-      values: ['Cơ bản', 'Đầy đủ', 'Đầy đủ', 'Đầy đủ + Ưu tiên']
-    },
-    {
-      name: 'Hỗ trợ',
-      icon: Phone,
-      values: ['Email cơ bản', 'Email', '24/7', 'Ưu tiên 24/7']
-    },
-    {
-      name: 'Hiển thị tin tuyển dụng',
-      icon: Medal,
-      values: ['Chuẩn', 'Chuẩn', 'Ưu tiên', 'Ưu tiên + Banner']
-    },
-    // {
-    //   name: 'Thời gian đăng tin',
-    //   icon: Clock,
-    //   values: ['7 ngày', '15 ngày', '30 ngày', '45 ngày']
-    // },
-    // {
-    //   name: 'Thông báo ứng viên',
-    //   icon: Bell,
-    //   values: ['Không', 'Có', 'Có', 'Có']
-    // },
   ];
 
   const calculateDiscount = (original, sale) => {
@@ -129,47 +110,103 @@ const ProPage = () => {
     return Math.round((1 - salePrice / originalPrice) * 100);
   };
 
+  const VNPayReturn = () => {
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const [status, setStatus] = useState('processing');
+
+    useEffect(() => {
+      const verifyPayment = async () => {
+        try {
+          const pendingPayment = JSON.parse(localStorage.getItem('pendingPayment'));
+          
+          if (!pendingPayment) {
+            throw new Error('Không tìm thấy thông tin thanh toán');
+          }
+
+          const response = await paymentApi.handleVNPayReturn({
+            vnp_ResponseCode: searchParams.get('vnp_ResponseCode'),
+            vnp_TransactionStatus: searchParams.get('vnp_TransactionStatus'),
+            vnp_TxnRef: searchParams.get('vnp_TxnRef'),
+            vnp_Amount: searchParams.get('vnp_Amount'),
+            orderId: pendingPayment.orderId,
+            planName: pendingPayment.planName,
+            originalAmount: pendingPayment.amount
+          });
+
+          if (response.data.success) {
+            setStatus('success');
+            localStorage.removeItem('pendingPayment');
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 2000);
+          } else {
+            setStatus('failed');
+            setTimeout(() => {
+              navigate('/payment/failed');
+            }, 2000);
+          }
+
+        } catch (error) {
+          console.error('Verification error:', error);
+          setStatus('failed');
+          navigate('/payment/failed');
+        }
+      };
+
+      verifyPayment();
+    }, []);
+
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        {status === 'processing' && (
+          <div className="text-center">
+            <div className="border-b-2 border-blue-500 h-12 rounded-full w-12 animate-spin mx-auto"></div>
+            <p className="text-gray-600 mt-4">Đang xử lý kết quả thanh toán...</p>
+          </div>
+        )}
+        
+        {status === 'success' && (
+          <div className="text-center">
+            <div className="flex bg-green-100 h-16 justify-center rounded-full w-16 items-center mx-auto">
+              <Check className="h-8 text-green-500 w-8" />
+            </div>
+            <h2 className="text-xl font-semibold mt-4">Thanh toán thành công!</h2>
+            <p className="text-gray-600 mt-2">Đang chuyển hướng về trang quản lý...</p>
+          </div>
+        )}
+
+        {status === 'failed' && (
+          <div className="text-center">
+            <div className="flex bg-red-100 h-16 justify-center rounded-full w-16 items-center mx-auto">
+              <X className="h-8 text-red-500 w-8" />
+            </div>
+            <h2 className="text-xl font-semibold mt-4">Thanh toán thất bại</h2>
+            <p className="text-gray-600 mt-2">Đang chuyển hướng...</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="bg-gray-50 lg:px-8 min-h-screen px-4 py-12 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        <BackButton
-          onClick={() => navigate(-1)}
-        >
+        <BackButton onClick={() => navigate(-1)}>
           Quay lại
         </BackButton>
 
         <div className="text-center mb-12">
           <h1 className="text-4xl text-gray-900 font-bold mb-4">
-            Chọn Gói Phù Hợp Với Bạn
+            Mua Thêm Lượt Đăng Tin
           </h1>
           <p className="text-gray-600 text-xl mb-8">
-            Giải pháp tuyển dụng phù hợp với mọi quy mô doanh nghiệp
+            Đăng nhiều tin tuyển dụng hơn để tiếp cận nhiều ứng viên tiềm năng
           </p>
-
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={() => setViewMode('cards')}
-              className={`px-4 py-2 rounded-lg transition-colors duration-200 ${viewMode === 'cards'
-                  ? 'bg-[#2b65a5] text-white'
-                  : 'bg-gray-200 hover:bg-[#009345] hover:text-white text-gray-700'
-                }`}
-            >
-              Xem gói dịch vụ
-            </button>
-            <button
-              onClick={() => setViewMode('comparison')}
-              className={`px-4 py-2 rounded-lg transition-colors duration-200 ${viewMode === 'comparison'
-                  ? 'bg-[#2b65a5] text-white'
-                  : 'bg-gray-200 hover:bg-[#009345] hover:text-white text-gray-700'
-                }`}
-            >
-              So sánh chi tiết
-            </button>
-          </div>
         </div>
 
-        {viewMode === 'cards' ? (
-          <div className="grid gap-8 md:grid-cols-4 mt-16">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid gap-8 md:grid-cols-3">
             {plans.map((plan, index) => (
               <motion.div
                 key={plan.name}
@@ -181,8 +218,7 @@ const ProPage = () => {
                   transition: { duration: 0.2 }
                 }}
                 transition={{ delay: index * 0.1 }}
-                className={`relative rounded-2xl bg-white p-8 shadow-lg flex flex-col ${plan.popular ? 'border-2 border-blue-500' : ''
-                  }`}
+                className={`relative rounded-2xl bg-white p-8 shadow-lg flex flex-col ${plan.popular ? 'border-2 border-blue-500' : ''}`}
               >
                 {plan.popular && (
                   <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 top-0">
@@ -213,7 +249,6 @@ const ProPage = () => {
                       <span className="text-4xl text-gray-900 font-bold">
                         {plan.price}đ
                       </span>
-                      <span className="text-gray-500 ml-1">{plan.period}</span>
                     </div>
                   </div>
                 </div>
@@ -225,13 +260,6 @@ const ProPage = () => {
                       <span className="text-gray-600 ml-3">{feature}</span>
                     </div>
                   ))}
-
-                  {plan.notIncluded?.map((feature) => (
-                    <div key={feature} className="flex text-gray-400 items-center">
-                      <X className="flex-shrink-0 h-5 w-5" />
-                      <span className="ml-3">{feature}</span>
-                    </div>
-                  ))}
                 </div>
 
                 <div className="mt-8">
@@ -239,103 +267,20 @@ const ProPage = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleSelectPlan(plan)}
-                    className={`w-full rounded-lg px-4 py-2 text-center font-medium ${plan.name === 'Rabota Free'
-                      ? 'bg-gray-100 text-gray-800 cursor-not-allowed'
-                      : plan.popular
+                    className={`w-full rounded-lg px-4 py-2 text-center font-medium ${
+                      plan.popular
                         ? 'bg-blue-500 text-white hover:bg-blue-600'
                         : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                      } transition-colors duration-200 flex items-center justify-center`}
+                    } transition-colors duration-200 flex items-center justify-center`}
                   >
-                    <span>{plan.name === 'Rabota Free' ? 'Gói miễn phí' : 'Chọn gói này'}</span>
+                    <span>Chọn gói này</span>
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </motion.button>
                 </div>
               </motion.div>
             ))}
           </div>
-        ) : (
-          <div className="mt-16 relative">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="overflow-x-auto scrollbar-hide"
-              style={{ 
-                overscrollBehavior: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              <div className="align-middle inline-block min-w-full">
-                <table className="w-full">
-                  <thead>
-                    <motion.tr 
-                      initial={{ opacity: 0, y: -20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5 }}
-                      className="border-gray-200 border-t"
-                    >
-                      <th className="text-gray-500 text-left font-normal px-4 py-5">Tính năng</th>
-                      {plans.map((plan, index) => (
-                        <motion.th 
-                          key={plan.name} 
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1, duration: 0.5 }}
-                          className="text-center px-4 py-5"
-                        >
-                          <span className="text-gray-900 text-lg block font-semibold">{plan.name}</span>
-                          <span className="text-gray-500 text-sm block mt-1">
-                            {plan.price}đ{plan.period}
-                          </span>
-                        </motion.th>
-                      ))}
-                    </motion.tr>
-                  </thead>
-                  <tbody>
-                    {comparisonFeatures.map((feature, idx) => (
-                      <motion.tr 
-                        key={feature.name} 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ 
-                          delay: idx * 0.1, 
-                          duration: 0.5,
-                          ease: "easeOut"
-                        }}
-                        className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
-                      >
-                        <motion.td 
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.1 + 0.2, duration: 0.5 }}
-                          className="flex items-center px-4 py-4"
-                        >
-                          <feature.icon className="h-5 text-gray-400 w-5 mr-2" />
-                          {feature.name}
-                        </motion.td>
-                        {feature.values.map((value, index) => (
-                          <motion.td 
-                            key={index} 
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ 
-                              delay: idx * 0.1 + index * 0.1, 
-                              duration: 0.5,
-                              ease: "easeOut"
-                            }}
-                            className="text-center px-4 py-4"
-                          >
-                            {value}
-                          </motion.td>
-                        ))}
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </motion.div>
-          </div>
-        )}
+        </div>
 
         <motion.div
           initial={{ opacity: 0 }}
@@ -346,7 +291,7 @@ const ProPage = () => {
           <p className="text-gray-600">
             Cần giải pháp đặc biệt? Liên hệ hotline: {' '}
             <span className="text-red-500 font-medium">
-              0865072140
+              0123456789
             </span>
           </p>
         </motion.div>
