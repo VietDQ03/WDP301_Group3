@@ -6,8 +6,9 @@ const ViewCandidateModal = ({ isOpen, onClose, cvData }) => {
   if (!cvData) return null;
 
   const handleDownload = () => {
-    window.open(`${process.env.REACT_APP_API_URL}/uploads/${cvData.url}`, '_blank');
+    window.open(`${process.env.REACT_APP_BASE_URL}/images/resume/${cvData.url}`, '_blank');
   };
+
 
   const modalStyle = {
     top: '50px',

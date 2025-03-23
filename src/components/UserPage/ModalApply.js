@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Dialog } from '@headlessui/react';
-import { Upload, FileWarning, LogIn, Building2, Briefcase } from 'lucide-react';
+import { Upload, FileWarning, LogIn, Building2, Briefcase, FileText, Download } from 'lucide-react';
 import { callCreateResume, callUploadSingleFile } from "../../api/UserApi/UserApi";
+import { cvAPI } from "../../api/cvAPI";
 import CustomButton from '../../components/Other/CustomButton';
 import { motion } from 'framer-motion';
 
@@ -11,13 +12,54 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
     const { user, isAuthenticated } = useSelector((state) => state.auth);
     const [coverLetter, setCoverLetter] = useState("");
     const [urlCV, setUrlCV] = useState("");
+    const [userCVs, setUserCVs] = useState([]);
+    const [selectedExistingCV, setSelectedExistingCV] = useState("");
+    const [uploadType, setUploadType] = useState("existing"); // "existing" or "new"
     const navigate = useNavigate();
+
+    // Fetch user's existing CVs when modal opens
+    useEffect(() => {
+        const fetchUserCVs = async () => {
+            if (isModalOpen && isAuthenticated && user?._id) {
+                try {
+                    const response = await cvAPI.findAllByUserId(user._id);
+                    
+                    // Check if response has data with the expected structure
+                    if (response.statusCode === 200 && response.data) {
+                        // Handle both array and single object responses
+                        const cvData = Array.isArray(response.data) ? response.data : [response.data];
+                        setUserCVs(cvData);
+                        
+                        if (cvData.length > 0) {
+                            setSelectedExistingCV(cvData[0].url);
+                            setUploadType("existing");
+                        } else {
+                            setUploadType("new");
+                        }
+                    } else if (response.url) {
+                        // Handle direct URL response (fallback for older API format)
+                        setUserCVs([{ url: response.url, createdAt: new Date() }]);
+                        setSelectedExistingCV(response.url);
+                        setUploadType("existing");
+                    } else {
+                        setUserCVs([]);
+                        setUploadType("new");
+                    }
+                } catch (error) {
+                    console.error("Error fetching user CVs:", error);
+                    setUploadType("new");
+                }
+            }
+        };
+        fetchUserCVs();
+    }, [isModalOpen, isAuthenticated, user]);
 
     // Reset form when modal closes
     useEffect(() => {
         if (!isModalOpen) {
             setCoverLetter("");
             setUrlCV("");
+            setSelectedExistingCV("");
             if (jobDetail?._id) {
                 localStorage.removeItem(`apply_form_${jobDetail._id}`);
             }
@@ -29,9 +71,8 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
         if (isModalOpen && isAuthenticated && jobDetail?._id) {
             const savedData = localStorage.getItem(`apply_form_${jobDetail._id}`);
             if (savedData) {
-                const { coverLetter: savedCoverLetter, urlCV: savedUrlCV } = JSON.parse(savedData);
+                const { coverLetter: savedCoverLetter } = JSON.parse(savedData);
                 setCoverLetter(savedCoverLetter || "");
-                setUrlCV(savedUrlCV || "");
             }
         }
     }, [isModalOpen, isAuthenticated, jobDetail]);
@@ -41,44 +82,47 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
         if (isModalOpen && isAuthenticated && jobDetail?._id) {
             const formData = {
                 coverLetter,
+                uploadType,
+                selectedExistingCV,
                 urlCV
             };
             localStorage.setItem(`apply_form_${jobDetail._id}`, JSON.stringify(formData));
         }
-    }, [coverLetter, urlCV, isModalOpen, isAuthenticated, jobDetail]);
+    }, [coverLetter, uploadType, selectedExistingCV, urlCV, isModalOpen, isAuthenticated, jobDetail]);
 
     const handleClose = () => {
         setCoverLetter("");
         setUrlCV("");
+        setSelectedExistingCV("");
         if (jobDetail?._id) {
             localStorage.removeItem(`apply_form_${jobDetail._id}`);
         }
         setIsModalOpen(false);
     };
 
-    // Trong hàm handleSubmit, sửa lại dòng gọi API như sau:
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!urlCV && isAuthenticated) {
-            alert("Vui lòng upload CV!");
+    
+        const finalCV = uploadType === "existing" ? selectedExistingCV : urlCV;
+    
+        if (!finalCV && isAuthenticated) {
+            alert("Vui lòng chọn hoặc tải lên CV!");
             return;
         }
-
+    
         if (!isAuthenticated) {
             handleClose();
             navigate(`/login?callback=${window.location.href}`);
         } else {
             if (jobDetail) {
                 try {
-                    // Đảm bảo chỉ truyền ID của company
                     const res = await callCreateResume(
-                        urlCV,
-                        jobDetail?.company?._id, // Chỉ lấy _id của company
+                        finalCV,
+                        jobDetail?.company?._id,
                         jobDetail?._id,
                         coverLetter
                     );
-
+    
                     if (res.data) {
                         alert("Ứng tuyển thành công!");
                         handleClose();
@@ -86,7 +130,14 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
                         alert(res.message || 'Có lỗi xảy ra');
                     }
                 } catch (error) {
-                    alert('Có lỗi xảy ra khi gửi CV');
+                    if (error.response) {
+                        const errorData = error.response.data;
+                        alert(errorData.message || 'Có lỗi xảy ra khi gửi CV');
+                    } else if (error.message) {
+                        alert(error.message);
+                    } else {
+                        alert('Có lỗi xảy ra khi gửi CV');
+                    }
                 }
             }
         }
@@ -114,12 +165,151 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
         }
     };
 
+    const downloadCV = (cvUrl) => {
+        if (cvUrl) {
+            window.open(`${process.env.REACT_APP_BASE_URL}/images/resume/${cvUrl}`, '_blank');
+        }
+    };
+
     const getFileName = (url) => {
         if (!url) return "";
-        const parts = url.split('/');
-        const fileName = parts[parts.length - 1];
-        return fileName.length > 25 ? fileName.substring(0, 50) + '...' : fileName;
+        return url.length > 25 ? url.substring(0, 25) + '...' : url;
     };
+
+    const renderCVSection = () => (
+        <div className="space-y-4">
+            <label className="block text-sm font-semibold text-gray-700">
+                CV của bạn
+            </label>
+
+            {/* Upload type selection - Improved UI */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+                {userCVs.length > 0 && (
+                    <div 
+                        onClick={() => setUploadType("existing")}
+                        className={`flex flex-col items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                            uploadType === "existing" 
+                                ? "border-blue-500 bg-blue-50" 
+                                : "border-gray-200 hover:border-blue-300"
+                        }`}
+                    >
+                        <div className="flex items-center justify-center w-10 h-10 mb-3 rounded-full bg-blue-100">
+                            <FileText className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <p className="font-medium text-center">Sử dụng CV có sẵn</p>
+                        <div className="mt-2 flex items-center">
+                            <div className={`w-5 h-5 rounded-full border ${uploadType === "existing" ? "border-blue-500" : "border-gray-300"} flex items-center justify-center`}>
+                                {uploadType === "existing" && (
+                                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
+                <div 
+                    onClick={() => setUploadType("new")}
+                    className={`flex flex-col items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        uploadType === "new" 
+                            ? "border-blue-500 bg-blue-50" 
+                            : "border-gray-200 hover:border-blue-300"
+                    }`}
+                >
+                    <div className="flex items-center justify-center w-10 h-10 mb-3 rounded-full bg-blue-100">
+                        <Upload className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <p className="font-medium text-center">Tải lên CV mới</p>
+                    <div className="mt-2 flex items-center">
+                        <div className={`w-5 h-5 rounded-full border ${uploadType === "new" ? "border-blue-500" : "border-gray-300"} flex items-center justify-center`}>
+                            {uploadType === "new" && (
+                                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Existing CVs selection */}
+            {uploadType === "existing" && userCVs.length > 0 && (
+                <div className="space-y-3">
+                    {userCVs.map((cv, index) => (
+                        <div
+                            key={index}
+                            className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedExistingCV === cv.url
+                                    ? "border-blue-500 bg-blue-50"
+                                    : "border-gray-200 hover:border-blue-300"
+                                }`}
+                            onClick={() => setSelectedExistingCV(cv.url)}
+                        >
+                            <div className="flex items-center space-x-3">
+                                <FileText className="w-5 h-5 text-gray-500" />
+                                <div className="flex-1">
+                                    <p className="font-medium text-gray-900">
+                                        {getFileName(cv.url)}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        {new Date(cv.createdAt).toLocaleDateString('vi-VN')}
+                                    </p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            downloadCV(cv.url);
+                                        }}
+                                        className="p-1 rounded-full hover:bg-gray-100"
+                                        title="Tải xuống CV"
+                                    >
+                                        <Download className="w-5 h-5 text-blue-600" />
+                                    </button>
+                                    <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500">
+                                        {selectedExistingCV === cv.url && (
+                                            <div className="w-3 h-3 rounded-full bg-blue-500" />
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* New CV upload */}
+            {uploadType === "new" && (
+                <label className="relative flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                    <div className="space-y-1 text-center">
+                        <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                        <div className="flex flex-col items-center text-sm">
+                            {urlCV ? (
+                                <>
+                                    <span className="font-medium text-blue-600">
+                                        {getFileName(urlCV)}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setUrlCV("")}
+                                        className="mt-2 text-xs text-red-500 hover:text-red-700"
+                                    >
+                                        Xóa file
+                                    </button>
+                                </>
+                            ) : (
+                                <span className="text-gray-600">Tải lên CV mới</span>
+                            )}
+                        </div>
+                        <p className="text-xs text-gray-500">PDF, DOC up to 1MB</p>
+                    </div>
+                    <input
+                        type="file"
+                        className="hidden"
+                        accept=".doc,.docx,.pdf"
+                        onChange={handleFileChange}
+                    />
+                </label>
+            )}
+        </div>
+    );
 
     return (
         <Dialog
@@ -185,44 +375,8 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
                                             </p>
                                         </div>
 
-                                        {/* CV upload field */}
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700">
-                                                CV của bạn
-                                            </label>
-                                            <div className="mt-1">
-                                                <label className="relative flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-6 hover:border-blue-400 hover:bg-blue-50">
-                                                    <div className="space-y-1 text-center">
-                                                        <Upload className="mx-auto h-8 w-8 text-gray-400" />
-                                                        <div className="flex flex-col items-center text-sm">
-                                                            {urlCV ? (
-                                                                <>
-                                                                    <span className="font-medium text-blue-600">
-                                                                        {getFileName(urlCV)}
-                                                                    </span>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => setUrlCV("")}
-                                                                        className="mt-2 text-xs text-red-500 hover:text-red-700"
-                                                                    >
-                                                                        Xóa file
-                                                                    </button>
-                                                                </>
-                                                            ) : (
-                                                                <span className="text-gray-600">Tải lên CV của bạn</span>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-xs text-gray-500">PDF, DOC up to 1MB</p>
-                                                    </div>
-                                                    <input
-                                                        type="file"
-                                                        className="hidden"
-                                                        accept=".doc,.docx,.pdf"
-                                                        onChange={handleFileChange}
-                                                    />
-                                                </label>
-                                            </div>
-                                        </div>
+                                        {/* CV selection/upload section */}
+                                        {renderCVSection()}
                                     </div>
 
                                     {/* Submit button */}
