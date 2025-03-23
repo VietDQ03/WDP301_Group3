@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Card, Row, Col, Statistic, message } from 'antd';
+import { Layout, Card, Row, Col, Statistic, message, Spin } from 'antd';
 import { UserOutlined, ShoppingOutlined, FileOutlined, TeamOutlined } from '@ant-design/icons';
 import Sidebar from '../../components/AdminPage/Sidebar';
 import Header from '../../components/AdminPage/Header';
@@ -21,64 +21,127 @@ const DashboardPage = () => {
 
   const fetchData = async (params = {}) => {
     setLoading(true);
+    const defaultParams = {
+      current: 1,
+      pageSize: 1000,
+      ...params
+    };
+
     try {
       const [companiesResponse, jobsResponse, usersResponse, resumeResponse] = await Promise.all([
-        companyApi.getAll({ ...params }),
-        jobApi.getAll({ ...params }),
-        userApi.getAll({ ...params }),
-        resumeApi.getAll({ ...params })
+        companyApi.getAll(defaultParams),
+        jobApi.getAll(defaultParams),
+        userApi.getAll(defaultParams), 
+        resumeApi.getAll(defaultParams)
       ]);
 
-      if (companiesResponse?.data) {
-        setDataCompanies(companiesResponse.data);
-      }
-
-      if (jobsResponse?.data) {
-        setDataJobs(jobsResponse.data);
-      }
-
-      if (usersResponse?.data) {
-        setDataUsers(usersResponse.data);
-      }
-
-      if (resumeResponse?.data) {
-        setDataResumes(resumeResponse.data);
-      }
+      setDataCompanies(companiesResponse?.data || {});
+      setDataJobs(jobsResponse?.data || {});
+      setDataUsers(usersResponse?.data || {});
+      setDataResumes(resumeResponse?.data || {});
     } catch (error) {
       message.error('Không thể tải dữ liệu');
       console.error('Error:', error);
     }
     setLoading(false);
-  };
+};
+
+useEffect(() => {
+    fetchData();
+}, []);
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const recentActivity = [
+  const stats = [
     {
-      title: 'Đơn Ứng Tuyển Mới',
-      value: '45 hôm nay',
-      description: 'Tăng 20% so với hôm qua',
+      title: "Người Dùng",
+      value: dataUsers?.meta?.total || 0,
+      icon: <UserOutlined className="text-2xl" />,
+      color: "blue",
+      description: "Tổng số người dùng đăng ký",
+      details: [
+        { 
+          label: "Mới trong tháng", 
+          value: `${dataUsers?.result?.filter(user => {
+            const userDate = new Date(user.createdAt);
+            const today = new Date();
+            return userDate.getMonth() === today.getMonth() && 
+                   userDate.getFullYear() === today.getFullYear();
+          }).length || 0} người dùng`
+        }
+      ]
     },
     {
-      title: 'Phỏng Vấn Đang Diễn Ra',
-      value: '23 đã lên lịch',
-      description: '5 chờ xác nhận',
+      title: "Hồ Sơ",
+      value: dataResumes?.meta?.total || 0,
+      icon: <FileOutlined className="text-2xl" />,
+      color: "purple",
+      description: "Tổng số hồ sơ ứng tuyển",
+      details: [
+        { 
+          label: "Đã duyệt", 
+          value: `${dataResumes?.result?.filter(resume => resume.status === 'APPROVED').length || 0} hồ sơ`
+        },
+        { 
+          label: "Chờ duyệt", 
+          value: `${dataResumes?.result?.filter(resume => resume.status === 'PENDING').length || 0} hồ sơ`
+        },
+        { 
+          label: "Từ chối", 
+          value: `${dataResumes?.result?.filter(resume => resume.status === 'REJECTED').length || 0} hồ sơ`
+        }
+      ]
     },
     {
-      title: 'Tin Tuyển Dụng',
-      value: '12 tin mới',
-      description: '3 vị trí cấp bách',
+      title: "Công Việc",
+      value: dataJobs?.meta?.total || 0,
+      icon: <ShoppingOutlined className="text-2xl" />,
+      color: "green",
+      description: "Tổng số việc làm đang tuyển",
+      details: [
+        { 
+          label: "Đang tuyển", 
+          value: `${dataJobs?.result?.filter(job => job.isActive).length || 0} việc làm`
+        },
+        { 
+          label: "Full-time", 
+          value: `${dataJobs?.result?.filter(job => job.level === 'FULLTIME').length || 0} việc làm`
+        },
+        { 
+          label: "Part-time", 
+          value: `${dataJobs?.result?.filter(job => job.level === 'PARTTIME').length || 0} việc làm`
+        }
+      ]
     },
+    {
+      title: "Công Ty",
+      value: dataCompanies?.meta?.total || 0,
+      icon: <TeamOutlined className="text-2xl" />,
+      color: "orange",
+      description: "Tổng số công ty đối tác",
+      details: [
+        { 
+          label: "Đang hoạt động", 
+          value: `${dataCompanies?.result?.filter(company => company.isActive).length || 0} công ty`
+        },
+        { 
+          label: "Mới trong tháng", 
+          value: `${dataCompanies?.result?.filter(company => {
+            const companyDate = new Date(company.createdAt);
+            const today = new Date();
+            return companyDate.getMonth() === today.getMonth() && 
+                   companyDate.getFullYear() === today.getFullYear();
+          }).length || 0} công ty`
+        }
+      ]
+    }
   ];
 
   return (
-    <Layout className="min-h-screen">
-      <div
-        className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'
-          } flex-shrink-0`}
-      >
+    <Layout className="min-h-screen bg-gray-50">
+      <div className={`transition-all duration-300 ${collapsed ? 'w-20' : 'w-[255px]'} flex-shrink-0`}>
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       </div>
 
@@ -86,161 +149,83 @@ const DashboardPage = () => {
         <Header collapsed={collapsed} setCollapsed={setCollapsed} />
 
         <Content className="m-6">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Trang Tổng Quan</h1>
-
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12} lg={6}>
-                <Card
-                  className="bg-blue-50 hover:shadow-md transition-shadow"
-                  bordered={false}
-                >
-                  <div className="flex justify-between items-start">
-                    <Statistic
-                      title={<span className="text-gray-600">Tổng Số Người Dùng</span>}
-                      value={dataUsers?.meta?.total || 0}
-                      formatter={() => (
-                        <CountUp
-                          start={0}
-                          end={dataUsers?.meta?.total || 0}
-                          duration={0.5}
-                          separator=","
-                        />
-                      )}
-                    />
-                    <div className="p-2 rounded-lg bg-white/60">
-                      <UserOutlined className="text-blue-500 text-2xl" />
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-
-              <Col xs={24} sm={12} lg={6}>
-                <Card
-                  className="bg-purple-50 hover:shadow-md transition-shadow"
-                  bordered={false}
-                >
-                  <div className="flex justify-between items-start">
-                    <Statistic
-                      title={<span className="text-gray-600">Tổng Số Ứng Tuyển</span>}
-                      value={dataResumes?.meta?.total || 0}
-                      formatter={() => (
-                        <CountUp
-                          start={0}
-                          end={dataResumes?.meta?.total || 0}
-                          duration={0.5}
-                          separator=","
-                        />
-                      )}
-                    />
-                    <div className="p-2 rounded-lg bg-white/60">
-                      <FileOutlined className="text-purple-500 text-2xl" />
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-
-              <Col xs={24} sm={12} lg={6}>
-                <Card
-                  className="bg-green-50 hover:shadow-md transition-shadow"
-                  bordered={false}
-                >
-                  <div className="flex justify-between items-start">
-                    <Statistic
-                      title={<span className="text-gray-600">Tổng số Công Việc</span>}
-                      value={dataJobs?.meta?.total || 0}
-                      formatter={() => (
-                        <CountUp
-                          start={0}
-                          end={dataJobs?.meta?.total || 0}
-                          duration={0.5}
-                          separator=","
-                        />
-                      )}
-                    />
-                    <div className="p-2 rounded-lg bg-white/60">
-                      <ShoppingOutlined className="text-green-500 text-2xl" />
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-
-              <Col xs={24} sm={12} lg={6}>
-                <Card
-                  className="bg-orange-50 hover:shadow-md transition-shadow"
-                  bordered={false}
-                >
-                  <div className="flex justify-between items-start">
-                    <Statistic
-                      title={<span className="text-gray-600">Tổng Số Công Ty</span>}
-                      value={dataCompanies?.meta?.total || 0}
-                      formatter={() => (
-                        <CountUp
-                          start={0}
-                          end={dataCompanies?.meta?.total || 0}
-                          duration={0.5}
-                          separator=","
-                        />
-                      )}
-                    />
-                    <div className="p-2 rounded-lg bg-white/60">
-                      <TeamOutlined className="text-orange-500 text-2xl" />
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-            </Row>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Hoạt Động Gần Đây</h2>
-            <Row gutter={[16, 16]}>
-              {recentActivity.map((activity, index) => (
-                <Col xs={24} sm={8} key={index}>
-                  <Card className="hover:shadow-md transition-shadow">
-                    <h3 className="text-lg font-medium mb-2">{activity.title}</h3>
-                    <p className="text-2xl font-semibold text-gray-800 mb-1">
-                      {activity.value}
-                    </p>
-                    <p className="text-gray-500">{activity.description}</p>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </div>
-
-          {/* Additional Content */}
-          <Row gutter={[16, 16]}>
-            <Col xs={24} lg={16}>
-              <Card
-                title="Thống Kê Theo Tháng"
-                className="hover:shadow-md transition-shadow"
-              >
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  Chart Component will be placed here
+          <Spin spinning={loading}>
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-800">
+                    Tổng Quan Hệ Thống
+                  </h1>
+                  <p className="text-gray-500 mt-1">
+                    Cập nhật lần cuối: {new Date().toLocaleString()}
+                  </p>
                 </div>
-              </Card>
-            </Col>
-            <Col xs={24} lg={8}>
-              <Card
-                title="Thao Tác Nhanh"
-                className="hover:shadow-md transition-shadow"
-              >
-                <ul className="space-y-4">
-                  <li className="flex items-center text-blue-600 cursor-pointer hover:text-blue-800">
-                    <FileOutlined className="mr-2" /> Đăng Tin Tuyển Dụng
-                  </li>
-                  <li className="flex items-center text-blue-600 cursor-pointer hover:text-blue-800">
-                    <UserOutlined className="mr-2" /> Xem Đơn Ứng Tuyển
-                  </li>
-                  <li className="flex items-center text-blue-600 cursor-pointer hover:text-blue-800">
-                    <TeamOutlined className="mr-2" /> Lên Lịch Phỏng Vấn
-                  </li>
-                </ul>
-              </Card>
-            </Col>
-          </Row>
+                <button
+                  onClick={() => fetchData()}
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 text-base"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Làm mới dữ liệu
+                </button>
+              </div>
+
+              <Row gutter={[24, 24]}>
+                {stats.map((stat, index) => (
+                  <Col xs={24} md={12} key={index}>
+                    <Card
+                      className={`hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-${stat.color}-50 border-${stat.color}-100`}
+                      bordered={false}
+                    >
+                      <div className="flex items-start gap-6">
+                        <div className={`p-4 rounded-2xl bg-${stat.color}-100 text-${stat.color}-600`}>
+                          {stat.icon}
+                        </div>
+                        <div className="flex-grow">
+                          <h3 className="text-lg font-medium text-gray-600">{stat.title}</h3>
+                          <div className="mt-2">
+                            <span className="text-3xl font-bold text-gray-900">
+                              <CountUp
+                                start={0}
+                                end={stat.value}
+                                duration={2}
+                                separator=","
+                              />
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">{stat.description}</p>
+                        </div>
+                      </div>
+
+                      <div className={`mt-6 h-1.5 w-full bg-${stat.color}-100 rounded-full overflow-hidden`}>
+                        <div 
+                          className={`h-full bg-${stat.color}-500`} 
+                          style={{ 
+                            width: `${(stat.value / 100) * 100}%`,
+                            transition: 'width 1s ease-in-out' 
+                          }}
+                        />
+                      </div>
+
+                      <div className="mt-6 grid grid-cols-3 gap-4">
+                        {stat.details.map((detail, idx) => (
+                          <div key={idx} className="text-center">
+                            <div className="text-lg font-semibold text-gray-700">
+                              {detail.value}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {detail.label}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          </Spin>
         </Content>
       </Layout>
     </Layout>

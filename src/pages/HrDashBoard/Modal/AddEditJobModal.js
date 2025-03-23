@@ -34,6 +34,14 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
 
     React.useEffect(() => {
         if (jobData && mode === 'edit') {
+            const today = dayjs().startOf('day');
+            let endDate = jobData.endDate ? dayjs(jobData.endDate) : null;
+            
+            // Nếu ngày kết thúc trong quá khứ, set về ngày hiện tại
+            if (endDate && endDate.isBefore(today, 'day')) {
+                endDate = today;
+            }
+
             form.setFieldsValue({
                 name: jobData.name,
                 company: jobData.company._id,
@@ -44,7 +52,7 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                 salary: jobData.salary,
                 description: jobData.description,
                 startDate: jobData.startDate ? dayjs(jobData.startDate) : null,
-                endDate: jobData.endDate ? dayjs(jobData.endDate) : null,
+                endDate: endDate,
                 isActive: jobData.isActive
             });
         } else {
@@ -91,8 +99,34 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
 
     const disabledEndDate = (current) => {
         const startDate = form.getFieldValue('startDate');
-        if (!current || !startDate) return false;
-        return current.isBefore(startDate, 'day');
+        const today = dayjs().startOf('day');
+        
+        if (!current) return false;
+
+        if (mode === 'edit' && jobData) {
+            const currentEndDate = dayjs(jobData.endDate);
+            if (currentEndDate.isBefore(today, 'day')) {
+                if (current.isBefore(today, 'day')) {
+                    return true;
+                }
+            } else {
+                if (current.isBefore(currentEndDate, 'day')) {
+                    return true;
+                }
+            }
+        } else {
+            if (current.isBefore(today, 'day')) {
+                return true;
+            }
+        }
+
+        if (startDate) {
+            const tooEarly = current.isBefore(startDate, 'day');
+            const tooLate = current.isAfter(startDate.clone().add(30, 'days'), 'day');
+            return tooEarly || tooLate;
+        }
+
+        return false;
     };
 
     return (
@@ -116,7 +150,7 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                 overflow: 'auto',
             }}
             footer={[
-                <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', gap: '10px', alignItems: 'center' }}>
+                <div key="footer" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', gap: '10px', alignItems: 'center' }}>
                     <Button
                         onClick={onClose}
                         size="large"
@@ -258,7 +292,58 @@ const AddEditJobModal = ({ isOpen, onClose, mode, jobData, onSubmit }) => {
                         <Form.Item
                             name="endDate"
                             label={renderLabel(<Calendar />, "Ngày kết thúc")}
-                            rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc!' }]}
+                            rules={[
+                                { required: true, message: 'Vui lòng chọn ngày kết thúc!' },
+                                ({ getFieldValue }) => ({
+                                    validator(_, value) {
+                                        if (!value) {
+                                            return Promise.resolve();
+                                        }
+
+                                        const today = dayjs().startOf('day');
+                                        const startDate = getFieldValue('startDate');
+
+                                        if (mode === 'edit' && jobData) {
+                                            const currentEndDate = dayjs(jobData.endDate);
+                                            if (currentEndDate.isBefore(today, 'day')) {
+                                                if (value.isBefore(today, 'day')) {
+                                                    return Promise.reject(
+                                                        new Error('Không thể chọn ngày kết thúc trong quá khứ!')
+                                                    );
+                                                }
+                                            } else {
+                                                if (value.isBefore(currentEndDate, 'day')) {
+                                                    return Promise.reject(
+                                                        new Error('Không thể chọn ngày trước ngày kết thúc hiện tại!')
+                                                    );
+                                                }
+                                            }
+                                        } else {
+                                            if (value.isBefore(today, 'day')) {
+                                                return Promise.reject(
+                                                    new Error('Không thể chọn ngày kết thúc trong quá khứ!')
+                                                );
+                                            }
+                                        }
+
+                                        if (startDate) {
+                                            const diffDays = value.diff(startDate, 'days');
+                                            if (diffDays < 0) {
+                                                return Promise.reject(
+                                                    new Error('Ngày kết thúc không được trước ngày bắt đầu!')
+                                                );
+                                            }
+                                            if (diffDays > 30) {
+                                                return Promise.reject(
+                                                    new Error('Ngày kết thúc không được quá 30 ngày kể từ ngày bắt đầu!')
+                                                );
+                                            }
+                                        }
+
+                                        return Promise.resolve();
+                                    },
+                                }),
+                            ]}
                         >
                             <DatePicker
                                 className="w-full"
