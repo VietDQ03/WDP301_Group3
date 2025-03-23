@@ -5,6 +5,7 @@ import CompanyCard from "../../components/UserPage/CompanyCard";
 import Header from "../../components/UserPage/Header";
 import Footer from "../../components/UserPage/Footer";
 import { Input, Form, Select } from "antd";
+import { skillApi } from "../../api/skillAPI";
 
 const { Option } = Select;
 
@@ -13,24 +14,59 @@ const UserHome = () => {
   const [searchFilters, setSearchFilters] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [location, setLocation] = useState(undefined);
+  const [skills, setSkills] = useState([]);
+  const [selectedSkill, setSelectedSkill] = useState(undefined);
 
+  useEffect(() => {
+    fetchSkills();
+  }, []);
+
+  const fetchSkills = async () => {
+    try {
+      const response = await skillApi.getAll({
+        current: 1,
+        pageSize: 100,
+      });
+
+      if (response?.data?.result) {
+        setSkills(response.data.result);
+      }
+    } catch (error) {
+      console.error("Error fetching skills:", error);
+    }
+  };
+
+ 
   useEffect(() => {
     const timer = setTimeout(() => {
       const newFilters = {};
       
       if (searchTerm) {
-        newFilters.name = searchTerm;
+        newFilters.name = searchTerm.trim();
       }
       
       if (location) {
         newFilters.location = location;
       }
 
+      if (selectedSkill) {
+        const selectedSkillObj = skills.find(skill => skill._id === selectedSkill);
+        if (selectedSkillObj) {
+          newFilters.skills = selectedSkillObj.name; // Gửi tên skill
+        }
+      }
+
+      console.log('Setting new filters:', newFilters); // Debug log
       setSearchFilters(newFilters);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, location]);
+  }, [searchTerm, location, selectedSkill, skills]);
+
+  // Thêm log để debug
+  useEffect(() => {
+    console.log('searchFilters changed:', searchFilters);
+  }, [searchFilters]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -41,6 +77,11 @@ const UserHome = () => {
   const handleLocationChange = (value) => {
     setLocation(value);
     form.setFieldsValue({ location: value });
+  };
+
+  const handleSkillChange = (value) => {
+    setSelectedSkill(value);
+    form.setFieldsValue({ skill: value });
   };
 
   return (
@@ -85,6 +126,28 @@ const UserHome = () => {
                       <Option value="HOCHIMINH">Hồ Chí Minh</Option>
                       <Option value="DANANG">Đà Nẵng</Option>
                       <Option value="OTHER">Khác</Option>
+                    </Select>
+                  </Form.Item>
+                </div>
+
+                <div className="md:w-48">
+                  <Form.Item name="skill" className="mb-0">
+                    <Select
+                      placeholder="Chọn kỹ năng"
+                      className="h-12 rounded-lg"
+                      allowClear
+                      onChange={handleSkillChange}
+                      value={selectedSkill}
+                      style={{ 
+                        height: '48px',
+                        borderRadius: '0.5rem'
+                      }}
+                    >
+                      {skills.map(skill => (
+                        <Option key={skill._id} value={skill._id}>
+                          {skill.name}
+                        </Option>
+                      ))}
                     </Select>
                   </Form.Item>
                 </div>

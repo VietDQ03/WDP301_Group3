@@ -20,37 +20,43 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
   const fetchAllJobs = async () => {
     try {
       setIsLoading(true);
+      console.log('Fetching with filters:', filters); // Debug log
+
       const response = await jobApi.getAll({
         current: 1,
         pageSize: 1000,
-        ...filters,
+        name: filters.name,
+        location: filters.location,
+        skills: filters.skills,
       });
 
-      const { result } = response.data;
-      const activeJobs = result.filter(job => 
-        job.isActive === true && 
-        job.quantity > 0
-      );
+      if (response?.data) {
+        const { result } = response.data;
+        const activeJobs = result.filter(job =>
+          job.isActive === true &&
+          job.quantity > 0
+        );
 
-      const formattedJobs = activeJobs.map((job, index) => ({
-        key: job._id,
-        stt: index + 1,
-        name: job.name,
-        company: {
-          name: job.company.name,
-          logo: job.company.logo
-        },
-        skills: job.skills || [],
-        location: job.location,
-        salary: new Intl.NumberFormat("vi-VN").format(job.salary),
-        level: job.level,
-        quantity: job.quantity,
-        status: job.isActive ? "ACTIVE" : "INACTIVE",
-        createdAt: new Date(job.createdAt).toLocaleString(),
-        updatedAt: new Date(job.updatedAt).toLocaleString(),
-      }));
+        const formattedJobs = activeJobs.map((job, index) => ({
+          key: job._id,
+          stt: index + 1,
+          name: job.name,
+          company: {
+            name: job.company.name,
+            logo: job.company.logo
+          },
+          skills: job.skills || [],
+          location: job.location,
+          salary: new Intl.NumberFormat("vi-VN").format(job.salary),
+          level: job.level,
+          quantity: job.quantity,
+          status: job.isActive ? "ACTIVE" : "INACTIVE",
+          createdAt: new Date(job.createdAt).toLocaleString(),
+          updatedAt: new Date(job.updatedAt).toLocaleString(),
+        }));
 
-      setAllJobs(formattedJobs);
+        setAllJobs(formattedJobs);
+      }
     } catch (error) {
       console.error("Error fetching jobs:", error);
       message.error("Có lỗi xảy ra khi tải danh sách công việc!");
@@ -60,6 +66,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
   };
 
   useEffect(() => {
+    console.log('Filters changed:', filters); // Debug log
     fetchAllJobs();
 
     const intervalId = setInterval(() => {
@@ -98,15 +105,15 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
                   <p className="text-gray-500 mt-1">Khám phá cơ hội nghề nghiệp hấp dẫn</p>
                 </div>
                 {!showPagination && (
-                  <Link 
-                    to="/job" 
+                  <Link
+                    to="/job"
                     className="inline-flex items-center px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow group"
                   >
                     <span>Xem tất cả</span>
-                    <svg 
-                      className="ml-2 w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
+                    <svg
+                      className="ml-2 w-4 h-4 transform group-hover:translate-x-1 transition-transform"
+                      fill="none"
+                      viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -118,10 +125,10 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
 
             {currentJobs?.map((item) => (
               <Col span={24} md={12} key={item.key}>
-                <Card 
+                <Card
                   className="group h-full transition-all duration-300 hover:shadow-lg border-gray-200 overflow-hidden rounded-xl"
                   bodyStyle={{ padding: 0 }}
-                  hoverable 
+                  hoverable
                   onClick={() => handleViewDetailJob(item)}
                 >
                   <div className="p-6">
@@ -201,7 +208,7 @@ const JobCard = ({ showPagination = true, filters = {} }) => {
             {!currentJobs?.length && !isLoading && (
               <Col span={24}>
                 <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-gray-200">
-                  <Empty 
+                  <Empty
                     description={
                       <span className="text-gray-500">Không có việc làm phù hợp</span>
                     }

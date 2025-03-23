@@ -4,28 +4,35 @@ export const jobApi = {
   getAll: (params) => {
     const queryString = new URLSearchParams();
 
+    // Các params cơ bản
     if (params.current) queryString.append('current', params.current);
     if (params.pageSize) queryString.append('pageSize', params.pageSize);
 
-    if (params.name) queryString.append('name', params.name);
-    if (params.company) queryString.append('company', params.company); // ✅ Thêm công ty
-    if (params.location) queryString.append('location', params.location);
-    if (params.salary) queryString.append('salary', params.salary); // ✅ Thêm mức lương
-    if (params.level) queryString.append('level', params.level);
-    if (params.isActive !== undefined && params.isActive !== null) {
-      queryString.append('isActive', String(params.isActive));
+    // Các params tìm kiếm
+    if (params.name && params.name.trim()) {
+      queryString.append('name', params.name.trim());
     }
+
+    if (params.location) {
+      queryString.append('location', params.location);
+    }
+
+    // Sửa lại cách append skills
     if (params.skills) {
       if (Array.isArray(params.skills)) {
-        params.skills.forEach(skill => queryString.append('skills', skill));
+        params.skills.forEach(skill => {
+          queryString.append('skills', skill);
+        });
       } else {
         queryString.append('skills', params.skills);
       }
     }
 
-    if (params.sort) queryString.append('sort', params.sort);
+    // Tạo URL string và kiểm tra
+    const queryStr = queryString.toString();
+    console.log('Query URL:', `/jobs?${queryStr}`);
 
-    return axios.get(`/jobs?${queryString.toString()}`);
+    return axios.get(`/jobs?${queryStr}`);
   },
 
   create: async (data) => {
