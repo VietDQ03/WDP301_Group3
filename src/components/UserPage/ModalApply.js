@@ -14,7 +14,7 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
     const [urlCV, setUrlCV] = useState("");
     const [userCVs, setUserCVs] = useState([]);
     const [selectedExistingCV, setSelectedExistingCV] = useState("");
-    const [uploadType, setUploadType] = useState("existing"); // "existing" or "new"
+    const [uploadType, setUploadType] = useState("new"); // Mặc định là "new"
     const navigate = useNavigate();
 
     // Fetch user's existing CVs when modal opens
@@ -182,9 +182,9 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
                 CV của bạn
             </label>
 
-            {/* Upload type selection - Improved UI */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-                {userCVs.length > 0 && (
+            {/* Upload type selection - Chỉ hiện khi có CV sẵn */}
+            {userCVs.length > 0 && (
+                <div className="grid grid-cols-2 gap-4 mb-4">
                     <div 
                         onClick={() => setUploadType("existing")}
                         className={`flex flex-col items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
@@ -205,29 +205,29 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
                             </div>
                         </div>
                     </div>
-                )}
-                
-                <div 
-                    onClick={() => setUploadType("new")}
-                    className={`flex flex-col items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                        uploadType === "new" 
-                            ? "border-blue-500 bg-blue-50" 
-                            : "border-gray-200 hover:border-blue-300"
-                    }`}
-                >
-                    <div className="flex items-center justify-center w-10 h-10 mb-3 rounded-full bg-blue-100">
-                        <Upload className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <p className="font-medium text-center">Tải lên CV mới</p>
-                    <div className="mt-2 flex items-center">
-                        <div className={`w-5 h-5 rounded-full border ${uploadType === "new" ? "border-blue-500" : "border-gray-300"} flex items-center justify-center`}>
-                            {uploadType === "new" && (
-                                <div className="w-3 h-3 rounded-full bg-blue-500" />
-                            )}
+                    
+                    <div 
+                        onClick={() => setUploadType("new")}
+                        className={`flex flex-col items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                            uploadType === "new" 
+                                ? "border-blue-500 bg-blue-50" 
+                                : "border-gray-200 hover:border-blue-300"
+                        }`}
+                    >
+                        <div className="flex items-center justify-center w-10 h-10 mb-3 rounded-full bg-blue-100">
+                            <Upload className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <p className="font-medium text-center">Tải lên CV mới</p>
+                        <div className="mt-2 flex items-center">
+                            <div className={`w-5 h-5 rounded-full border ${uploadType === "new" ? "border-blue-500" : "border-gray-300"} flex items-center justify-center`}>
+                                {uploadType === "new" && (
+                                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Existing CVs selection */}
             {uploadType === "existing" && userCVs.length > 0 && (
@@ -275,8 +275,8 @@ const ApplyModal = ({ isModalOpen, setIsModalOpen, jobDetail }) => {
                 </div>
             )}
 
-            {/* New CV upload */}
-            {uploadType === "new" && (
+            {/* New CV upload - Hiển thị khi không có CV hoặc khi chọn "Tải lên CV mới" */}
+            {(uploadType === "new" || userCVs.length === 0) && (
                 <label className="relative flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors">
                     <div className="space-y-1 text-center">
                         <Upload className="mx-auto h-8 w-8 text-gray-400" />
