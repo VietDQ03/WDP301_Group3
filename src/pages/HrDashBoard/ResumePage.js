@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useState } from "react";
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import { resumeApi } from "../../api/AdminPageAPI/resumeAPI";
-import { Table, Input, Button, Space, Typography, Tooltip, Layout, Select, message, Pagination } from "antd";
+import { Table, Input, Button, Space, Typography, Tooltip, Layout, Select, message, Pagination, Modal } from "antd";
 import { ReloadOutlined, MailOutlined, EyeOutlined, UserOutlined } from "@ant-design/icons";
 import { motion } from 'framer-motion';
-import { debounce, max } from "lodash";
+import { debounce } from "lodash";
 import { useSelector } from "react-redux";
 import { Briefcase } from 'lucide-react';
 import ViewResumeModal from './Modal/ViewResumeModal';
@@ -26,6 +26,15 @@ const ResumePage = () => {
     status: undefined
   });
 
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    id: null,
+    currentStatus: null,
+    newStatus: null,
+    title: '',
+    content: ''
+  });
+
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -34,7 +43,42 @@ const ResumePage = () => {
 
   const { user } = useSelector((state) => state.auth);
 
-  console.log(user)
+  const getStatusLabel = (status) => {
+    const statusMap = {
+      'PENDING': 'Đang chờ',
+      'PASSCV': 'Chờ phỏng vấn',
+      'APPROVED': 'Đã duyệt',
+      'REJECTED': 'Từ chối'
+    };
+    return statusMap[status] || status;
+  };
+
+  const getConfirmationMessage = (currentStatus, newStatus) => {
+    const messages = {
+      PENDING_TO_PASSCV: {
+        title: 'Xác nhận chuyển trạng thái',
+        content: 'Bạn có chắc chắn muốn chuyển hồ sơ này sang trạng thái "Chờ phỏng vấn"? Sau khi chuyển, bạn không thể quay lại trạng thái trước đó.'
+      },
+      PENDING_TO_REJECTED: {
+        title: 'Xác nhận từ chối hồ sơ',
+        content: 'Bạn có chắc chắn muốn từ chối hồ sơ này? Hành động này không thể hoàn tác.'
+      },
+      PASSCV_TO_APPROVED: {
+        title: 'Xác nhận duyệt hồ sơ',
+        content: 'Bạn có chắc chắn muốn duyệt hồ sơ này? Sau khi duyệt, trạng thái không thể thay đổi.'
+      },
+      PASSCV_TO_REJECTED: {
+        title: 'Xác nhận từ chối hồ sơ',
+        content: 'Bạn có chắc chắn muốn từ chối hồ sơ này? Hành động này không thể hoàn tác.'
+      }
+    };
+
+    const key = `${currentStatus}_TO_${newStatus}`;
+    return messages[key] || {
+      title: 'Xác nhận thay đổi',
+      content: `Bạn có chắc chắn muốn thay đổi trạng thái từ "${getStatusLabel(currentStatus)}" sang "${getStatusLabel(newStatus)}"?`
+    };
+  };
 
   const fetchResumes = async (params = {}) => {
     setLoading(true);
@@ -67,7 +111,6 @@ const ResumePage = () => {
       );
 
       const resumeData = response?.data?.data;
-      console.log(resumeData)
 
       if (resumeData?.result) {
         const formattedResumes = resumeData.result.map((resume, index) => ({
@@ -137,8 +180,61 @@ const ResumePage = () => {
     });
   };
 
-  const handleUpdateStatus = async (id, newStatus) => {
+  const getAvailableStatuses = (currentStatus) => {
+    switch (currentStatus) {
+      case 'PENDING':
+        return [
+          { value: 'PENDING', label: 'Đang chờ', color: 'text-yellow-500' },
+          { value: 'PASSCV', label: 'Chờ phỏng vấn', color: 'text-amber-500' },
+          { value: 'REJECTED', label: 'Từ chối', color: 'text-rose-500' }
+        ];
+      case 'PASSCV':
+        return [
+          { value: 'PASSCV', label: 'Chờ phỏng vấn', color: 'text-amber-500' },
+          { value: 'APPROVED', label: 'Đã duyệt', color: 'text-green-500' },
+          { value: 'REJECTED', label: 'Từ chối', color: 'text-rose-500' }
+        ];
+      case 'APPROVED':
+        return [
+          { value: 'APPROVED', label: 'Đã duyệt', color: 'text-green-500' }
+        ];
+      case 'REJECTED':
+        return [
+          { value: 'REJECTED', label: 'Từ chối', color: 'text-rose-500' }
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const showConfirmModal = (id, currentStatus, newStatus) => {
+    const message = getConfirmationMessage(currentStatus, newStatus);
+    setConfirmModal({
+      visible: true,
+      id,
+      currentStatus,
+      newStatus,
+      title: message.title,
+      content: message.content
+    });
+  };
+
+  const handleUpdateStatus = async (id, newStatus, currentStatus) => {
+    const allowedStatuses = getAvailableStatuses(currentStatus).map(s => s.value);
+    if (!allowedStatuses.includes(newStatus)) {
+      message.error('Không thể chuyển sang trạng thái này');
+      return;
+    }
+
+    showConfirmModal(id, currentStatus, newStatus);
+  };
+
+  const handleConfirmStatusUpdate = async () => {
+    const { id, newStatus } = confirmModal;
+    setConfirmModal(prev => ({ ...prev, visible: false }));
+    
     try {
+      setLoading(true);
       await resumeApi.updateStatus(id, newStatus);
       message.success('Cập nhật trạng thái thành công');
       fetchResumes({
@@ -147,8 +243,10 @@ const ResumePage = () => {
         ...searchValues
       });
     } catch (error) {
-      message.error('Không thể cập nhật trạng thái');
       console.error('Error:', error);
+      message.error('Không thể cập nhật trạng thái');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -208,21 +306,17 @@ const ResumePage = () => {
       render: (status, record) => (
         <Select
           value={status}
-          className="w-32"
-          onChange={(newStatus) => handleUpdateStatus(record.id, newStatus)}
+          className="w-40"
+          onChange={(newStatus) => handleUpdateStatus(record.id, newStatus, status)}
+          disabled={status === 'APPROVED' || status === 'REJECTED'}
         >
-          <Option value="PENDING">
-            <span className="text-yellow-500">Đang chờ</span>
-          </Option>
-          <Option value="PASSCV">
-            <span className="text-amber-500">Chờ phỏng vấn</span>
-          </Option>
-          <Option value="APPROVED">
-            <span className="text-green-500">Đã duyệt</span>
-          </Option>
-          <Option value="REJECTED">
-            <span className="text-rose-500">Từ chối</span>
-          </Option>
+          {getAvailableStatuses(status).map(statusOption => (
+            <Option key={statusOption.value} value={statusOption.value}>
+              <span className={statusOption.color}>
+                {statusOption.label}
+              </span>
+            </Option>
+          ))}
         </Select>
       ),
     },
@@ -348,7 +442,7 @@ const ResumePage = () => {
                         <span className="text-yellow-500">Đang chờ</span>
                       </Option>
                       <Option value="PASSCV">
-                        <span className="text-yellow-500">Chờ phỏng vấn</span>
+                        <span className="text-amber-500">Chờ phỏng vấn</span>
                       </Option>
                       <Option value="APPROVED">
                         <span className="text-green-500">Đã duyệt</span>
@@ -393,7 +487,9 @@ const ResumePage = () => {
                           onClick={handleRefresh}
                           size="large"
                           className="h-11 hover:bg-gray-50 hover:border-gray-300"
-                        >Làm mới</Button>
+                        >
+                          Làm mới
+                        </Button>
                       </Tooltip>
                     </motion.div>
                   </Space>
@@ -407,10 +503,6 @@ const ResumePage = () => {
                     className="shadow-sm rounded-lg overflow-hidden"
                     loading={loading}
                     rowClassName="hover:bg-gray-50 transition-colors cursor-pointer"
-                    onRow={(record) => ({
-                      onClick: () => {
-                      },
-                    })}
                   />
                 </div>
                 <div
@@ -434,6 +526,20 @@ const ResumePage = () => {
           </Content>
         </Layout>
       </div>
+
+      <Modal
+        title={<span className="font-medium">{confirmModal.title}</span>}
+        open={confirmModal.visible}
+        onOk={handleConfirmStatusUpdate}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+        okText="Xác nhận"
+        cancelText="Hủy"
+        className="modal-confirm"
+      >
+        <div className="py-4">
+          <p className="text-gray-600">{confirmModal.content}</p>
+        </div>
+      </Modal>
 
       <ViewResumeModal
         isOpen={isModalOpen}
