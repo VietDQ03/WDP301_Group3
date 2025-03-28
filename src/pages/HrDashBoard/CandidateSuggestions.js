@@ -10,6 +10,8 @@ import { experienceApi } from '../../api/experienceAPI';
 import Sidebar from "../../components/HrDashBoard/Sidebar";
 import Header from "../../components/HrDashBoard/Header";
 import ViewCandidateModal from "./Modal/ViewCandidateModal";
+import { jobApi } from "../../api/AdminPageAPI/jobAPI";
+import { useSelector } from "react-redux";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -22,6 +24,7 @@ const CandidateSuggestions = () => {
   const [positions, setPositions] = useState([]);
   const [skills, setSkills] = useState([]);
   const [experiences, setExperiences] = useState([]);
+  const [jobs, setJobs] = useState([]);
   const [searchValues, setSearchValues] = useState({
     position: [],
     skill: [],
@@ -34,6 +37,9 @@ const CandidateSuggestions = () => {
     pageSize: 10,
     total: 0
   });
+
+  const { user } = useSelector((state) => state.auth);
+
 
   const fetchSelectOptions = async () => {
     try {
@@ -49,6 +55,37 @@ const CandidateSuggestions = () => {
     } catch (error) {
       console.error("Error fetching options:", error);
       message.error("Có lỗi xảy ra khi tải dữ liệu!");
+    }
+  };
+
+  const fetchJobsData = async () => {
+    try {
+      const response = await jobApi.findByCompany(user?.company?._id, {
+        current: 1,
+        pageSize: 100
+      });
+  
+      const { result } = response.data.data;
+  
+      const activeJobs = result.filter(job => job.isActive === true);
+  
+      const formattedJobs = activeJobs.map(job => ({
+        key: job._id,
+        name: job.name,
+        location: job.location,
+        salary: job.salary,
+        level: job.level,
+        quantity: job.quantity,
+        description: job.description,
+        skills: job.skills,
+        company: job.company,
+        isActive: job.isActive
+      }));
+  
+      setJobs(formattedJobs);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      message.error("Có lỗi xảy ra khi tải danh sách việc làm!");
     }
   };
 
@@ -108,6 +145,7 @@ const CandidateSuggestions = () => {
   useEffect(() => {
     fetchCVs();
     fetchSelectOptions();
+    fetchJobsData();
   }, []);
 
   const debouncedSearch = useCallback(
@@ -435,6 +473,7 @@ const CandidateSuggestions = () => {
               setSelectedCV(null);
             }}
             cvData={selectedCV}
+            jobs={jobs}
           />
         </Layout>
       </div>

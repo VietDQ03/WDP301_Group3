@@ -109,3 +109,16 @@ export const checkOTP = async (email, otp) => {
     throw error;
   }
 };
+
+export const sendInvitation = async (invitationData) => {
+  try {
+    const response = await axios.post("/mail/sendInvitation", invitationData);
+    if (response) {
+      return response;
+    }
+    throw new Error("Invalid response format");
+  } catch (error) {
+    console.log("Send Invitation API Error:", error);
+    throw error;
+  }
+};
